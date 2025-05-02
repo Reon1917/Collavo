@@ -1,0 +1,121 @@
+{
+  "users": [
+    {
+      "id": "user1",
+      "name": "Alex Johnson",
+      "email": "alex@example.com",
+      "avatar": "/avatars/alex.png"
+    },
+    {
+      "id": "user2",
+      "name": "Sam Wilson",
+      "email": "sam@example.com",
+      "avatar": "/avatars/sam.png"
+    },
+    {
+      "id": "user3",
+      "name": "Taylor Smith",
+      "email": "taylor@example.com",
+      "avatar": "/avatars/taylor.png"
+    },
+    {
+      "id": "user4",
+      "name": "Jordan Lee",
+      "email": "jordan@example.com",
+      "avatar": "/avatars/jordan.png"
+    },
+    {
+      "id": "user5",
+      "name": "Casey Brown",
+      "email": "casey@example.com",
+      "avatar": "/avatars/casey.png"
+    }
+  ],
+  "projects": [
+    {
+      "id": "project1",
+      "name": "Marketing Research Presentation",
+      "description": "Final presentation for Marketing 301 course",
+      "deadline": "2025-05-15T23:59:59Z",
+      "createdAt": "2025-04-10T14:30:00Z",
+      "leader": "user1",
+      "members": [
+        {
+          "userId": "user1",
+          "role": "leader",
+          "joinedAt": "2025-04-10T14:30:00Z"
+        },
+        {
+          "userId": "user2",
+          "role": "member",
+          "joinedAt": "2025-04-10T15:45:00Z"
+        },
+        {
+          "userId": "user3",
+          "role": "member",
+          "joinedAt": "2025-04-11T09:20:00Z"
+        }
+      ]
+    },
+    {
+      "id": "project2",
+      "name": "Physics Lab Report",
+      "description": "Group lab report for Physics 202",
+      "deadline": "2025-05-10T23:59:59Z",
+      "createdAt": "2025-04-15T10:00:00Z",
+      "leader": "user2",
+      "members": [
+        {
+          "userId": "user2",
+          "role": "leader",
+          "joinedAt": "2025-04-15T10:00:00Z"
+        },
+        {
+          "userId": "user1",
+          "role": "member",
+          "joinedAt": "2025-04-15T11:30:00Z"
+        },
+        {
+          "userId": "user4",
+          "role": "member",
+          "joinedAt": "2025-04-15T14:15:00Z"
+        }
+      ]
+    },
+    {
+      "id": "project3",
+      "name": "History Essay Collaboration",
+      "description": "Joint research paper for History 405",
+      "deadline": "2025-05-20T23:59:59Z",
+      "createdAt": "2025-04-12T16:45:00Z",
+      "leader": "user1",
+      "members": [
+        {
+          "userId": "user1",
+          "role": "leader",
+          "joinedAt": "2025-04-12T16:45:00Z"
+        },
+        {
+          "userId": "user5",
+          "role": "member",
+          "joinedAt": "2025-04-12T17:30:00Z"
+        }
+      ]
+    },
+    {
+      "id": "project4",
+      "name": "Personal Study Plan",
+      "description": "Individual study schedule for finals",
+      "deadline": "2025-06-01T23:59:59Z",
+      "createdAt": "2025-04-20T09:15:00Z",
+      "leader": "user1",
+      "members": [
+        {
+          "userId": "user1",
+          "role": "leader",
+          "joinedAt": "2025-04-20T09:15:00Z"
+        }
+      ]
+    }
+  ]
+}

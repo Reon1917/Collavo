@@ -1,0 +1,197 @@
+{
+  "tasks": [
+    {
+      "id": "task1",
+      "projectId": "project1",
+      "title": "Research market trends",
+      "description": "Gather data on current market trends for the presentation",
+      "assignedTo": "user1",
+      "importance": "major",
+      "status": "completed",
+      "deadline": "2025-05-05T23:59:59Z",
+      "createdAt": "2025-04-11T10:00:00Z"
+    },
+    {
+      "id": "task2",
+      "projectId": "project1",
+      "title": "Create presentation slides",
+      "description": "Design 15 slides based on the research data",
+      "assignedTo": "user2",
+      "importance": "critical",
+      "status": "in-progress",
+      "deadline": "2025-05-10T23:59:59Z",
+      "createdAt": "2025-04-12T14:30:00Z"
+    },
+    {
+      "id": "task3",
+      "projectId": "project1",
+      "title": "Write presentation script",
+      "description": "Prepare speaking notes for each slide",
+      "assignedTo": "user3",
+      "importance": "major",
+      "status": "pending",
+      "deadline": "2025-05-12T23:59:59Z",
+      "createdAt": "2025-04-13T09:15:00Z"
+    },
+    {
+      "id": "task4",
+      "projectId": "project2",
+      "title": "Analyze lab data",
+      "description": "Process the raw data from the experiment",
+      "assignedTo": "user2",
+      "importance": "critical",
+      "status": "completed",
+      "deadline": "2025-04-30T23:59:59Z",
+      "createdAt": "2025-04-16T11:00:00Z"
+    },
+    {
+      "id": "task5",
+      "projectId": "project2",
+      "title": "Create data visualizations",
+      "description": "Generate graphs and charts from the processed data",
+      "assignedTo": "user1",
+      "importance": "major",
+      "status": "in-progress",
+      "deadline": "2025-05-05T23:59:59Z",
+      "createdAt": "2025-04-17T13:45:00Z"
+    },
+    {
+      "id": "task6",
+      "projectId": "project2",
+      "title": "Write conclusion section",
+      "description": "Summarize findings and implications",
+      "assignedTo": "user4",
+      "importance": "major",
+      "status": "pending",
+      "deadline": "2025-05-08T23:59:59Z",
+      "createdAt": "2025-04-18T10:30:00Z"
+    },
+    {
+      "id": "task7",
+      "projectId": "project3",
+      "title": "Research primary sources",
+      "description": "Find and analyze historical documents",
+      "assignedTo": "user1",
+      "importance": "critical",
+      "status": "in-progress",
+      "deadline": "2025-05-05T23:59:59Z",
+      "createdAt": "2025-04-13T15:00:00Z"
+    },
+    {
+      "id": "task8",
+      "projectId": "project3",
+      "title": "Draft introduction and thesis",
+      "description": "Write the opening section and main argument",
+      "assignedTo": "user5",
+      "importance": "major",
+      "status": "pending",
+      "deadline": "2025-05-10T23:59:59Z",
+      "createdAt": "2025-04-14T09:30:00Z"
+    },
+    {
+      "id": "task9",
+      "projectId": "project4",
+      "title": "Create study schedule",
+      "description": "Plan daily study sessions for each subject",
+      "assignedTo": "user1",
+      "importance": "normal",
+      "status": "completed",
+      "deadline": "2025-04-25T23:59:59Z",
+      "createdAt": "2025-04-21T10:00:00Z"
+    },
+    {
+      "id": "task10",
+      "projectId": "project4",
+      "title": "Prepare practice exams",
+      "description": "Collect and organize practice questions",
+      "assignedTo": "user1",
+      "importance": "major",
+      "status": "in-progress",
+      "deadline": "2025-05-15T23:59:59Z",
+      "createdAt": "2025-04-22T14:15:00Z"
+    }
+  ],
+  "resources": [
+    {
+      "id": "resource1",
+      "projectId": "project1",
+      "name": "Marketing Presentation Slides",
+      "type": "file",
+      "url": "https://docs.google.com/presentation/d/example1",
+      "createdBy": "user1",
+      "createdAt": "2025-04-15T11:30:00Z"
+    },
+    {
+      "id": "resource2",
+      "projectId": "project1",
+      "name": "Research Data Spreadsheet",
+      "type": "file",
+      "url": "https://docs.google.com/spreadsheets/d/example2",
+      "createdBy": "user1",
+      "createdAt": "2025-04-16T09:45:00Z"
+    },
+    {
+      "id": "resource3",
+      "projectId": "project1",
+      "name": "Presentation Script",
+      "type": "file",
+      "url": "https://docs.google.com/document/d/example3",
+      "createdBy": "user3",
+      "createdAt": "2025-04-17T14:20:00Z"
+    },
+    {
+      "id": "resource4",
+      "projectId": "project2",
+      "name": "Lab Data",
+      "type": "file",
+      "url": "https://docs.google.com/spreadsheets/d/example4",
+      "createdBy": "user2",
+      "createdAt": "2025-04-16T15:30:00Z"
+    },
+    {
+      "id": "resource5",
+      "projectId": "project2",
+      "name": "Lab Report Template",
+      "type": "file",
+      "url": "https://docs.google.com/document/d/example5",
+      "createdBy": "user2",
+      "createdAt": "2025-04-17T10:15:00Z"
+    },
+    {
+      "id": "resource6",
+      "projectId": "project3",
+      "name": "Historical Sources List",
+      "type": "file",
+      "url": "https://docs.google.com/document/d/example6",
+      "createdBy": "user1",
+      "createdAt": "2025-04-14T13:40:00Z"
+    },
+    {
+      "id": "resource7",
+      "projectId": "project3",
+      "name": "Essay Outline",
+      "type": "file",
+      "url": "https://docs.google.com/document/d/example7",
+      "createdBy": "user5",
+      "createdAt": "2025-04-15T16:20:00Z"
+    },
+    {
+      "id": "resource8",
+      "projectId": "project4",
+      "name": "Study Schedule",
+      "type": "file",
+      "url": "https://docs.google.com/spreadsheets/d/example8",
+      "createdBy": "user1",
+      "createdAt": "2025-04-22T09:30:00Z"
+    },
+    {
+      "id": "resource9",
+      "projectId": "project4",
+      "name": "Practice Exam Questions",
+      "type": "file",
+      "url": "https://docs.google.com/document/d/example9",
+      "createdBy": "user1",
+      "createdAt": "2025-04-23T11:45:00Z"
+    }
+  ]
+}
