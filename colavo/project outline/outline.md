@@ -75,3 +75,6 @@ Let's say you have a presentation next week:
 ## Feature Idea: a separate task tab
 - Sort/filter with assigned person, level, status etc.
 - Task pop-up will have task details and assigned person will be able to edit update/note and status.
+- Chat for members  
+- Reminders and Email notification management 
+- Sorting task list from priority level , set deadline , etc.
