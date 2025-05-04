@@ -123,8 +123,17 @@ export default async function ProjectPage({ params }: { params: { id: string } }
 }
 
 async function TaskItem({ task }: { task: Task }) {
-  // In a real app, we would use a more efficient way to fetch users
-  const assignee = await getUserById(task.assignedTo);
+  // Handle multiple assignees
+  let assignee: User | undefined;
+  
+  // Check if assignedTo is an array (new format) or string (old format)
+  if (Array.isArray(task.assignedTo) && task.assignedTo.length > 0) {
+    // Get the first assignee for display in the overview
+    assignee = await getUserById(task.assignedTo[0]);
+  } else if (typeof task.assignedTo === 'string') {
+    // Handle legacy format
+    assignee = await getUserById(task.assignedTo);
+  }
   
   // Determine status color
   const statusColors = {

@@ -74,8 +74,15 @@ export default function TasksPage({ params }: { params: { id: string } }) {
         setTasks(uniqueTasks);
         
         // Fetch users for assigned tasks
-        const userIds = [...new Set(uniqueTasks.map(task => task.assignedTo))];
-        const userPromises = userIds.map(id => getUserById(id));
+        // Get all unique user IDs from all tasks (which now have arrays of assignees)
+        const userIds = new Set<string>();
+        uniqueTasks.forEach(task => {
+          // Handle both string and string[] for backward compatibility
+          const assignees = Array.isArray(task.assignedTo) ? task.assignedTo : [task.assignedTo];
+          assignees.forEach(userId => userIds.add(userId));
+        });
+        
+        const userPromises = Array.from(userIds).map(id => getUserById(id));
         const userResults = await Promise.all(userPromises);
         
         const userMap: Record<string, User> = {};
@@ -210,15 +217,22 @@ export default function TasksPage({ params }: { params: { id: string } }) {
           </div>
           <div className="divide-y divide-gray-200">
             {tasks.length > 0 ? (
-              tasks.map(task => (
-                <TaskItem 
-                  key={task.id} 
-                  task={task} 
-                  projectId={projectId} 
-                  assignee={users[task.assignedTo]}
-                  onDelete={() => handleDeleteTask(task.id)}
-                />
-              ))
+              tasks.map(task => {
+                // Get assignees for this task
+                const taskAssignees = Array.isArray(task.assignedTo) 
+                  ? task.assignedTo.map(id => users[id]).filter(Boolean)
+                  : users[task.assignedTo] ? [users[task.assignedTo]] : [];
+                
+                return (
+                  <TaskItem 
+                    key={task.id} 
+                    task={task} 
+                    projectId={projectId} 
+                    assignees={taskAssignees}
+                    onDelete={() => handleDeleteTask(task.id)}
+                  />
+                );
+              })
             ) : (
               <div className="p-6 text-center text-gray-500">
                 No tasks added yet

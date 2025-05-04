@@ -11,10 +11,11 @@ interface TaskItemProps {
   task: Task;
   projectId: string;
   assignee?: User;
+  assignees?: User[];
   onDelete?: () => void;
 }
 
-export function TaskItem({ task, projectId, assignee, onDelete }: TaskItemProps) {
+export function TaskItem({ task, projectId, assignee, assignees, onDelete }: TaskItemProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   
@@ -46,6 +47,9 @@ export function TaskItem({ task, projectId, assignee, onDelete }: TaskItemProps)
     }
   };
 
+  // Get assignees to display
+  const displayAssignees = assignees || (assignee ? [assignee] : []);
+
   return (
     <div className="p-4 hover:bg-gray-50">
       <div className="flex items-center">
@@ -64,14 +68,28 @@ export function TaskItem({ task, projectId, assignee, onDelete }: TaskItemProps)
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {assignee && (
-            <div 
-              className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium"
-              title={assignee.name}
-            >
-              {assignee.name.charAt(0)}
-            </div>
-          )}
+          {/* Display multiple assignees */}
+          <div className="flex -space-x-2 mr-2">
+            {displayAssignees.slice(0, 3).map((user, index) => (
+              <div 
+                key={user.id}
+                className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium border-2 border-white"
+                title={user.name}
+                style={{ zIndex: 10 - index }}
+              >
+                {user.name.charAt(0)}
+              </div>
+            ))}
+            {displayAssignees.length > 3 && (
+              <div 
+                className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium border-2 border-white"
+                title={`${displayAssignees.length - 3} more members`}
+                style={{ zIndex: 7 }}
+              >
+                +{displayAssignees.length - 3}
+              </div>
+            )}
+          </div>
           <Button 
             variant="ghost" 
             size="icon" 

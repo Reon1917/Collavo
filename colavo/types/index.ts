@@ -39,7 +39,7 @@ export interface Task {
   projectId: string;
   title: string;
   description: string;
-  assignedTo: string;
+  assignedTo: string[];
   importance: TaskImportance;
   status: TaskStatus;
   deadline: string;
