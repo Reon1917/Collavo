@@ -61,7 +61,7 @@ export function TaskItem({ task, projectId, assignee, assignees, onDelete }: Tas
             <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusColors[task.status]}`}>
               {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
             </span>
-            <span className="mx-2 text-gray-300">•</span>
+            <span className="mx-2 text-gray-300">u2022</span>
             <span className="text-xs text-gray-500">
               Due {new Date(task.deadline).toLocaleDateString()}
             </span>

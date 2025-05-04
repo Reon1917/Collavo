@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import { Task, User } from '@/types';
 import { Button } from '@/components/ui/button';
 import { getLocalTasksByProjectId, initializeLocalStorage, deleteLocalTask } from '@/lib/client-data';
-import { TaskDialog } from '@/components/task-dialog';
-import { TaskItem } from '@/components/task-item';
-import { CalendarTaskItem } from '@/components/calendar-task-item';
+import { TaskDialog } from '@/components/tasks/task-dialog';
+import { TaskItem } from '@/components/tasks/task-item';
+import { CalendarTaskItem } from '@/components/tasks/calendar-task-item';
 import { getProjectById, getUserById, getTasksByProjectId } from '@/lib/data';
 import React from 'react';
 
