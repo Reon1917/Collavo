@@ -21,14 +21,14 @@ export default function Home() {
                     Get Started
                   </Button>
                 </Link>
-                <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
+                <Button variant="outline" size="lg" className="border-white text-blue-700 hover:bg-white/10 hover:text-white">
                   Learn More
                 </Button>
               </div>
             </div>
             <div className="md:w-1/2">
               <img 
-                src="/dashboard-preview.png" 
+                src="/landingpage-img/dashboard.png" 
                 alt="Collavo Dashboard Preview" 
                 className="rounded-lg shadow-xl"
                 width={600}
