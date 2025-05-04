@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { ProjectMember, User } from '@/types';
 
 export default async function MembersPage({ params }: { params: { id: string } }) {
-  const project = await getProjectById(params.id);
+  const { id } = params;
+  const project = await getProjectById(id);
 
   if (!project) {
     return null; // This will be handled by the layout

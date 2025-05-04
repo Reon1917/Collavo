@@ -1,25 +1,131 @@
-import { getProjectById, getTasksByProjectId, getUserById } from '@/lib/data';
+"use client";
+
+import { useEffect, useState } from 'react';
 import { Task, User } from '@/types';
 import { Button } from '@/components/ui/button';
+import { getLocalTasksByProjectId, initializeLocalStorage, deleteLocalTask } from '@/lib/client-data';
+import { TaskDialog } from '@/components/task-dialog';
+import { TaskItem } from '@/components/task-item';
+import { CalendarTaskItem } from '@/components/calendar-task-item';
+import { getProjectById, getUserById, getTasksByProjectId } from '@/lib/data';
+import React from 'react';
 
-export default async function TasksPage({ params }: { params: { id: string } }) {
-  const project = await getProjectById(params.id);
-  const tasks = await getTasksByProjectId(params.id);
-
-  if (!project) {
-    return null; // This will be handled by the layout
-  }
-
-  // Group tasks by their deadline date for the calendar view
-  const tasksByDate = groupTasksByDate(tasks);
+export default function TasksPage({ params }: { params: { id: string } }) {
+  // Store the ID directly in a state variable to avoid the params warning
+  const [projectId] = useState(() => params.id);
   
+  const [project, setProject] = useState<any>(null);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [users, setUsers] = useState<Record<string, User>>({});
+  const [isLoading, setIsLoading] = useState(true);
+  // Add a refresh trigger to force re-renders when tasks change
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   // Get the current month and year for the calendar
   const today = new Date();
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
   
   // Generate calendar days for the current month
   const calendarDays = generateCalendarDays(currentMonth, currentYear);
+
+  // Function to refresh tasks
+  const refreshTasks = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  // Handle task deletion
+  const handleDeleteTask = (taskId: string) => {
+    deleteLocalTask(taskId);
+    refreshTasks();
+  };
+
+  // Handle task addition - just trigger a refresh since the task is added in the dialog
+  const handleAddTask = () => {
+    refreshTasks();
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      
+      try {
+        // Initialize local storage if needed
+        initializeLocalStorage();
+        
+        // Fetch project data
+        const projectData = await getProjectById(projectId);
+        setProject(projectData);
+        
+        // Fetch tasks from local storage
+        const localTasks = getLocalTasksByProjectId(projectId);
+        
+        // Combine with mock tasks from the data file
+        const mockTasks = await getTasksByProjectId(projectId);
+        
+        // Merge tasks, with local tasks taking precedence
+        const combinedTasks = [...mockTasks, ...localTasks];
+        
+        // Remove duplicates (if any task has the same ID)
+        const uniqueTasks = combinedTasks.filter((task, index, self) => 
+          index === self.findIndex(t => t.id === task.id)
+        );
+        
+        setTasks(uniqueTasks);
+        
+        // Fetch users for assigned tasks
+        const userIds = [...new Set(uniqueTasks.map(task => task.assignedTo))];
+        const userPromises = userIds.map(id => getUserById(id));
+        const userResults = await Promise.all(userPromises);
+        
+        const userMap: Record<string, User> = {};
+        userResults.forEach(user => {
+          if (user) {
+            userMap[user.id] = user;
+          }
+        });
+        
+        setUsers(userMap);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [projectId, refreshTrigger]); // Add refreshTrigger to dependencies
+
+  // Navigate to previous month
+  const goToPreviousMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(currentYear - 1);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
+  };
+
+  // Navigate to next month
+  const goToNextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(currentYear + 1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
+  };
+
+  // Group tasks by their deadline date for the calendar view
+  const tasksByDate = groupTasksByDate(tasks);
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-64">Loading...</div>;
+  }
+
+  if (!project) {
+    return <div className="text-red-500">Project not found</div>;
+  }
 
   return (
     <div>
@@ -30,9 +136,7 @@ export default async function TasksPage({ params }: { params: { id: string } }) 
             {tasks.length} tasks, {tasks.filter(t => t.status === 'completed').length} completed
           </p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
-          Add New Task
-        </Button>
+        <TaskDialog projectId={projectId} onTaskAdded={handleAddTask} />
       </header>
 
       {/* Calendar View */}
@@ -43,10 +147,10 @@ export default async function TasksPage({ params }: { params: { id: string } }) 
               {new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' })} {currentYear}
             </h2>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={goToPreviousMonth}>
                 Previous
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={goToNextMonth}>
                 Next
               </Button>
             </div>
@@ -107,7 +211,13 @@ export default async function TasksPage({ params }: { params: { id: string } }) 
           <div className="divide-y divide-gray-200">
             {tasks.length > 0 ? (
               tasks.map(task => (
-                <TaskListItem key={task.id} task={task} projectId={params.id} />
+                <TaskItem 
+                  key={task.id} 
+                  task={task} 
+                  projectId={projectId} 
+                  assignee={users[task.assignedTo]}
+                  onDelete={() => handleDeleteTask(task.id)}
+                />
               ))
             ) : (
               <div className="p-6 text-center text-gray-500">
@@ -117,74 +227,6 @@ export default async function TasksPage({ params }: { params: { id: string } }) 
           </div>
         </div>
       </section>
-    </div>
-  );
-}
-
-function CalendarTaskItem({ task }: { task: Task }) {
-  // Determine color based on importance
-  const importanceColors = {
-    'minor': 'bg-gray-100 text-gray-800',
-    'normal': 'bg-blue-100 text-blue-800',
-    'major': 'bg-orange-100 text-orange-800',
-    'critical': 'bg-red-100 text-red-800'
-  };
-
-  return (
-    <div 
-      className={`px-2 py-1 rounded text-xs truncate ${importanceColors[task.importance]}`}
-      title={task.title}
-    >
-      {task.title}
-    </div>
-  );
-}
-
-async function TaskListItem({ task, projectId }: { task: Task; projectId: string }) {
-  // In a real app, we would use a more efficient way to fetch users
-  const assignee = await getUserById(task.assignedTo);
-  
-  // Determine status color
-  const statusColors = {
-    'pending': 'bg-gray-100 text-gray-800',
-    'in-progress': 'bg-blue-100 text-blue-800',
-    'completed': 'bg-green-100 text-green-800'
-  };
-  
-  // Determine importance color
-  const importanceColors = {
-    'minor': 'border-gray-300',
-    'normal': 'border-blue-300',
-    'major': 'border-orange-300',
-    'critical': 'border-red-300'
-  };
-
-  return (
-    <div className="p-4 hover:bg-gray-50">
-      <div className="flex items-center">
-        <div className={`w-1 h-16 rounded-full mr-4 ${importanceColors[task.importance]}`} />
-        <div className="flex-1">
-          <h3 className="font-medium text-gray-900">{task.title}</h3>
-          <p className="text-sm text-gray-500 mb-1">{task.description}</p>
-          <div className="flex items-center">
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusColors[task.status]}`}>
-              {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
-            </span>
-            <span className="mx-2 text-gray-300">u2022</span>
-            <span className="text-xs text-gray-500">
-              Due {new Date(task.deadline).toLocaleDateString()}
-            </span>
-          </div>
-        </div>
-        {assignee && (
-          <div 
-            className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium"
-            title={assignee.name}
-          >
-            {assignee.name.charAt(0)}
-          </div>
-        )}
-      </div>
     </div>
   );
 }

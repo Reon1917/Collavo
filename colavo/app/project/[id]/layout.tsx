@@ -9,7 +9,8 @@ export default async function ProjectLayout({
   children: ReactNode;
   params: { id: string };
 }) {
-  const project = await getProjectById(params.id);
+  const { id } = params;
+  const project = await getProjectById(id);
 
   if (!project) {
     return (
@@ -27,37 +28,36 @@ export default async function ProjectLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 fixed h-full">
-        <div className="p-6 border-b border-gray-200">
-          <Link href="/dashboard" className="text-sm text-blue-600 hover:underline mb-2 block">
-            ← Back to Dashboard
-          </Link>
-          <h1 className="text-xl font-bold truncate">{project.name}</h1>
-        </div>
-        <nav className="p-4">
-          <ul className="space-y-1">
-            <NavItem href={`/project/${params.id}`} exact>
-              Overview
-            </NavItem>
-            <NavItem href={`/project/${params.id}/tasks`}>
-              Tasks
-            </NavItem>
-            <NavItem href={`/project/${params.id}/files`}>
-              Files & Links
-            </NavItem>
-            <NavItem href={`/project/${params.id}/members`}>
-              Members
-            </NavItem>
-          </ul>
-        </nav>
-      </aside>
-
+    <div className="flex flex-col min-h-screen">
       {/* Main content */}
-      <main className="flex-1 ml-64 p-8">
-        {children}
-      </main>
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex flex-col md:flex-row gap-6">
+          <aside className="md:w-64 flex-shrink-0">
+            <nav className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="font-semibold">Project Navigation</h2>
+              </div>
+              <div className="p-2">
+                <NavItem href={`/project/${id}`} exact>
+                  Overview
+                </NavItem>
+                <NavItem href={`/project/${id}/tasks`}>
+                  Tasks
+                </NavItem>
+                <NavItem href={`/project/${id}/files`}>
+                  Files & Links
+                </NavItem>
+                <NavItem href={`/project/${id}/members`}>
+                  Members
+                </NavItem>
+              </div>
+            </nav>
+          </aside>
+          <main className="flex-1 p-8">
+            {children}
+          </main>
+        </div>
+      </div>
     </div>
   );
 }

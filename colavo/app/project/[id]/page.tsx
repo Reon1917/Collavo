@@ -3,9 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Task, User } from '@/types';
 
 export default async function ProjectPage({ params }: { params: { id: string } }) {
-  const project = await getProjectById(params.id);
-  const tasks = await getTasksByProjectId(params.id);
-  const resources = await getResourcesByProjectId(params.id);
+  const { id } = params;
+  
+  const project = await getProjectById(id);
+  const tasks = await getTasksByProjectId(id);
+  const resources = await getResourcesByProjectId(id);
 
   if (!project) {
     return null; // This will be handled by the layout
@@ -62,7 +64,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-xl font-semibold">Upcoming Tasks</h2>
             <Button variant="outline" size="sm" asChild>
-              <a href={`/project/${params.id}/tasks`}>View All</a>
+              <a href={`/project/${id}/tasks`}>View All</a>
             </Button>
           </div>
           <div className="divide-y divide-gray-200">
@@ -83,7 +85,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-xl font-semibold">Recent Files</h2>
             <Button variant="outline" size="sm" asChild>
-              <a href={`/project/${params.id}/files`}>View All</a>
+              <a href={`/project/${id}/files`}>View All</a>
             </Button>
           </div>
           <div className="divide-y divide-gray-200">

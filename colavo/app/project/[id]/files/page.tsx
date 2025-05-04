@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Resource } from '@/types';
 
 export default async function FilesPage({ params }: { params: { id: string } }) {
-  const project = await getProjectById(params.id);
-  const resources = await getResourcesByProjectId(params.id);
+  const { id } = params;
+  const project = await getProjectById(id);
+  const resources = await getResourcesByProjectId(id);
 
   if (!project) {
     return null; // This will be handled by the layout
