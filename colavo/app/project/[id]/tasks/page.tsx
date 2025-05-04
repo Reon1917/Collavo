@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Task, User } from '@/types';
 import { Button } from '@/components/ui/button';
 import { getLocalTasksByProjectId, initializeLocalStorage, deleteLocalTask } from '@/lib/client-data';
 import { TaskDialog } from '@/components/tasks/task-dialog';
 import { TaskItem } from '@/components/tasks/task-item';
 import { CalendarTaskItem } from '@/components/tasks/calendar-task-item';
+import { TaskFilters, TaskFilters as TaskFiltersType, SortOptions } from '@/components/tasks/task-filters';
 import { getProjectById, getUserById, getTasksByProjectId } from '@/lib/data';
 import React from 'react';
 
@@ -25,31 +26,36 @@ export default function TasksPage({ params }: { params: { id: string } }) {
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
-  
-  // Generate calendar days for the current month
-  const calendarDays = generateCalendarDays(currentMonth, currentYear);
+  const [view, setView] = useState<'list' | 'calendar'>('list');
 
-  // Function to refresh tasks
-  const refreshTasks = () => {
-    setRefreshTrigger(prev => prev + 1);
+  // Add filter and sort state
+  const [filters, setFilters] = useState<TaskFiltersType>({
+    assignee: null,
+    importance: null,
+    status: null
+  });
+
+  const [sortOptions, setSortOptions] = useState<SortOptions>({
+    field: 'deadline',
+    direction: 'asc'
+  });
+
+  // Function to handle filter changes
+  const handleFiltersChange = (newFilters: TaskFiltersType) => {
+    setFilters(newFilters);
   };
 
-  // Handle task deletion
-  const handleDeleteTask = (taskId: string) => {
-    deleteLocalTask(taskId);
-    refreshTasks();
+  // Function to handle sort changes
+  const handleSortChange = (newSortOptions: SortOptions) => {
+    setSortOptions(newSortOptions);
   };
 
-  // Handle task addition - just trigger a refresh since the task is added in the dialog
-  const handleAddTask = () => {
-    refreshTasks();
-  };
-
+  // Fetch project data and tasks
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
-      
       try {
+        setIsLoading(true);
+        
         // Initialize local storage if needed
         initializeLocalStorage();
         
@@ -57,51 +63,145 @@ export default function TasksPage({ params }: { params: { id: string } }) {
         const projectData = await getProjectById(projectId);
         setProject(projectData);
         
-        // Fetch tasks from local storage
+        // Fetch tasks
+        const tasksData = await getTasksByProjectId(projectId);
         const localTasks = getLocalTasksByProjectId(projectId);
         
-        // Combine with mock tasks from the data file
-        const mockTasks = await getTasksByProjectId(projectId);
+        // Combine server and local tasks (in a real app, these would be the same source)
+        const allTasks = [...tasksData, ...localTasks];
+        setTasks(allTasks);
         
-        // Merge tasks, with local tasks taking precedence
-        const combinedTasks = [...mockTasks, ...localTasks];
-        
-        // Remove duplicates (if any task has the same ID)
-        const uniqueTasks = combinedTasks.filter((task, index, self) => 
-          index === self.findIndex(t => t.id === task.id)
-        );
-        
-        setTasks(uniqueTasks);
-        
-        // Fetch users for assigned tasks
-        // Get all unique user IDs from all tasks (which now have arrays of assignees)
-        const userIds = new Set<string>();
-        uniqueTasks.forEach(task => {
-          // Handle both string and string[] for backward compatibility
-          const assignees = Array.isArray(task.assignedTo) ? task.assignedTo : [task.assignedTo];
-          assignees.forEach(userId => userIds.add(userId));
-        });
-        
-        const userPromises = Array.from(userIds).map(id => getUserById(id));
-        const userResults = await Promise.all(userPromises);
-        
+        // Fetch user data for all assignees
         const userMap: Record<string, User> = {};
-        userResults.forEach(user => {
-          if (user) {
-            userMap[user.id] = user;
-          }
+        const userPromises = allTasks.flatMap(task => {
+          // Handle both string and string[] for backward compatibility
+          const assigneeIds = Array.isArray(task.assignedTo) ? task.assignedTo : [task.assignedTo];
+          return assigneeIds.map(async (userId) => {
+            if (userId && !userMap[userId]) {
+              try {
+                const userData = await getUserById(userId);
+                userMap[userId] = userData;
+              } catch (error) {
+                console.error(`Error fetching user ${userId}:`, error);
+              }
+            }
+          });
         });
         
+        await Promise.all(userPromises.filter(Boolean));
         setUsers(userMap);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       } finally {
         setIsLoading(false);
       }
     };
     
     fetchData();
-  }, [projectId, refreshTrigger]); // Add refreshTrigger to dependencies
+  }, [projectId, refreshTrigger]);
+
+  // Function to refresh tasks
+  const refreshTasks = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  // Function to handle task deletion
+  const handleTaskDelete = (taskId: string) => {
+    deleteLocalTask(taskId);
+    refreshTasks();
+  };
+
+  // Apply filters and sorting to tasks
+  const filteredAndSortedTasks = useMemo(() => {
+    // First apply filters
+    let result = [...tasks];
+    
+    if (filters.assignee) {
+      result = result.filter(task => {
+        const assigneeIds = Array.isArray(task.assignedTo) ? task.assignedTo : [task.assignedTo];
+        return assigneeIds.includes(filters.assignee!);
+      });
+    }
+    
+    if (filters.importance) {
+      result = result.filter(task => task.importance === filters.importance);
+    }
+    
+    if (filters.status) {
+      result = result.filter(task => task.status === filters.status);
+    }
+    
+    // Then apply sorting
+    result.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortOptions.field) {
+        case 'title':
+          comparison = a.title.localeCompare(b.title);
+          break;
+        case 'deadline':
+          comparison = new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+          break;
+        case 'importance': {
+          const importanceOrder = { minor: 0, normal: 1, major: 2, critical: 3 };
+          comparison = importanceOrder[a.importance] - importanceOrder[b.importance];
+          break;
+        }
+        case 'status': {
+          const statusOrder = { pending: 0, 'in-progress': 1, completed: 2 };
+          comparison = statusOrder[a.status] - statusOrder[b.status];
+          break;
+        }
+      }
+      
+      // Apply sort direction
+      return sortOptions.direction === 'asc' ? comparison : -comparison;
+    });
+    
+    return result;
+  }, [tasks, filters, sortOptions]);
+
+  // Get all users as an array for the filters component
+  const usersList = useMemo(() => {
+    return Object.values(users);
+  }, [users]);
+
+  // Generate calendar days
+  const calendarDays = useMemo(() => {
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+    
+    // Create array for days in month
+    const days = [];
+    
+    // Add empty cells for days before the first day of month
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      days.push({ day: null, date: null });
+    }
+    
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(currentYear, currentMonth, day);
+      days.push({ day, date });
+    }
+    
+    return days;
+  }, [currentMonth, currentYear]);
+
+  // Group tasks by date for calendar view
+  const tasksByDate = useMemo(() => {
+    const grouped: Record<string, Task[]> = {};
+    
+    filteredAndSortedTasks.forEach(task => {
+      const date = new Date(task.deadline).toDateString();
+      if (!grouped[date]) {
+        grouped[date] = [];
+      }
+      grouped[date].push(task);
+    });
+    
+    return grouped;
+  }, [filteredAndSortedTasks]);
 
   // Navigate to previous month
   const goToPreviousMonth = () => {
@@ -123,103 +223,63 @@ export default function TasksPage({ params }: { params: { id: string } }) {
     }
   };
 
-  // Group tasks by their deadline date for the calendar view
-  const tasksByDate = groupTasksByDate(tasks);
+  // Get month name
+  const monthName = new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' });
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-64">Loading...</div>;
-  }
-
-  if (!project) {
-    return <div className="text-red-500">Project not found</div>;
+    return (
+      <div className="container mx-auto py-8">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-xl text-gray-500">Loading...</div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <header className="mb-8 flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Tasks</h1>
-          <p className="text-gray-600">
-            {tasks.length} tasks, {tasks.filter(t => t.status === 'completed').length} completed
-          </p>
+    <div className="container mx-auto py-8 px-4">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">{project?.name} Tasks</h1>
+        <div className="flex space-x-2">
+          <div className="flex border border-gray-300 rounded-md overflow-hidden">
+            <Button 
+              variant={view === 'list' ? 'default' : 'outline'}
+              className={view === 'list' ? 'rounded-none bg-blue-600' : 'rounded-none'}
+              onClick={() => setView('list')}
+            >
+              List
+            </Button>
+            <Button 
+              variant={view === 'calendar' ? 'default' : 'outline'}
+              className={view === 'calendar' ? 'rounded-none bg-blue-600' : 'rounded-none'}
+              onClick={() => setView('calendar')}
+            >
+              Calendar
+            </Button>
+          </div>
+          <TaskDialog 
+            projectId={projectId} 
+            onTaskAdded={refreshTasks}
+          />
         </div>
-        <TaskDialog projectId={projectId} onTaskAdded={handleAddTask} />
-      </header>
+      </div>
 
-      {/* Calendar View */}
-      <section className="mb-10">
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-            <h2 className="text-xl font-semibold">
-              {new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' })} {currentYear}
-            </h2>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={goToPreviousMonth}>
-                Previous
-              </Button>
-              <Button variant="outline" size="sm" onClick={goToNextMonth}>
-                Next
-              </Button>
-            </div>
-          </div>
-          
-          {/* Calendar grid */}
-          <div className="p-4">
-            {/* Day headers */}
-            <div className="grid grid-cols-7 gap-2 mb-2 text-center font-medium text-sm text-gray-500">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="py-2">{day}</div>
-              ))}
-            </div>
-            
-            {/* Calendar days */}
-            <div className="grid grid-cols-7 gap-2">
-              {calendarDays.map((day, index) => {
-                const dateString = day ? `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}` : '';
-                const dayTasks = dateString ? (tasksByDate[dateString] || []) : [];
-                const isToday = day === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear();
-                
-                return (
-                  <div 
-                    key={index} 
-                    className={`min-h-[100px] p-2 border rounded-md ${!day ? 'bg-gray-50' : isToday ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
-                  >
-                    {day ? (
-                      <>
-                        <div className={`text-right text-sm font-medium ${isToday ? 'text-blue-600' : 'text-gray-700'}`}>
-                          {day}
-                        </div>
-                        <div className="mt-1 space-y-1">
-                          {dayTasks.slice(0, 3).map(task => (
-                            <CalendarTaskItem key={task.id} task={task} />
-                          ))}
-                          {dayTasks.length > 3 && (
-                            <div className="text-xs text-gray-500 text-center">
-                              +{dayTasks.length - 3} more
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Task List */}
-      <section>
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold">All Tasks</h2>
-          </div>
-          <div className="divide-y divide-gray-200">
-            {tasks.length > 0 ? (
-              tasks.map(task => {
-                // Get assignees for this task
-                const taskAssignees = Array.isArray(task.assignedTo) 
+      {/* Filters and Sort Component */}
+      <TaskFilters 
+        users={usersList}
+        filters={filters}
+        sortOptions={sortOptions}
+        onFiltersChange={handleFiltersChange}
+        onSortChange={handleSortChange}
+      />
+      
+      {view === 'list' ? (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          {filteredAndSortedTasks.length > 0 ? (
+            <div className="divide-y divide-gray-200">
+              {filteredAndSortedTasks.map(task => {
+                // Get assignee data for each task
+                const assigneeData = Array.isArray(task.assignedTo)
                   ? task.assignedTo.map(id => users[id]).filter(Boolean)
                   : users[task.assignedTo] ? [users[task.assignedTo]] : [];
                 
@@ -227,48 +287,54 @@ export default function TasksPage({ params }: { params: { id: string } }) {
                   <TaskItem 
                     key={task.id} 
                     task={task} 
-                    projectId={projectId} 
-                    assignees={taskAssignees}
-                    onDelete={() => handleDeleteTask(task.id)}
+                    projectId={projectId}
+                    assignees={assigneeData}
+                    onDelete={() => handleTaskDelete(task.id)}
                   />
                 );
-              })
-            ) : (
-              <div className="p-6 text-center text-gray-500">
-                No tasks added yet
+              })}
+            </div>
+          ) : (
+            <div className="p-8 text-center">
+              <p className="text-gray-500">No tasks found. Add a new task to get started!</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex justify-between items-center mb-4">
+            <Button variant="outline" onClick={goToPreviousMonth}>&lt; Prev</Button>
+            <h2 className="text-xl font-semibold">{monthName} {currentYear}</h2>
+            <Button variant="outline" onClick={goToNextMonth}>Next &gt;</Button>
+          </div>
+          
+          <div className="grid grid-cols-7 gap-2">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+              <div key={day} className="text-center font-medium py-2">{day}</div>
+            ))}
+            
+            {calendarDays.map((day, index) => (
+              <div 
+                key={index} 
+                className={`min-h-[100px] border rounded-md p-1 ${day.day ? 'bg-white' : 'bg-gray-50'}`}
+              >
+                {day.day && (
+                  <>
+                    <div className="text-right text-sm font-medium mb-1">
+                      {day.day}
+                    </div>
+                    <div className="space-y-1 overflow-y-auto max-h-[80px]">
+                      {day.date && tasksByDate[day.date.toDateString()]?.map(task => (
+                        <CalendarTaskItem key={task.id} task={task} />
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
-            )}
+            ))}
           </div>
         </div>
-      </section>
+      )}
     </div>
   );
-}
-
-// Helper function to group tasks by their deadline date
-function groupTasksByDate(tasks: Task[]) {
-  return tasks.reduce((acc, task) => {
-    const date = new Date(task.deadline).toISOString().split('T')[0];
-    if (!acc[date]) {
-      acc[date] = [];
-    }
-    acc[date].push(task);
-    return acc;
-  }, {} as Record<string, Task[]>);
-}
-
-// Helper function to generate calendar days for a given month
-function generateCalendarDays(month: number, year: number) {
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  
-  // Create array with empty slots for days from previous month
-  const days = Array(firstDay).fill(null);
-  
-  // Add the days of the current month
-  for (let i = 1; i <= daysInMonth; i++) {
-    days.push(i);
-  }
-  
-  return days;
 }
