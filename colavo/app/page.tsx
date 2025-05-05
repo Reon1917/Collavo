@@ -12,7 +12,7 @@ export default function Home() {
             <div className="flex items-center">
               <h1 className="text-3xl font-extrabold tracking-tight">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-100">
-                  Coll<span className="text-blue-300">a</span>vo
+                  Coll<span className="text-red-300">a</span>vo
                 </span>
               </h1>
             </div>
