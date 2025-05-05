@@ -6,31 +6,54 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-        <div className="container mx-auto px-4 py-16 md:py-24">
+        {/* Top navigation with logo */}
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <h1 className="text-3xl font-extrabold tracking-tight">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-100">
+                  Coll<span className="text-blue-300">a</span>vo
+                </span>
+              </h1>
+            </div>
+            <nav className="hidden md:flex space-x-6">
+              <Link href="#features" className="text-white hover:text-blue-200 transition-colors">Features</Link>
+              <Link href="#how-it-works" className="text-white hover:text-blue-200 transition-colors">How It Works</Link>
+              <Link href="/dashboard" className="text-white hover:text-blue-200 transition-colors">Dashboard</Link>
+            </nav>
+          </div>
+        </div>
+
+        <div className="container mx-auto px-4 py-16 md:py-20">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="md:w-1/2 space-y-6">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-                Manage Student Projects with Ease
-              </h1>
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
+                Transform Chaos into Academic Excellence
+              </h2>
               <p className="text-lg md:text-xl opacity-90">
-                Collavo helps students track assignments alone or with friends. Organize tasks, set deadlines, and collaborate effectively.
+                The ultimate project management tool designed specifically for students. Crush deadlines, streamline group work, and boost your academic performance with our intuitive platform.
               </p>
               <div className="flex flex-wrap gap-4 pt-4">
                 <Link href="/dashboard">
                   <Button size="lg" className="bg-white text-blue-700 hover:bg-blue-50">
-                    Get Started
+                    Get Started Free
                   </Button>
                 </Link>
-                <Button variant="outline" size="lg" className="border-white text-blue-700 hover:bg-white/10 hover:text-white">
-                  Learn More
+                <Button variant="outline" size="lg" className="border-white text-blue-700 hover:bg-white/10">
+                  See How It Works
                 </Button>
               </div>
+              <p className="text-sm text-blue-100">
+                Built by students, for students.
+              </p>
             </div>
-            <div className="md:w-1/2">
+            <div className="md:w-1/2 relative">
+              <div className="absolute -top-4 -left-4 w-20 h-20 bg-yellow-400 rounded-full opacity-20 blur-xl"></div>
+              <div className="absolute -bottom-8 -right-8 w-40 h-40 bg-blue-300 rounded-full opacity-20 blur-xl"></div>
               <img 
                 src="/landingpage-img/dashboard.png" 
-                alt="Collavo Dashboard Preview" 
-                className="rounded-lg shadow-xl"
+                alt="Collavo Dashboard Preview - Student Project Management" 
+                className="rounded-lg shadow-xl relative z-10"
                 width={600}
                 height={400}
               />
@@ -40,39 +63,42 @@ export default function Home() {
       </header>
 
       {/* Features Section */}
-      <section className="py-16 bg-gray-50">
+      <section id="features" className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Everything You Need for Academic Success</h2>
+          <h2 className="text-3xl font-bold text-center mb-4">Designed for Student Success</h2>
+          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+            From solo assignments to complex group projects, Collavo gives you the tools to excel in today's competitive academic environment.
+          </p>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             <FeatureCard 
-              title="Personal Task Management" 
-              description="Create projects, add tasks, and set priorities to stay organized with your individual assignments."
+              title="Intelligent Task Management" 
+              description="Prioritize assignments, track progress, and never miss another deadline with our smart task system built for academic workflows."
               icon="📝"
             />
             <FeatureCard 
-              title="Team Collaboration" 
-              description="Invite up to 5 friends to your projects, assign tasks, and track progress together."
+              title="Frictionless Collaboration" 
+              description="Invite classmates, assign responsibilities, and coordinate effortlessly—even with the most challenging group projects."
               icon="👥"
             />
             <FeatureCard 
-              title="Timeline Visualization" 
-              description="See all your tasks on an interactive timeline to manage deadlines effectively."
+              title="Visual Deadline Tracking" 
+              description="Transform overwhelming semester schedules into clear visual timelines that help you plan ahead and stay in control."
               icon="📅"
             />
             <FeatureCard 
-              title="File Organization" 
-              description="Store links to your Canva, Google Docs, and other resources in one central location."
+              title="Centralized Resource Hub" 
+              description="Connect all your academic tools—Google Docs, Canva, research papers, and more—in one organized workspace."
               icon="📁"
             />
             <FeatureCard 
-              title="Deadline Reminders" 
-              description="Get email notifications when important deadlines are approaching."
+              title="Strategic Reminder System" 
+              description="Our intelligent notifications adapt to your work patterns, alerting you at optimal times to maximize productivity."
               icon="⏰"
             />
             <FeatureCard 
-              title="Role-Based Access" 
-              description="Control who can view, edit, or manage your project with customizable permissions."
+              title="Academic Privacy Controls" 
+              description="Maintain control over your intellectual property with customizable sharing permissions for every project and document."
               icon="🔒"
             />
           </div>
@@ -80,29 +106,49 @@ export default function Home() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-16">
+      <section id="how-it-works" className="py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-4">How It Works</h2>
+          <h2 className="text-3xl font-bold text-center mb-4">Your Path to Academic Excellence</h2>
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-            Collavo makes project management simple for students. Here's how you can get started:
+            Getting started takes less than 60 seconds. No complicated setup, no learning curve—just immediate productivity.
           </p>
           
           <div className="grid md:grid-cols-3 gap-8">
             <StepCard 
               number="1" 
-              title="Create a Project" 
-              description="Start by creating a new project and adding your assignment details."
+              title="Create Your Project Space" 
+              description="Set up a dedicated workspace for each class or assignment with all the tools you need in one place."
             />
             <StepCard 
               number="2" 
-              title="Add Tasks & Invite Friends" 
-              description="Break down your project into tasks and invite team members if needed."
+              title="Organize & Delegate" 
+              description="Break complex assignments into manageable tasks and distribute work among team members with precision."
             />
             <StepCard 
               number="3" 
-              title="Track Progress" 
-              description="Monitor task completion and stay on top of deadlines with visual timelines."
+              title="Execute & Excel" 
+              description="Track progress in real-time, adapt to changes, and deliver exceptional results that stand out to professors."
             />
+          </div>
+        </div>
+      </section>
+
+      {/* About University Project Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold mb-6">A University Project With Purpose</h2>
+          <p className="text-xl mb-8 max-w-2xl mx-auto text-gray-600">
+            Collavo was developed as a university project aimed at solving real academic challenges. We're committed to providing this tool completely free to help students collaborate more effectively.
+          </p>
+          <div className="flex flex-col md:flex-row gap-8 justify-center items-center max-w-4xl mx-auto">
+            <div className="bg-white p-6 rounded-lg shadow-md flex-1">
+              <h3 className="text-xl font-semibold mb-2">Our Mission</h3>
+              <p className="text-gray-600">To empower students with collaborative tools that enhance learning outcomes and reduce project stress.</p>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-md flex-1">
+              <h3 className="text-xl font-semibold mb-2">Our Vision</h3>
+              <p className="text-gray-600">A future where student collaboration is seamless, productive, and accessible to everyone.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -110,15 +156,16 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-16 bg-blue-600 text-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-6">Ready to Boost Your Academic Success?</h2>
+          <h2 className="text-3xl font-bold mb-6">Ready to Revolutionize Your Academic Experience?</h2>
           <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-            Join thousands of students who are already using Collavo to manage their assignments and group projects.
+            Join the growing community of students who are transforming how academic projects get done. Your future self will thank you.
           </p>
           <Link href="/dashboard">
             <Button size="lg" className="bg-white text-blue-700 hover:bg-blue-50">
-              Get Started for Free
+              Start Using Collavo Today
             </Button>
           </Link>
+          <p className="mt-4 text-sm opacity-75">100% Free University Project</p>
         </div>
       </section>
 
@@ -128,17 +175,17 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
               <h3 className="text-white text-xl font-bold">Collavo</h3>
-              <p>Student Project Management Tool</p>
+              <p>Elevating Student Collaboration</p>
             </div>
             <div className="flex gap-6">
-              <Link href="#" className="hover:text-white">About</Link>
-              <Link href="#" className="hover:text-white">Features</Link>
+              <Link href="#features" className="hover:text-white">Features</Link>
+              <Link href="#how-it-works" className="hover:text-white">How It Works</Link>
               <Link href="#" className="hover:text-white">Contact</Link>
               <Link href="#" className="hover:text-white">Privacy</Link>
             </div>
           </div>
           <div className="mt-8 text-center text-sm">
-            &copy; {new Date().getFullYear()} Collavo. All rights reserved.
+            &copy; {new Date().getFullYear()} Collavo. University Project. All rights reserved.
           </div>
         </div>
       </footer>

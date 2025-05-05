@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { ProjectMember, User } from '@/types';
 
 export default async function MembersPage({ params }: { params: { id: string } }) {
-  const project = await getProjectById(params.id);
+  const { id } = params;
+  const project = await getProjectById(id);
 
   if (!project) {
     return null; // This will be handled by the layout
@@ -38,64 +39,11 @@ export default async function MembersPage({ params }: { params: { id: string } }
           </div>
         </div>
       </section>
-
-      {/* Role Explanation */}
-      <section className="mt-8">
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold">Role Permissions</h2>
-          </div>
-          <div className="p-6 space-y-6">
-            <RoleCard 
-              title="Team Leader" 
-              description="Can create team projects, invite members, control permissions, assign tasks, set deadlines, and view progress."
-              permissions={[
-                'Create and edit project details',
-                'Invite and remove team members',
-                'Assign tasks to members',
-                'Set task importance levels',
-                'Add and delete files',
-                'View timeline and progress'
-              ]}
-              color="bg-purple-100 border-purple-300"
-            />
-            
-            <RoleCard 
-              title="Team Member" 
-              description="Can view assigned tasks, update progress, access files, and receive deadline notifications."
-              permissions={[
-                'View project details',
-                'Update assigned task status',
-                'Add comments to tasks',
-                'Access shared files',
-                'Receive deadline reminders',
-                'View timeline and progress'
-              ]}
-              color="bg-blue-100 border-blue-300"
-            />
-            
-            <RoleCard 
-              title="Viewer" 
-              description="Can only view project details without making any changes."
-              permissions={[
-                'View project details',
-                'View tasks and timeline',
-                'View shared files',
-                'Cannot edit or add content',
-                'Cannot assign or update tasks',
-                'Cannot add or remove members'
-              ]}
-              color="bg-gray-100 border-gray-300"
-            />
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
 
 async function MemberItem({ member, isLeader }: { member: ProjectMember; isLeader: boolean }) {
-  // In a real app, we would use a more efficient way to fetch users
   const user = await getUserById(member.userId);
   
   if (!user) return null;
@@ -138,51 +86,5 @@ async function MemberItem({ member, isLeader }: { member: ProjectMember; isLeade
         </div>
       </div>
     </div>
-  );
-}
-
-function RoleCard({ 
-  title, 
-  description, 
-  permissions, 
-  color 
-}: { 
-  title: string; 
-  description: string; 
-  permissions: string[];
-  color: string;
-}) {
-  return (
-    <div className={`p-6 rounded-lg border ${color}`}>
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <p className="text-gray-600 mb-4">{description}</p>
-      <ul className="space-y-2">
-        {permissions.map((permission, index) => (
-          <li key={index} className="flex items-center">
-            <CheckIcon className="text-green-500 mr-2" />
-            <span>{permission}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function CheckIcon({ className = '' }: { className?: string }) {
-  return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      width="16" 
-      height="16" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-      className={className}
-    >
-      <polyline points="20 6 9 17 4 12"></polyline>
-    </svg>
   );
 }

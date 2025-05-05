@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { getCurrentUser, getProjectsLedByUserId, getProjectsMembershipByUserId } from '@/lib/data';
+import { getCurrentUser, getProjectsLedByUserId, getProjectsMembershipByUserId, getUserById } from '@/lib/data';
+import { User } from 'lucide-react';
 
 export default async function DashboardPage() {
   // Fetch the current user and their projects
@@ -10,16 +11,22 @@ export default async function DashboardPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-        <p className="text-gray-600">Welcome back, {currentUser.name}</p>
+      <header className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
+          <p className="text-gray-600">Welcome back to Collavo, {currentUser.name}!</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button className="bg-blue-600 hover:bg-blue-700" asChild>
+            <Link href="/project/new">Create New Project</Link>
+          </Button>
+          <Button variant="outline" size="icon" asChild>
+            <Link href="/profile">
+              <User className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
       </header>
-
-      <div className="flex justify-end mb-6">
-        <Button className="bg-blue-600 hover:bg-blue-700">
-          Create New Project
-        </Button>
-      </div>
 
       <div className="space-y-10">
         {/* Projects you lead */}
@@ -37,8 +44,8 @@ export default async function DashboardPage() {
               <p className="text-gray-600 mb-4">
                 Create your first project to get started
               </p>
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                Create Project
+              <Button className="bg-blue-600 hover:bg-blue-700" asChild>
+                <Link href="/project/new">Create Project</Link>
               </Button>
             </div>
           )}
@@ -67,7 +74,7 @@ export default async function DashboardPage() {
   );
 }
 
-function ProjectCard({ project }: { project: any }) {
+async function ProjectCard({ project }: { project: any }) {
   // Calculate days remaining until deadline
   const deadline = new Date(project.deadline);
   const today = new Date();
@@ -80,6 +87,18 @@ function ProjectCard({ project }: { project: any }) {
   } else if (daysRemaining <= 3) {
     statusColor = 'bg-yellow-100 text-yellow-800';
   }
+
+  // Fetch user details for the first 3 members
+  const memberDetails = await Promise.all(
+    project.members.slice(0, 3).map(async (member: any) => {
+      const user = await getUserById(member.userId);
+      return {
+        ...member,
+        name: user?.name || `User ${member.userId}`,
+        initials: user?.name ? user.name.split(' ').map((n: string) => n[0]).join('') : member.userId.charAt(member.userId.length - 1)
+      };
+    })
+  );
 
   return (
     <Link href={`/project/${project.id}`}>
@@ -97,13 +116,13 @@ function ProjectCard({ project }: { project: any }) {
                   : `${daysRemaining} days left`}
             </span>
             <div className="flex -space-x-2">
-              {project.members.slice(0, 3).map((member: any) => (
+              {memberDetails.map((member) => (
                 <div 
                   key={member.userId} 
                   className="w-7 h-7 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs font-medium"
-                  title={`User ${member.userId}`}
+                  title={member.name}
                 >
-                  {member.userId.charAt(member.userId.length - 1)}
+                  {member.initials}
                 </div>
               ))}
               {project.members.length > 3 && (
