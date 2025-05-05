@@ -1,6 +1,10 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
 import { getProjectById } from '@/lib/data';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
+import { NavItem } from '@/components/project/nav-item';
+import { ChatButton } from '@/components/project/chat-button';
 
 export default async function ProjectLayout({
   children,
@@ -53,34 +57,23 @@ export default async function ProjectLayout({
               </div>
             </nav>
           </aside>
-          <main className="flex-1 p-8">
-            {children}
+          <main className="flex-1">
+            <div className="mb-6">
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/dashboard" className="flex items-center gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Dashboard
+                </Link>
+              </Button>
+            </div>
+            <div className="p-8">
+              {children}
+            </div>
           </main>
         </div>
       </div>
-    </div>
-  );
-}
 
-function NavItem({ 
-  href, 
-  exact = false, 
-  children 
-}: { 
-  href: string; 
-  exact?: boolean; 
-  children: ReactNode 
-}) {
-  // In a client component, we would use usePathname() to determine active state
-  // For this prototype, we'll just render all items the same
-  return (
-    <li>
-      <Link 
-        href={href}
-        className="block px-4 py-2 rounded-md hover:bg-gray-100 text-gray-700 hover:text-blue-600 transition-colors"
-      >
-        {children}
-      </Link>
-    </li>
+      <ChatButton />
+    </div>
   );
 }
