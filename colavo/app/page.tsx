@@ -17,7 +17,7 @@ export default function Home() {
               </h1>
             </div>
             <nav className="hidden md:flex space-x-6">
-              <Link href="#features" className="text-white hover:text-blue-200 transition-colors">Features</Link>
+              <Link href="#features" className="text-white hover:text-blue-200 transition-colors">Features!!!!!!</Link>
               <Link href="#how-it-works" className="text-white hover:text-blue-200 transition-colors">How It Works</Link>
               <Link href="/dashboard" className="text-white hover:text-blue-200 transition-colors">Dashboard</Link>
             </nav>
