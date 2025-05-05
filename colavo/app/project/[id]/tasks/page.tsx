@@ -8,7 +8,7 @@ import { TaskDialog } from '@/components/tasks/task-dialog';
 import { TaskItem } from '@/components/tasks/task-item';
 import { CalendarTaskItem } from '@/components/tasks/calendar-task-item';
 import { TaskFilters, TaskFilters as TaskFiltersType, SortOptions } from '@/components/tasks/task-filters';
-import { getProjectById, getUserById, getTasksByProjectId } from '@/lib/data';
+import { getProjectById, getUserById, getTasksByProjectId, getCurrentUser } from '@/lib/data';
 import React from 'react';
 
 export default function TasksPage({ params }: { params: { id: string } }) {
@@ -19,6 +19,7 @@ export default function TasksPage({ params }: { params: { id: string } }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [users, setUsers] = useState<Record<string, User>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [isProjectLeader, setIsProjectLeader] = useState(false);
   // Add a refresh trigger to force re-renders when tasks change
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -61,7 +62,19 @@ export default function TasksPage({ params }: { params: { id: string } }) {
         
         // Fetch project data
         const projectData = await getProjectById(projectId);
+        if (!projectData) {
+          console.error('Project not found');
+          return;
+        }
         setProject(projectData);
+        
+        // Check if current user is the project leader
+        const currentUser = await getCurrentUser();
+        if (!currentUser) {
+          console.error('Current user not found');
+          return;
+        }
+        setIsProjectLeader(projectData.leader === currentUser.id);
         
         // Fetch tasks
         const tasksData = await getTasksByProjectId(projectId);
@@ -91,7 +104,7 @@ export default function TasksPage({ params }: { params: { id: string } }) {
         await Promise.all(userPromises.filter(Boolean));
         setUsers(userMap);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error('Error fetching data:', error);
       } finally {
         setIsLoading(false);
       }
@@ -257,10 +270,12 @@ export default function TasksPage({ params }: { params: { id: string } }) {
               Calendar
             </Button>
           </div>
-          <TaskDialog 
-            projectId={projectId} 
-            onTaskAdded={refreshTasks}
-          />
+          {isProjectLeader && (
+            <TaskDialog 
+              projectId={projectId} 
+              onTaskAdded={refreshTasks}
+            />
+          )}
         </div>
       </div>
 
