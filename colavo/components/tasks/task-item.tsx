@@ -119,10 +119,10 @@ export function TaskItem({ task, projectId, assignee, assignees, onDelete, isPro
           </span>
           {isProjectLeader && (
             <>
-              <Button variant="ghost" size="icon" onClick={() => setEditOpen(true)}>
+              <Button variant="ghost" size="icon" className="text-blue-500 hover:bg-blue-100" onClick={() => setEditOpen(true)}>
                 <Pencil className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={handleDelete}>
+              <Button variant="ghost" size="icon" className="text-red-500 hover:bg-red-100" onClick={handleDelete}>
                 <Trash2 className="h-4 w-4" />
               </Button>
               <TaskDialog
@@ -136,7 +136,7 @@ export function TaskItem({ task, projectId, assignee, assignees, onDelete, isPro
             </>
           )}
           {isAssigned && (
-            <Button variant={showUpdate ? "default" : "ghost"} size="icon" onClick={() => setShowUpdate(v => !v)}>
+            <Button variant={showUpdate ? "default" : "ghost"} size="icon" className="text-green-600 hover:bg-green-100" onClick={() => setShowUpdate(v => !v)}>
               <RefreshCw className="h-4 w-4" />
             </Button>
           )}
