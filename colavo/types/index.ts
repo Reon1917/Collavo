@@ -33,18 +33,36 @@ export type TaskImportance = 'minor' | 'normal' | 'major' | 'critical';
 // Task status types
 export type TaskStatus = 'pending' | 'in-progress' | 'completed';
 
-// Task types
-export interface Task {
+// Item type discriminator
+export type ItemType = 'task' | 'event';
+
+// Base item interface for shared properties
+export interface BaseItem {
   id: string;
   projectId: string;
   title: string;
   description: string;
+  createdAt: string;
+  type: ItemType;
+}
+
+// Task types
+export interface Task extends BaseItem {
   assignedTo: string | string[];
   importance: TaskImportance;
   status: TaskStatus;
   deadline: string;
-  createdAt: string;
   note?: string;
+  type: 'task';
+  startDate?: string; // Optional for backward compatibility
+}
+
+// Event types
+export interface Event extends BaseItem {
+  date: string; // Single date with time
+  time: string; // Time of the event
+  location?: string;
+  type: 'event';
 }
 
 // Resource types
