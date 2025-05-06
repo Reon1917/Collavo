@@ -9,6 +9,14 @@ import { TaskItem } from '@/components/tasks/task-item';
 import { CalendarTaskItem } from '@/components/tasks/calendar-task-item';
 import { TaskFilters, TaskFilters as TaskFiltersType, SortOptions } from '@/components/tasks/task-filters';
 import { getProjectById, getUserById, getTasksByProjectId, getCurrentUser } from '@/lib/data';
+import { GanttChart } from '@/components/tasks/gantt-chart';
+import { Check, ChevronDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import React from 'react';
 
 export default function TasksPage({ params }: { params: { id: string } }) {
@@ -27,7 +35,8 @@ export default function TasksPage({ params }: { params: { id: string } }) {
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
-  const [view, setView] = useState<'list' | 'calendar'>('list');
+  // Changed view type to include 'gantt'
+  const [view, setView] = useState<'list' | 'calendar' | 'gantt'>('list');
 
   // Add filter and sort state
   const [filters, setFilters] = useState<TaskFiltersType>({
@@ -109,7 +118,7 @@ export default function TasksPage({ params }: { params: { id: string } }) {
         setIsLoading(false);
       }
     };
-    
+
     fetchData();
   }, [projectId, refreshTrigger]);
 
@@ -127,149 +136,179 @@ export default function TasksPage({ params }: { params: { id: string } }) {
   // Apply filters and sorting to tasks
   const filteredAndSortedTasks = useMemo(() => {
     // First apply filters
-    let result = [...tasks];
+    let filtered = [...tasks];
     
     if (filters.assignee) {
-      result = result.filter(task => {
-        const assigneeIds = Array.isArray(task.assignedTo) ? task.assignedTo : [task.assignedTo];
-        return assigneeIds.includes(filters.assignee!);
+      filtered = filtered.filter(task => {
+        if (Array.isArray(task.assignedTo)) {
+          return task.assignedTo.includes(filters.assignee!);
+        }
+        return task.assignedTo === filters.assignee;
       });
     }
     
     if (filters.importance) {
-      result = result.filter(task => task.importance === filters.importance);
+      filtered = filtered.filter(task => task.importance === filters.importance);
     }
     
     if (filters.status) {
-      result = result.filter(task => task.status === filters.status);
+      filtered = filtered.filter(task => task.status === filters.status);
     }
     
     // Then apply sorting
-    result.sort((a, b) => {
-      let comparison = 0;
+    return filtered.sort((a, b) => {
+      const field = sortOptions.field;
+      const direction = sortOptions.direction === 'asc' ? 1 : -1;
       
-      switch (sortOptions.field) {
-        case 'title':
-          comparison = a.title.localeCompare(b.title);
-          break;
-        case 'deadline':
-          comparison = new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
-          break;
-        case 'importance': {
-          const importanceOrder = { minor: 0, normal: 1, major: 2, critical: 3 };
-          comparison = importanceOrder[a.importance] - importanceOrder[b.importance];
-          break;
-        }
-        case 'status': {
-          const statusOrder = { pending: 0, 'in-progress': 1, completed: 2 };
-          comparison = statusOrder[a.status] - statusOrder[b.status];
-          break;
-        }
+      if (field === 'deadline') {
+        // Handle null deadlines
+        if (!a.deadline && !b.deadline) return 0;
+        if (!a.deadline) return direction;
+        if (!b.deadline) return -direction;
+        
+        return direction * (new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
       }
       
-      // Apply sort direction
-      return sortOptions.direction === 'asc' ? comparison : -comparison;
+      if (field === 'importance') {
+        const importanceOrder = { low: 1, medium: 2, high: 3 };
+        const aValue = importanceOrder[a.importance as keyof typeof importanceOrder] || 0;
+        const bValue = importanceOrder[b.importance as keyof typeof importanceOrder] || 0;
+        
+        return direction * (aValue - bValue);
+      }
+      
+      if (field === 'title') {
+        return direction * a.title.localeCompare(b.title);
+      }
+      
+      return 0;
     });
-    
-    return result;
   }, [tasks, filters, sortOptions]);
 
-  // Get all users as an array for the filters component
+  // Create a list of users for the filters dropdown
   const usersList = useMemo(() => {
     return Object.values(users);
   }, [users]);
 
-  // Generate calendar days
+  // Calendar view helpers
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+  const monthName = new Date(currentYear, currentMonth, 1).toLocaleString('default', { month: 'long' });
+  
+  // Create calendar days array
   const calendarDays = useMemo(() => {
-    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
-    
-    // Create array for days in month
     const days = [];
     
-    // Add empty cells for days before the first day of month
+    // Add empty cells for days before the first day of the month
     for (let i = 0; i < firstDayOfMonth; i++) {
       days.push({ day: null, date: null });
     }
     
     // Add days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(currentYear, currentMonth, day);
-      days.push({ day, date });
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push({
+        day: i,
+        date: new Date(currentYear, currentMonth, i)
+      });
     }
     
     return days;
-  }, [currentMonth, currentYear]);
-
-  // Group tasks by date for calendar view
+  }, [currentMonth, currentYear, daysInMonth, firstDayOfMonth]);
+  
+  // Group tasks by date for the calendar view
   const tasksByDate = useMemo(() => {
-    const grouped: Record<string, Task[]> = {};
+    const taskMap: Record<string, Task[]> = {};
     
     filteredAndSortedTasks.forEach(task => {
-      const date = new Date(task.deadline).toDateString();
-      if (!grouped[date]) {
-        grouped[date] = [];
+      if (task.deadline) {
+        const date = new Date(task.deadline);
+        const dateString = date.toDateString();
+        
+        if (!taskMap[dateString]) {
+          taskMap[dateString] = [];
+        }
+        
+        taskMap[dateString].push(task);
       }
-      grouped[date].push(task);
     });
     
-    return grouped;
+    return taskMap;
   }, [filteredAndSortedTasks]);
 
   // Navigate to previous month
   const goToPreviousMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear(currentYear - 1);
-    } else {
-      setCurrentMonth(currentMonth - 1);
-    }
+    setCurrentMonth(prevMonth => {
+      if (prevMonth === 0) {
+        setCurrentYear(prevYear => prevYear - 1);
+        return 11;
+      }
+      return prevMonth - 1;
+    });
   };
 
   // Navigate to next month
   const goToNextMonth = () => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear(currentYear + 1);
-    } else {
-      setCurrentMonth(currentMonth + 1);
-    }
+    setCurrentMonth(prevMonth => {
+      if (prevMonth === 11) {
+        setCurrentYear(prevYear => prevYear + 1);
+        return 0;
+      }
+      return prevMonth + 1;
+    });
   };
 
-  // Get month name
-  const monthName = new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' });
-
+  // Show loading state
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="flex justify-center items-center h-64">
-          <div className="text-xl text-gray-500">Loading...</div>
+      <div className="container mx-auto py-8 px-4">
+        <div className="flex justify-between items-center mb-6">
+          <div className="h-8 w-48 bg-gray-200 animate-pulse rounded"></div>
+          <div className="h-10 w-24 bg-gray-200 animate-pulse rounded"></div>
+        </div>
+        <div className="space-y-4">
+          {[...Array(5)].map((_, index) => (
+            <div key={index} className="h-20 bg-gray-200 animate-pulse rounded"></div>
+          ))}
         </div>
       </div>
     );
   }
+
+  // Get the current view label for the dropdown
+  const viewLabel = {
+    list: 'List View',
+    calendar: 'Calendar View',
+    gantt: 'Gantt Chart'
+  }[view];
 
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">{project?.name} Tasks</h1>
         <div className="flex space-x-2">
-          <div className="flex border border-gray-300 rounded-md overflow-hidden">
-            <Button 
-              variant={view === 'list' ? 'default' : 'outline'}
-              className={view === 'list' ? 'rounded-none bg-blue-600' : 'rounded-none'}
-              onClick={() => setView('list')}
-            >
-              List
-            </Button>
-            <Button 
-              variant={view === 'calendar' ? 'default' : 'outline'}
-              className={view === 'calendar' ? 'rounded-none bg-blue-600' : 'rounded-none'}
-              onClick={() => setView('calendar')}
-            >
-              Calendar
-            </Button>
-          </div>
+          {/* Replace buttons with dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                {viewLabel}
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setView('list')} className="flex items-center justify-between">
+                List View
+                {view === 'list' && <Check className="h-4 w-4" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setView('calendar')} className="flex items-center justify-between">
+                Calendar View
+                {view === 'calendar' && <Check className="h-4 w-4" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setView('gantt')} className="flex items-center justify-between">
+                Gantt Chart
+                {view === 'gantt' && <Check className="h-4 w-4" />}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {isProjectLeader && (
             <TaskDialog 
               projectId={projectId} 
@@ -288,7 +327,7 @@ export default function TasksPage({ params }: { params: { id: string } }) {
         onSortChange={handleSortChange}
       />
       
-      {view === 'list' ? (
+      {view === 'list' && (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           {filteredAndSortedTasks.length > 0 ? (
             <div className="divide-y divide-gray-200">
@@ -315,7 +354,9 @@ export default function TasksPage({ params }: { params: { id: string } }) {
             </div>
           )}
         </div>
-      ) : (
+      )}
+      
+      {view === 'calendar' && (
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex justify-between items-center mb-4">
             <Button variant="outline" onClick={goToPreviousMonth}>&lt; Prev</Button>
@@ -349,6 +390,11 @@ export default function TasksPage({ params }: { params: { id: string } }) {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Add Gantt Chart View */}
+      {view === 'gantt' && (
+        <GanttChart tasks={filteredAndSortedTasks} />
       )}
     </div>
   );
