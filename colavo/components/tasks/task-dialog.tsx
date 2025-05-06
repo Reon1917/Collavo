@@ -19,22 +19,42 @@ interface TaskDialogProps {
   projectId: string;
   trigger?: React.ReactNode;
   onTaskAdded?: (task: Task) => void;
+  open?: boolean;
+  setOpen?: (open: boolean) => void;
+  initialData?: Partial<Task>;
+  isEditMode?: boolean;
 }
 
-export function TaskDialog({ projectId, trigger, onTaskAdded }: TaskDialogProps) {
+export function TaskDialog({ projectId, trigger, onTaskAdded, open: controlledOpen, setOpen: setControlledOpen, initialData, isEditMode }: TaskDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined && setControlledOpen !== undefined;
+  const dialogOpen = isControlled ? controlledOpen : open;
+  const setDialogOpen = isControlled ? setControlledOpen! : setOpen;
   const [projectMembers, setProjectMembers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    assignedTo: [] as string[],
-    importance: "normal" as TaskImportance,
-    status: "pending" as TaskStatus,
-    deadline: new Date().toISOString().split("T")[0],
+    title: initialData?.title || "",
+    description: initialData?.description || "",
+    assignedTo: (initialData?.assignedTo as string[]) || [],
+    importance: (initialData?.importance as TaskImportance) || "normal",
+    status: (initialData?.status as TaskStatus) || "pending",
+    deadline: initialData?.deadline ? new Date(initialData.deadline).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
   });
+
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      setFormData({
+        title: initialData.title || "",
+        description: initialData.description || "",
+        assignedTo: (initialData.assignedTo as string[]) || [],
+        importance: (initialData.importance as TaskImportance) || "normal",
+        status: (initialData.status as TaskStatus) || "pending",
+        deadline: initialData.deadline ? new Date(initialData.deadline).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+      });
+    }
+  }, [isEditMode, initialData]);
 
   useEffect(() => {
     const fetchProjectMembers = async () => {
@@ -42,21 +62,16 @@ export function TaskDialog({ projectId, trigger, onTaskAdded }: TaskDialogProps)
         setIsLoading(true);
         const project = await getProjectById(projectId);
         if (!project) return;
-
-        // Get all project members including the leader
         const members = project.members.map(member => member.userId);
         if (!members.includes(project.leader)) {
           members.push(project.leader);
         }
-
-        // Fetch user details for all members
         const memberDetails = await Promise.all(
           members.map(async (userId) => {
             const user = await getUserById(userId);
             return user;
           })
         );
-
         setProjectMembers(memberDetails.filter((user): user is User => user !== undefined));
       } catch (error) {
         console.error('Error fetching project members:', error);
@@ -64,21 +79,28 @@ export function TaskDialog({ projectId, trigger, onTaskAdded }: TaskDialogProps)
         setIsLoading(false);
       }
     };
-
-    if (open) {
+    if (dialogOpen) {
       fetchProjectMembers();
     }
-  }, [projectId, open]);
+  }, [projectId, dialogOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Ensure at least one assignee is selected
     if (formData.assignedTo.length === 0) {
       alert("Please assign at least one member to the task");
       return;
     }
-    
+    if (isEditMode && initialData) {
+      if (onTaskAdded) onTaskAdded({
+        ...formData,
+        id: initialData.id!,
+        projectId: initialData.projectId!,
+        createdAt: initialData.createdAt!,
+        type: 'task',
+      });
+      setDialogOpen(false);
+      return;
+    }
     const newTask = addLocalTask({
       projectId,
       title: formData.title,
@@ -88,12 +110,10 @@ export function TaskDialog({ projectId, trigger, onTaskAdded }: TaskDialogProps)
       status: formData.status as TaskStatus,
       deadline: new Date(formData.deadline).toISOString(),
     });
-    
     if (onTaskAdded) {
       onTaskAdded(newTask);
     }
-    
-    setOpen(false);
+    setDialogOpen(false);
     setFormData({
       title: "",
       description: "",
@@ -102,19 +122,19 @@ export function TaskDialog({ projectId, trigger, onTaskAdded }: TaskDialogProps)
       status: "pending" as TaskStatus,
       deadline: new Date().toISOString().split("T")[0],
     });
-    
-    // Refresh the page to show the new task
     router.refresh();
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || <Button>Add Task</Button>}
-      </DialogTrigger>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {!isControlled && (
+        <DialogTrigger asChild>
+          {trigger || <Button>Add Task</Button>}
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create New Task</DialogTitle>
+          <DialogTitle>{isEditMode ? "Edit Task" : "Create New Task"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -207,10 +227,10 @@ export function TaskDialog({ projectId, trigger, onTaskAdded }: TaskDialogProps)
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit">Create Task</Button>
+            <Button type="submit">{isEditMode ? "Save Changes" : "Create Task"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
