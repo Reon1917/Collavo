@@ -74,10 +74,7 @@ export function EventDialog({ projectId, onEventAdded }: EventDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="flex items-center gap-2">
-          <BellRing className="h-4 w-4" />
-          <span>Add Event</span>
-        </Button>
+        <Button>Add Event</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>

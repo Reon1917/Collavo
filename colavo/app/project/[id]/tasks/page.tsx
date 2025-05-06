@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from 'react';
+import React, { use, useEffect, useState, useMemo } from 'react';
 import { Task, Event } from '@/types';
 import { Button } from '@/components/ui/button';
 import { 
@@ -25,14 +25,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import React from 'react';
 
 // Define view types
 type ViewType = 'tasks' | 'calendar' | 'gantt' | 'events';
 
-export default function TasksPage({ params }: { params: { id: string } }) {
-  // Store the ID directly in a state variable to avoid the params warning
-  const [projectId] = useState(() => params.id);
+export default function TasksPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: projectId } = use(params);
   
   const [project, setProject] = useState<any>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
