@@ -1,13 +1,37 @@
+"use client"
+
 import { getProjectById, getUserById } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { ProjectMember, User } from '@/types';
+import { useState, useEffect } from 'react';
+import { PermissionModal } from '@/components/members/user-permission-modal';
 
-export default async function MembersPage({ params }: { params: { id: string } }) {
+export default function MembersPage({ params }: { params: { id: string } }) {
   const { id } = params;
-  const project = await getProjectById(id);
+  const [project, setProject] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch project data on client-side
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const projectData = await getProjectById(id);
+        setProject(projectData);
+      } catch (error) {
+        console.error("Error fetching project:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [id]);
+
+  if (loading) {
+    return <div className="flex items-center justify-center p-8">Loading...</div>;
+  }
 
   if (!project) {
-    return null; // This will be handled by the layout
+    return <div className="p-8">Project not found</div>;
   }
 
   return (
@@ -43,13 +67,29 @@ export default async function MembersPage({ params }: { params: { id: string } }
   );
 }
 
-async function MemberItem({ member, isLeader }: { member: ProjectMember; isLeader: boolean }) {
-  const user = await getUserById(member.userId);
+function MemberItem({ member, isLeader }: { member: ProjectMember; isLeader: boolean }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [isPermissionModalOpen, setPermissionModalOpen] = useState(false);
   
-  if (!user) return null;
+  // Fetch user data on client-side
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userData = await getUserById(member.userId);
+        if (userData) {
+          setUser(userData);
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+    fetchUser();
+  }, [member.userId]);
+  
+  if (!user) return <div className="p-4">Loading user...</div>;
   
   // Determine role badge color
-  const roleBadgeColors = {
+  const roleBadgeColors: Record<string, string> = {
     'leader': 'bg-purple-100 text-purple-800',
     'member': 'bg-blue-100 text-blue-800',
     'viewer': 'bg-gray-100 text-gray-800'
@@ -64,7 +104,7 @@ async function MemberItem({ member, isLeader }: { member: ProjectMember; isLeade
         <div className="flex-1">
           <h3 className="font-medium text-gray-900">{user.name}</h3>
           <div className="flex items-center text-sm">
-            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleBadgeColors[member.role]}`}>
+            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleBadgeColors[member.role] || ''}`}>
               {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
             </span>
             <span className="mx-2 text-gray-300">•</span>
@@ -79,12 +119,31 @@ async function MemberItem({ member, isLeader }: { member: ProjectMember; isLeade
               Project Owner
             </Button>
           ) : (
-            <Button variant="outline" size="sm" className="text-gray-700">
-              Manage Role
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-gray-700"
+              onClick={() => setPermissionModalOpen(true)}
+            >
+              Manage Permissions
             </Button>
           )}
         </div>
       </div>
+      
+      {/* Permission Modal */}
+      {!isLeader && (
+        <PermissionModal
+          isOpen={isPermissionModalOpen}
+          onClose={() => setPermissionModalOpen(false)}
+          member={{
+            id: member.userId,
+            name: user.name,
+            role: member.role,
+            avatar: user.name.charAt(0)
+          }}
+        />
+      )}
     </div>
   );
 }
