@@ -46,7 +46,7 @@ export default async function ProjectLayout({
                   Overview
                 </NavItem>
                 <NavItem href={`/project/${id}/tasks`}>
-                  Tasks
+                  Tasks & Events
                 </NavItem>
                 <NavItem href={`/project/${id}/files`}>
                   Files & Links

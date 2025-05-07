@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -28,21 +28,51 @@ import { addLocalEvent } from '@/lib/client-data';
 
 interface EventDialogProps {
   projectId: string;
-  onEventAdded: () => void;
+  onEventAdded: (event?: any) => void;
+  open?: boolean;
+  setOpen?: (open: boolean) => void;
+  initialData?: any;
+  isEditMode?: boolean;
 }
 
-export function EventDialog({ projectId, onEventAdded }: EventDialogProps) {
+export function EventDialog({ projectId, onEventAdded, open: controlledOpen, setOpen: setControlledOpen, initialData, isEditMode }: EventDialogProps) {
   const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [time, setTime] = useState('12:00');
+  const isControlled = controlledOpen !== undefined && setControlledOpen !== undefined;
+  const dialogOpen = isControlled ? controlledOpen : open;
+  const setDialogOpen = isControlled ? setControlledOpen! : setOpen;
+  const [title, setTitle] = useState(initialData?.title || '');
+  const [description, setDescription] = useState(initialData?.description || '');
+  const [date, setDate] = useState<Date | undefined>(initialData?.date ? new Date(initialData.date) : new Date());
+  const [time, setTime] = useState(initialData?.time || '12:00');
   const [dateOpen, setDateOpen] = useState(false);
-  const [location, setLocation] = useState('');
+  const [location, setLocation] = useState(initialData?.location || '');
+
+  // Update form fields when switching to edit mode
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      setTitle(initialData.title || '');
+      setDescription(initialData.description || '');
+      setDate(initialData.date ? new Date(initialData.date) : new Date());
+      setTime(initialData.time || '12:00');
+      setLocation(initialData.location || '');
+    }
+  }, [isEditMode, initialData]);
 
   const handleSubmit = () => {
     if (!title || !date) return;
-
+    if (isEditMode && initialData) {
+      const updatedEvent = {
+        ...initialData,
+        title,
+        description,
+        date: date.toISOString(),
+        time,
+        location,
+      };
+      onEventAdded(updatedEvent);
+      setDialogOpen(false);
+      return;
+    }
     // Create a new event
     const newEvent = {
       id: uuidv4(),
@@ -55,35 +85,31 @@ export function EventDialog({ projectId, onEventAdded }: EventDialogProps) {
       location,
       type: 'event' as const,
     };
-
     // Add the event to local storage
     addLocalEvent(newEvent);
-
     // Reset form and close dialog
     setTitle('');
     setDescription('');
     setDate(new Date());
     setTime('12:00');
     setLocation('');
-    setOpen(false);
-
+    setDialogOpen(false);
     // Notify parent component
     onEventAdded();
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="flex items-center gap-2">
-          <BellRing className="h-4 w-4" />
-          <span>Add Event</span>
-        </Button>
-      </DialogTrigger>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {!isControlled && (
+        <DialogTrigger asChild>
+          <Button>Add Event</Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Event</DialogTitle>
+          <DialogTitle>{isEditMode ? 'Edit Event' : 'Add New Event'}</DialogTitle>
           <DialogDescription>
-            Create a new event for your project. Events will appear on the calendar.
+            {isEditMode ? 'Edit the event details.' : 'Create a new event for your project. Events will appear on the calendar.'}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -172,7 +198,7 @@ export function EventDialog({ projectId, onEventAdded }: EventDialogProps) {
           </div>
         </div>
         <DialogFooter>
-          <Button type="submit" onClick={handleSubmit}>Create Event</Button>
+          <Button type="submit" onClick={handleSubmit}>{isEditMode ? 'Save Changes' : 'Create Event'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

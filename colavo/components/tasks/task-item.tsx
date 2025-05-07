@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Task, User } from "@/types";
 import { Button } from "@/components/ui/button";
-import { deleteLocalTask } from "@/lib/client-data";
-import { Trash2 } from "lucide-react";
+import { deleteLocalTask, updateLocalTask } from "@/lib/client-data";
+import { Trash2, Pencil, RefreshCw } from "lucide-react";
 import { TaskStatusUpdate } from "./task-status-update";
 import { getCurrentUser } from "@/lib/data";
+import { TaskDialog } from "./task-dialog";
 
 interface TaskItemProps {
   task: Task;
@@ -15,22 +16,15 @@ interface TaskItemProps {
   assignee?: User;
   assignees?: User[];
   onDelete?: () => void;
+  isProjectLeader: boolean;
+  currentUserId: string;
 }
 
-export function TaskItem({ task, projectId, assignee, assignees, onDelete }: TaskItemProps) {
+export function TaskItem({ task, projectId, assignee, assignees, onDelete, isProjectLeader, currentUserId }: TaskItemProps & { isProjectLeader: boolean, currentUserId: string }) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string>("");
-
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      const user = await getCurrentUser();
-      if (user) {
-        setCurrentUserId(user.id);
-      }
-    };
-    fetchCurrentUser();
-  }, []);
+  const [showUpdate, setShowUpdate] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   // Determine status color
   const statusColors = {
@@ -62,6 +56,20 @@ export function TaskItem({ task, projectId, assignee, assignees, onDelete }: Tas
 
   // Get assignees to display
   const displayAssignees = assignees || (assignee ? [assignee] : []);
+
+  const isAssigned = Array.isArray(task.assignedTo)
+    ? task.assignedTo.includes(currentUserId)
+    : task.assignedTo === currentUserId;
+
+  const handleEdit = async (updatedTaskData: any) => {
+    updateLocalTask(task.id, {
+      ...updatedTaskData,
+      projectId: task.projectId,
+      type: 'task',
+    });
+    setEditOpen(false);
+    if (onDelete) onDelete(); // triggers refresh
+  };
 
   return (
     <div className="p-4 hover:bg-gray-50">
@@ -109,13 +117,33 @@ export function TaskItem({ task, projectId, assignee, assignees, onDelete }: Tas
           }`}>
             {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
           </span>
-          <Button variant="outline" size="sm" onClick={handleDelete}>
-            Delete
-          </Button>
+          {isProjectLeader && (
+            <>
+              <Button variant="ghost" size="icon" className="text-blue-500 hover:bg-blue-100" onClick={() => setEditOpen(true)}>
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className="text-red-500 hover:bg-red-100" onClick={handleDelete}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <TaskDialog
+                projectId={projectId}
+                open={editOpen}
+                setOpen={setEditOpen}
+                initialData={task}
+                onTaskAdded={handleEdit}
+                isEditMode
+              />
+            </>
+          )}
+          {isAssigned && (
+            <Button variant={showUpdate ? "default" : "ghost"} size="icon" className="text-green-600 hover:bg-green-100" onClick={() => setShowUpdate(v => !v)}>
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 
-      {currentUserId && (
+      {isAssigned && showUpdate && (
         <div className="mt-4 pt-4 border-t border-gray-200">
           <TaskStatusUpdate
             task={task}

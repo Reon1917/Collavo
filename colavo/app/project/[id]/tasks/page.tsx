@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from 'react';
+import React, { use, useEffect, useState, useMemo } from 'react';
 import { Task, Event } from '@/types';
 import { Button } from '@/components/ui/button';
 import { 
@@ -8,7 +8,8 @@ import {
   initializeLocalStorage, 
   deleteLocalTask, 
   getLocalEventsByProjectId,
-  deleteLocalEvent
+  deleteLocalEvent,
+  updateLocalEvent
 } from '@/lib/client-data';
 import { TaskDialog } from '@/components/tasks/task-dialog';
 import { TaskItem } from '@/components/tasks/task-item';
@@ -18,21 +19,19 @@ import { getProjectById, getUserById, getTasksByProjectId, getCurrentUser } from
 import { GanttChart } from '@/components/tasks/gantt-chart';
 import { EventDialog } from '@/components/events/event-dialog';
 import { CalendarEventItem } from '@/components/events/event-item';
-import { Check, ChevronDown, ListTodo, Calendar as CalendarIcon, BellRing, GanttChartSquare, Clock } from 'lucide-react';
+import { Check, ChevronDown, ListTodo, Calendar as CalendarIcon, BellRing, GanttChartSquare, Clock, Pencil } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import React from 'react';
 
 // Define view types
 type ViewType = 'tasks' | 'calendar' | 'gantt' | 'events';
 
-export default function TasksPage({ params }: { params: { id: string } }) {
-  // Store the ID directly in a state variable to avoid the params warning
-  const [projectId] = useState(() => params.id);
+export default function TasksPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: projectId } = use(params);
   
   const [project, setProject] = useState<any>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -40,6 +39,7 @@ export default function TasksPage({ params }: { params: { id: string } }) {
   const [users, setUsers] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isProjectLeader, setIsProjectLeader] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string>("");
   // Add a refresh trigger to force re-renders when tasks change
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -61,6 +61,8 @@ export default function TasksPage({ params }: { params: { id: string } }) {
     field: 'deadline',
     direction: 'asc'
   });
+
+  const [editEventId, setEditEventId] = useState<string | null>(null);
 
   // Function to handle filter changes
   const handleFiltersChange = (newFilters: TaskFiltersType) => {
@@ -96,6 +98,7 @@ export default function TasksPage({ params }: { params: { id: string } }) {
           return;
         }
         setIsProjectLeader(projectData.leader === currentUser.id);
+        setCurrentUserId(currentUser.id);
         
         // Fetch tasks
         const tasksData = await getTasksByProjectId(projectId);
@@ -414,6 +417,8 @@ export default function TasksPage({ params }: { params: { id: string } }) {
                     projectId={projectId}
                     assignees={assigneeData}
                     onDelete={() => handleTaskDelete(task.id)}
+                    isProjectLeader={isProjectLeader}
+                    currentUserId={currentUserId}
                   />
                 );
               })}
@@ -467,16 +472,40 @@ export default function TasksPage({ params }: { params: { id: string } }) {
                       </div>
                     </div>
                     {isProjectLeader && (
-                      <button
-                        onClick={() => handleEventDelete(event.id)}
-                        className="text-gray-400 hover:text-red-500"
-                      >
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setEditEventId(event.id)}
+                          className="text-blue-500 hover:bg-blue-100 rounded-full p-1 transition-colors"
+                          style={{ lineHeight: 0 }}
+                        >
+                          <Pencil className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleEventDelete(event.id)}
+                          className="text-red-500 hover:bg-red-100 rounded-full p-1 transition-colors"
+                          style={{ lineHeight: 0 }}
+                        >
+                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
                     )}
                   </div>
+                  {editEventId === event.id && (
+                    <EventDialog
+                      projectId={projectId}
+                      open={true}
+                      setOpen={() => setEditEventId(null)}
+                      initialData={event}
+                      isEditMode
+                      onEventAdded={updatedEvent => {
+                        updateLocalEvent(event.id, updatedEvent);
+                        setEditEventId(null);
+                        refreshData();
+                      }}
+                    />
+                  )}
                 </div>
               ))}
             </div>
