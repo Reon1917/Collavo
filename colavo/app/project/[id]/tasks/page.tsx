@@ -328,7 +328,7 @@ export default function TasksPage({ params }: { params: Promise<{ id: string }> 
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{project?.name} Tasks</h1>
+        <h1 className="text-2xl font-bold">{project?.name} Tasks & Events</h1>
         <div className="flex space-x-2">
           {/* View selector dropdown */}
           <DropdownMenu>
