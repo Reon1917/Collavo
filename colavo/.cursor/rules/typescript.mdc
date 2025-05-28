@@ -1,0 +1,403 @@
+---
+description: 
+globs: *.tsx,*.ts
+alwaysApply: false
+---
+# TypeScript Best Practices in Next.js App Router for Production Readiness
+
+Leveraging TypeScript effectively in your Next.js App Router project can significantly reduce bugs, improve code maintainability, and streamline the debugging process, especially in deployment.
+
+## 1. Strict TypeScript Configuration
+
+Always enable the strictest possible TypeScript settings in your `tsconfig.json`. This is the foundational step to catch errors early.
+
+```json
+// tsconfig.json
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true, // <-- Enable all strict checks
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler", // Or "node" for older setups, "bundler" is preferred for Next.js 13+
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+    // Consider adding more strictness:
+    // "noUncheckedIndexedAccess": true, // Catches potential undefined accesses
+    // "noImplicitOverride": true, // Ensures you use 'override' keyword
+    // "noPropertyAccessFromIndexSignature": true, // Discourages index access when property access is better
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+```
+
+**Key `strict` flags it enables:**
+*   `noImplicitAny`: Disallows `any` without explicit annotation.
+*   `noImplicitThis`: Flags `this` expressions with an implied `any` type.
+*   `alwaysStrict`: Ensures strict mode is always parsed.
+*   `strictBindCallApply`: Stricter checks on `bind`, `call`, and `apply` methods.
+*   `strictFunctionTypes`: Stricter checks for function types.
+*   `strictNullChecks`: Catches `null` or `undefined` being used where not allowed.
+*   `strictPropertyInitialization`: Ensures class properties are initialized.
+
+## 2. Leverage Next.js-Specific Type Enhancements
+
+Next.js provides excellent type inference and specific types for its features.
+
+### A. Server Components & Server Actions
+
+*   **`use server` and `use client` Directives:** TypeScript will correctly infer server/client environments. Ensure all server-side logic remains in Server Components/Actions and client-side logic in Client Components.
+*   **Passed Props:** Be explicit with props types for both.
+
+    ```typescript
+    // app/dashboard/page.tsx (Server Component)
+    interface DashboardPageProps {
+      userId: string;
+      initialData: { name: string; count: number };
+    }
+
+    export default async function DashboardPage({ userId, initialData }: DashboardPageProps) {
+      // ... server logic
+      return (
+        <ClientComponent userId={userId} data={initialData} />
+      );
+    }
+    ```
+
+### B. Route Params & Search Params
+
+Next.js types these automatically for `page.tsx` and `layout.tsx`.
+
+```typescript
+// app/products/[id]/page.tsx
+interface ProductPageProps {
+  params: { id: string }; // Type for dynamic segments
+  searchParams: { [key: string]: string | string[] | undefined }; // Type for query parameters
+}
+
+export default function ProductPage({ params, searchParams }: ProductPageProps) {
+  const productId = params.id;
+  const sortBy = searchParams.sortBy; // This will be typed as string | string[] | undefined
+  // ...
+}
+```
+
+### C. Type-Safe Links
+
+When using `<Link>`, ensure your `href` matches your routing structure. TypeScript helps catch malformed paths if you use a type-safe router library or define your own path types.
+
+## 3. Explicit Typing for APIs and Data Fetching
+
+### A. API Route Handlers (`route.ts`)
+
+Explicitly type `Request` and `Response` bodies for clear contracts.
+
+```typescript
+// app/api/users/route.ts
+import { NextResponse } from 'next/server';
+
+interface UserPayload {
+  name: string;
+  email: string;
+}
+
+interface ApiResponse<T> {
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+export async function POST(req: Request) {
+  try {
+    const body: UserPayload = await req.json(); // Explicitly type the request body
+
+    if (!body.name || !body.email) {
+      return NextResponse.json<ApiResponse<null>>({ error: 'Name and email are required' }, { status: 400 });
+    }
+
+    // Simulate saving to DB
+    const newUser = { id: 'some-uuid', ...body };
+
+    return NextResponse.json<ApiResponse<typeof newUser>>({ data: newUser, message: 'User created successfully' }, { status: 201 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json<ApiResponse<null>>({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+```
+
+### B. Server Component Data Fetching
+
+When fetching data (e.g., from Drizzle/Neon or external APIs), always define the expected return types.
+
+```typescript
+// lib/data.ts
+import { db, schema } from '@/db/schema'; // Your combined schema
+
+interface UserWithPosts {
+  id: string;
+  email: string;
+  posts: { id: number; title: string }[];
+}
+
+export async function getUserWithPosts(userId: string): Promise<UserWithPosts | null> {
+  const user = await db.query.users.findFirst({
+    where: (users, { eq }) => eq(users.id, userId),
+    with: {
+      posts: true, // Assuming you have relations defined in Drizzle schema
+    },
+  });
+
+  if (!user) return null;
+
+  return {
+    id: user.id,
+    email: user.email,
+    posts: user.posts.map(post => ({ id: post.id, title: post.title })),
+  };
+}
+
+// app/profile/[userId]/page.tsx
+interface ProfilePageProps {
+  params: { userId: string };
+}
+
+export default async function ProfilePage({ params }: ProfilePageProps) {
+  const user = await getUserWithPosts(params.userId);
+
+  if (!user) {
+    return <div>User not found.</div>;
+  }
+
+  return (
+    <div>
+      <h1>Profile for {user.email}</h1>
+      <h2>Posts:</h2>
+      <ul>
+        {user.posts.map(post => (
+          <li key={post.id}>{post.title}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+## 4. Consistent Naming Conventions
+
+*   **Interfaces/Types:** PascalCase (e.g., `interface User`, `type Product`).
+*   **Enums:** PascalCase (e.g., `enum UserRole`).
+*   **Variables/Functions:** camelCase.
+*   **Type files:** `types.ts` or `index.d.ts` for global types. Specific type files like `user.types.ts` are also good.
+
+## 5. Type Aliases vs. Interfaces
+
+*   **Interfaces:** Prefer for defining object shapes (especially for public APIs, classes, or when you might extend them).
+*   **Type Aliases (`type`):** Prefer for primitive types, unions, intersections, tuple types, or when you want to define a specific type for a more complex type expression (e.g., `type ID = string | number`).
+
+```typescript
+interface User {
+  id: string;
+  name: string;
+}
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+}
+
+type UserOrProduct = User | Product;
+type Status = 'active' | 'inactive' | 'pending';
+```
+
+## 6. Zod for Runtime Validation (Highly Recommended)
+
+While TypeScript provides static type checking, it doesn't guarantee runtime data correctness (e.g., data coming from an API or user input). Zod is an excellent library for schema validation that generates TypeScript types from your schema, offering both static and runtime safety.
+
+```bash
+npm install zod
+```
+
+```typescript
+// schemas/user.ts
+import { z } from 'zod';
+
+export const userSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(3, 'Name must be at least 3 characters long'),
+  email: z.string().email('Invalid email address'),
+  age: z.number().int().positive().optional(),
+});
+
+export type User = z.infer<typeof userSchema>; // Infer TypeScript type from Zod schema
+
+// app/api/users/route.ts (using Zod)
+import { NextResponse } from 'next/server';
+import { userSchema, User } from '@/schemas/user';
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const validatedBody = userSchema.safeParse(body); // Use safeParse for validation
+
+    if (!validatedBody.success) {
+      return NextResponse.json({ errors: validatedBody.error.flatten().fieldErrors }, { status: 400 });
+    }
+
+    const newUser: User = { ...validatedBody.data, id: 'generated-uuid' }; // Now 'newUser' is fully type-safe based on Zod
+
+    // Simulate saving to DB
+    return NextResponse.json({ data: newUser, message: 'User created' }, { status: 201 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+```
+Zod is incredibly powerful for validating form inputs, API responses, and environment variables.
+
+## 7. Global Type Declarations (`.d.ts`)
+
+For types that are truly global (e.g., extending window objects, custom environment variables types), use a `global.d.ts` file.
+
+```typescript
+// types/global.d.ts
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      DATABASE_URL: string;
+      NEXT_PUBLIC_API_URL: string;
+      // Define all your environment variables here for type safety
+    }
+  }
+}
+
+// Ensure this file is included in your tsconfig.json's "include" array.
+```
+**Note:** For Next.js public environment variables, they are already typed. However, this is good practice for server-side `process.env` and for any custom global types.
+
+## 8. Avoid `any` When Possible
+
+`any` completely bypasses TypeScript's type checking. While sometimes necessary for quick prototyping or interoperability with untyped libraries, it should be used sparingly and replaced with more specific types as soon as possible.
+
+*   **Better alternatives:** `unknown` (requires type assertion/narrowing), specific union types, or custom interfaces.
+
+```typescript
+// Bad
+function processData(data: any) { /* ... */ }
+
+// Good
+function processData(data: unknown) {
+  if (typeof data === 'string') {
+    // data is now string
+  }
+}
+
+interface ApiResponse {
+  status: 'success' | 'error';
+  payload: Record<string, any>; // If payload structure is truly unknown, this is still better than any
+}
+```
+
+## 9. Linting with ESLint and TypeScript Plugins
+
+Integrate ESLint with `@typescript-eslint/eslint-plugin` and `@typescript-eslint/parser`. This catches common TypeScript pitfalls beyond what the compiler does.
+
+```bash
+npm install --save-dev eslint @typescript-eslint/eslint-plugin @typescript-eslint/parser
+```
+
+`.eslintrc.json` example (simplified):
+```json
+{
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended", // Recommended TypeScript rules
+    "next/core-web-vitals" // Next.js specific rules
+  ],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "root": true,
+  "rules": {
+    // Add custom rules or override recommended ones
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-explicit-any": "warn", // Warn on 'any' instead of erroring
+    "@typescript-eslint/array-type": ["error", { "default": "array-simple" }],
+    // ...
+  }
+}
+```
+**Integrate with your CI/CD pipeline** to run `eslint` and `tsc --noEmit` before deployment.
+
+## 10. Type Inference vs. Explicit Annotation
+
+*   **Let TypeScript infer:** For simple variables where the type is clear from the assignment.
+    ```typescript
+    const name = "Alice"; // inferred as string
+    let count = 0; // inferred as number
+    ```
+*   **Explicitly annotate:** For function parameters/return types, complex object shapes, or when inference might be ambiguous or too broad.
+
+    ```typescript
+    interface User {
+      id: string;
+      name: string;
+    }
+
+    function getUserById(id: string): User | undefined { /* ... */ }
+
+    const data: Array<string | number> = [1, 'two', 3]; // Explicit union array
+    ```
+
+## 11. Handling External Libraries
+
+If a library doesn't have its own type definitions, you might need to install `@types/library-name` (e.g., `@types/lodash`). If no types exist, you can create a `declarations.d.ts` file:
+
+```typescript
+// types/declarations.d.ts
+declare module 'untyped-library-name' {
+  const content: any; // Or a more specific type if you know the shape
+  export default content;
+}
+```
+
+## 12. Drizzle Specific Typing
+
+*   **Inference is powerful:** Drizzle is designed for excellent type inference from your schema. Leverage it.
+*   **`typeof schema.users.$inferSelect` / `$inferInsert`:** Use these helper types for retrieving data from Drizzle queries or for defining insert payloads.
+
+    ```typescript
+    import { db, schema } from '@/db/schema';
+
+    type SelectUser = typeof schema.users.$inferSelect; // Type for selected user data
+    type InsertUser = typeof schema.users.$inferInsert; // Type for inserting a new user
+
+    async function getUser(id: string): Promise<SelectUser | undefined> {
+      return await db.query.users.findFirst({ where: (users, { eq }) => eq(users.id, id) });
+    }
+
+    async function createUser(userData: InsertUser): Promise<SelectUser> {
+      const [newUser] = await db.insert(schema.users).values(userData).returning();
+      return newUser;
+    }
+    ```
+
+
+By consistently applying these practices, you'll empower TypeScript to be a proactive debugging partner, catching issues during development rather than in the chaos of deployment.

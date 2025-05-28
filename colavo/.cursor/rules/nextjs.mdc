@@ -1,0 +1,179 @@
+---
+description: 
+globs: *.tsx,*ts
+alwaysApply: false
+---
+# Next.js 15 App Router Best Practices for Production Readiness
+
+Focusing specifically on Next.js 15 with the App Router, these best practices are geared towards building performant, scalable, and maintainable applications that are ready for production, minimizing debugging and deployment issues.
+
+## 1. Structured App Router Architecture
+
+Organize your application logically using the App Router's conventions.
+
+*   **Co-location:** Place components, CSS modules, tests, and types related to a specific route segment (e.g., `dashboard`, `products`) within that segment's directory.
+*   **Clear Folder Structure:**
+    ```
+    app/
+    ├── (marketing)/      # Route groups for specific layouts/templates (e.g., public pages)
+    │   ├── page.tsx
+    │   └── layout.tsx
+    ├── (auth)/           # Authentication flows (e.g., login, register)
+    │   ├── login/
+    │   │   └── page.tsx
+    │   └── register/
+    │       └── page.tsx
+    ├── dashboard/        # Authenticated user dashboard
+    │   ├── page.tsx
+    │   ├── layout.tsx
+    │   ├── loading.tsx   # Loading UI for this segment
+    │   ├── error.tsx     # Error UI for this segment
+    │   ├── api/          # Route handlers for dashboard-specific APIs
+    │   │   └── data/
+    │   │       └── route.ts
+    │   ├── components/   # Dashboard-specific components
+    │   │   └── Card.tsx
+    │   └── widgets/      # Dashboard widgets (can be sub-folders)
+    │       └── OverviewChart.tsx
+    ├── products/         # Product listing
+    │   ├── [id]/         # Dynamic route for single product
+    │   │   ├── page.tsx
+    │   │   └── reviews/
+    │   │       └── page.tsx
+    │   └── page.tsx
+    ├── api/              # Global API routes (e.g., generic user management)
+    │   ├── users/
+    │   │   └── route.ts
+    │   └── health/
+    │       └── route.ts
+    ├── lib/              # Utility functions, DB connections, API clients, auth config
+    │   ├── db.ts
+    │   ├── auth.ts
+    │   ├── data.ts
+    │   └── utils.ts
+    ├── components/       # Reusable UI components (not specific to a route)
+    │   ├── Button.tsx
+    │   └── Navbar.tsx
+    ├── actions/          # Server Actions
+    │   ├── user.ts
+    │   └── product.ts
+    └── global.css
+    ```
+*   **Routing Conventions:** Adhere to `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`, `route.ts` naming conventions.
+
+## 2. Strategic Use of Server & Client Components
+
+This is fundamental to Next.js 15's performance model.
+
+*   **Default to Server Components:** Server Components are the default in the App Router. Use them for data fetching, sensitive operations (e.g., direct DB access), and rendering static or slowly changing content. They reduce client-side bundle size and improve initial page load.
+*   **`use client` for Interactivity:** Only mark a component with `'use client'` when it absolutely needs client-side interactivity, hooks (like `useState`, `useEffect`), or browser APIs.
+*   **`use server` for Server Actions:** Use `'use server'` to define functions that run only on the server, callable from Client Components, ideal for mutations and form submissions.
+*   **Data Serialization:** Remember that props passed from Server Components to Client Components *must be serializable*. This means no functions, Dates (serialize to string), classes, or complex objects that cannot be JSON-serialized.
+*   **Smallest Client Component Boundary:** Render as much as possible on the server, then pass down only the minimal interactive parts to Client Components. Don't put `use client` at the root of a large component tree if only a small part needs client-side interactivity.
+
+## 3. Efficient Data Fetching
+
+Next.js 15 provides powerful data fetching capabilities that maximize performance.
+
+*   **`fetch` (Extended):** Use the native `fetch` API directly in Server Components or Server Actions. Next.js extends `fetch` with automatic request memoization, caching, and revalidation.
+    *   **Caching:** Data fetched with `fetch` is automatically cached. Use `cache` option (e.g., `revalidate: 3600`) for time-based revalidation.
+    *   **`revalidatePath` / `revalidateTag`:** Use these functions in Server Actions or Route Handlers to programmatically invalidate cached data after mutations.
+*   **Drizzle & Database Access:** Perform direct database queries using Drizzle ORM within Server Components or Server Actions. Keep your database connection code in `lib/db.ts` or similar.
+*   **`react/cache`:** For custom data fetching logic (e.g., `axios`, `graphql-request`, or direct Drizzle queries) that you want to memoize across renders in Server Components, wrap them with `import { cache } from 'react';`.
+    ```typescript
+    // lib/data.ts
+    import { cache } from 'react';
+    import { db, schema } from '@/db/schema';
+
+    export const getPopularProducts = cache(async () => {
+      // Fetches and caches data for subsequent calls within the same request
+      const products = await db.query.products.findMany({ limit: 10 });
+      return products;
+    });
+    ```
+*   **`loading.tsx` and `error.tsx`:** Implement these files within your route segments to provide immediate feedback to users during data fetching or in case of errors.
+
+## 4. Server Actions for Mutations
+
+Leverage Server Actions for all data mutations.
+
+*   **Form Submissions:** Use `action` prop on `<form>` elements or call Server Actions directly from client-side event handlers.
+    ```html
+    <form action={createPost}>
+      <input type="text" name="title" />
+      <textarea name="content"></textarea>
+      <button type="submit">Create Post</button>
+    </form>
+    ```
+*   **Validation:** Combine Server Actions with a runtime validation library like Zod to ensure data integrity. Perform validation on the server side where the action runs.
+*   **Revalidation:** Always call `revalidatePath` or `revalidateTag` within Server Actions after a successful mutation to ensure the UI reflects the latest data.
+*   **Error Handling:** Implement robust `try...catch` blocks within Server Actions and return error messages to the client.
+
+## 5. Route Handlers (`route.ts`) for Third-Party Integrations & Public APIs
+
+Use `route.ts` files for traditional API endpoints, especially when:
+
+*   **Third-party Integrations:** Handling webhooks or API callbacks from external services (e.g., payment gateways, OAuth providers like Better Stack Auth).
+*   **Client-Side Data Fetching:** When your Client Components need to fetch or post data that doesn't fit the Server Action model (e.g., streaming data, complex HTTP methods not easily mapped to forms).
+*   **Edge Functions:** Route Handlers can be deployed as Edge Functions for low-latency responses.
+
+## 6. Optimized Image & Font Usage
+
+*   **`next/image`:** Always use the `next/image` component for images. It provides automatic optimization (resizing, WebP conversion), lazy loading, and prevents layout shifts (CLS).
+    *   **`fill` and `priority`:** Use `fill` for background images and `priority` for above-the-fold images to optimize LCP.
+*   **`next/font`:** Use `next/font` for optimizing font loading. It automatically self-hosts Google Fonts and local fonts, removes unused font data, and ensures zero layout shift.
+
+## 7. Performance Monitoring & Diagnostics
+
+*   **Core Web Vitals:** Understand and monitor your Core Web Vitals (LCP, FID, CLS). Next.js is optimized for these, but your application code can impact them.
+*   **Next.js Analytics/Vercel Analytics:** If deployed on Vercel, leverage their built-in analytics.
+*   **`next build` Analysis:** After running `next build`, analyze the build output (bundle sizes, server vs. client code) to identify areas for optimization. The Next.js 15 "Asset Inventory" and "Bundle Analyzer" are key tools.
+*   **Telemetry (Opt-in):** Be aware of Next.js's telemetry collection (which is opt-out) and its purpose in helping improve the framework.
+
+## 8. Environment Variable Management
+
+*   **`.env.local`:** Use for local development environment variables.
+*   **Vercel/Hosting Provider UI:** Manage production environment variables directly in your hosting provider's dashboard (e.g., Vercel).
+*   **Prefix `NEXT_PUBLIC_`:** Only use `NEXT_PUBLIC_` prefix for variables that need to be exposed to client-side code. **Never expose sensitive keys (e.g., database credentials, API secrets) with this prefix.**
+*   **Runtime Validation (Zod):** Use a library like Zod to validate your environment variables at application startup, preventing runtime errors due to missing or malformed variables.
+
+## 9. Caching Strategies
+
+Understand and utilize Next.js's layered caching mechanisms.
+
+*   **Request Memoization:** `fetch` calls and `cache()` wrapped functions automatically memoize within a single render pass on the server.
+*   **Data Cache (Fetch Caching):** Next.js caches `fetch` responses on the server. Default is `force-cache` for `GET` requests.
+*   **Full Route Cache (Layouts, Pages):** Static rendering or `revalidate` option on `fetch` enables this.
+*   **`revalidatePath` / `revalidateTag`:** Programmatically purge specific cache entries.
+*   **Disabling Cache:** Use `no-store` or `revalidate: 0` for highly dynamic or sensitive data.
+
+## 10. Linting and Code Quality
+
+*   **ESLint with Next.js Config:** Utilize `eslint-config-next` along with `@typescript-eslint/parser` and `@typescript-eslint/eslint-plugin` for comprehensive code quality checks.
+*   **Prettier:** Integrate Prettier for consistent code formatting.
+*   **CI/CD Integration:** Enforce linting and type checking (e.g., `npm run lint` and `tsc --noEmit`) in your CI/CD pipeline before every deployment. This catches most issues before they reach production.
+
+## 11. Absolute Imports
+
+Use absolute imports (`@/components/Button`) instead of relative imports (`../../components/Button`). This keeps imports clean and refactoring easier. Configure this in `tsconfig.json` and `jsconfig.json`.
+
+```json
+// tsconfig.json (already covered in previous TypeScript rules)
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./*"]
+    }
+  }
+}
+```
+
+## 12. Authentication with Better Stack Auth
+
+*   **API Route for Callback:** Create `app/api/auth/[...all]/route.ts` to handle Better Stack Auth's OAuth callbacks and API endpoints.
+*   **Server Component Session Handling:** Use Better Stack Auth's server-side utilities to get session information in Server Components to protect routes and fetch user-specific data.
+*   **Client Component Interaction:** Utilize Better Stack Auth's client-side hooks/methods for sign-in/sign-up forms and managing sessions on the client.
+*   **Database Schema:** Ensure your Drizzle schema includes Better Stack Auth's required tables, and extend the `User` schema through Better Stack Auth's configuration for custom fields, rather than directly modifying generated auth tables.
+
+
+By consciously implementing these Next.js 15 App Router-specific best practices, you'll be well-equipped to build high-performance, robust, and maintainable web applications for a production environment.
