@@ -1,8 +1,10 @@
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
-import { config } from "dotenv";
+import * as schema from "./schema";
 
-config({ path: ".env" }); // or .env.local
-
+// Edge runtime doesn't support dotenv config or filesystem
+// Environment variables need to be pre-loaded via Next.js config
 const sql = neon(process.env.DATABASE_URL!);
-export const db = drizzle({ client: sql });
+
+// Create the database instance with schema for Better Auth compatibility
+export const db = drizzle(sql, { schema });

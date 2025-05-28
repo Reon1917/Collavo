@@ -1,7 +1,13 @@
+"use client";
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { LoginButton } from '@/components/ui/login-button';
+import { useSession } from '@/lib/auth-client';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
-export default function Home() {
+function LandingPageContent() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
@@ -16,10 +22,10 @@ export default function Home() {
                 </span>
               </h1>
             </div>
-            <nav className="hidden md:flex space-x-6">
-              <Link href="#features" className="text-white hover:text-blue-200 transition-colors">Features</Link>
-              <Link href="#how-it-works" className="text-white hover:text-blue-200 transition-colors">How It Works</Link>
-              <Link href="/dashboard" className="text-white hover:text-blue-200 transition-colors">Dashboard</Link>
+            <nav className="flex items-center space-x-6">
+              <Link href="#features" className="hidden md:inline text-white hover:text-blue-200 transition-colors">Features</Link>
+              <Link href="#how-it-works" className="hidden md:inline text-white hover:text-blue-200 transition-colors">How It Works</Link>
+              <LoginButton />
             </nav>
           </div>
         </div>
@@ -193,6 +199,35 @@ export default function Home() {
   );
 }
 
+export default function Home() {
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    // If we have a session and are not pending, redirect to dashboard
+    if (session && !isPending) {
+      router.push('/dashboard');
+    }
+  }, [session, isPending, router]);
+
+  // Show loading state while checking session
+  if (isPending) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // If user is logged in, don't show landing page (redirect will happen in useEffect)
+  if (session) {
+    return null;
+  }
+
+  // Show landing page for non-authenticated users
+  return <LandingPageContent />;
+}
+
 function FeatureCard({ title, description, icon }: { title: string; description: string; icon: string }) {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
@@ -205,8 +240,8 @@ function FeatureCard({ title, description, icon }: { title: string; description:
 
 function StepCard({ number, title, description }: { number: string; title: string; description: string }) {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
-      <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+    <div className="text-center">
+      <div className="bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mx-auto mb-4">
         {number}
       </div>
       <h3 className="text-xl font-semibold mb-2">{title}</h3>
