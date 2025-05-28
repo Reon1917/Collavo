@@ -2,7 +2,6 @@
 
 import { BellRing, Calendar, MapPin, Clock } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
 import { Event } from '@/types';
 
 interface EventItemProps {
@@ -48,13 +47,17 @@ function isSameDay(date1: Date, date2: Date): boolean {
   );
 }
 
-// Calendar view version with minimal info
-export function CalendarEventItem({ event }: EventItemProps) {
+interface CalendarEventItemProps {
+  event: Event;
+}
+
+export function CalendarEventItem({ event }: CalendarEventItemProps) {
   return (
-    <div className="p-1 rounded bg-blue-100 border-l-2 border-blue-500 text-xs mb-1 flex items-center gap-1">
-      <BellRing className="h-3 w-3 text-blue-600" />
-      <span className="truncate font-medium text-blue-700">{event.title}</span>
-      <span className="ml-auto text-blue-600">{event.time}</span>
+    <div className="text-xs p-1 mb-1 bg-blue-100 text-blue-800 rounded truncate">
+      <div className="font-medium">{event.title}</div>
+      {event.time && (
+        <div className="text-blue-600">{event.time}</div>
+      )}
     </div>
   );
 }

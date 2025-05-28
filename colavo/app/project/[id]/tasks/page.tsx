@@ -36,7 +36,7 @@ export default function TasksPage({ params }: { params: Promise<{ id: string }> 
   const [project, setProject] = useState<any>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
-  const [users, setUsers] = useState<Record<string, any>>({});
+  const [users, setUsers] = useState<Record<string, { id: string; name: string; email: string; image?: string }>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isProjectLeader, setIsProjectLeader] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>("");
@@ -113,7 +113,7 @@ export default function TasksPage({ params }: { params: Promise<{ id: string }> 
         setEvents(localEvents);
         
         // Fetch user data for all assignees
-        const userMap: Record<string, any> = {};
+        const userMap: Record<string, { id: string; name: string; email: string; image?: string }> = {};
         const userPromises = allTasks.flatMap(task => {
           // Handle both string and string[] for backward compatibility
           const assigneeIds = Array.isArray(task.assignedTo) ? task.assignedTo : [task.assignedTo];

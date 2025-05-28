@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from 'react';
 import { useRouter } from "next/navigation";
 import { Task, User } from "@/types";
 import { Button } from "@/components/ui/button";
 import { deleteLocalTask, updateLocalTask } from "@/lib/client-data";
-import { Trash2, Pencil, RefreshCw } from "lucide-react";
+import { Trash2, Pencil, RefreshCw, Calendar, User, AlertCircle } from "lucide-react";
 import { TaskStatusUpdate } from "./task-status-update";
 import { getCurrentUser } from "@/lib/data";
 import { TaskDialog } from "./task-dialog";

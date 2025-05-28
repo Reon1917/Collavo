@@ -86,22 +86,15 @@ const mockEvents = [
   }
 ];
 
-// Initialize local storage with mock data if empty
-export function initializeLocalStorage(): void {
-  if (typeof window === 'undefined') return;
-  
-  // Check if tasks exist in local storage
-  const storedTasks = localStorage.getItem(TASKS_STORAGE_KEY);
-  if (!storedTasks) {
-    // Initialize with empty array
-    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify([]));
-  }
-
-  // Check if events exist in local storage
-  const storedEvents = localStorage.getItem(EVENTS_STORAGE_KEY);
-  if (!storedEvents) {
-    // Initialize with mock events
-    localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(mockEvents));
+// Initialize localStorage if not present
+export function initializeLocalStorage() {
+  if (typeof window !== 'undefined') {
+    if (!localStorage.getItem('colavo_tasks')) {
+      localStorage.setItem('colavo_tasks', JSON.stringify([]));
+    }
+    if (!localStorage.getItem('colavo_events')) {
+      localStorage.setItem('colavo_events', JSON.stringify([]));
+    }
   }
 }
 
@@ -216,15 +209,20 @@ export function deleteLocalEvent(eventId: string): void {
 }
 
 // Update an event in local storage
-export function updateLocalEvent(eventId: string, updates: Partial<Event>): Event | null {
-  const events = getLocalEvents();
-  const eventIndex = events.findIndex(event => event.id === eventId);
+export function updateLocalEvent(eventId: string, updatedData: Partial<Event>): boolean {
+  if (typeof window === 'undefined') return false;
   
-  if (eventIndex === -1) return null;
-  
-  const updatedEvent = { ...events[eventIndex], ...updates };
-  events[eventIndex] = updatedEvent;
-  localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(events));
-  
-  return updatedEvent;
+  try {
+    const events = getLocalEvents();
+    const eventIndex = events.findIndex(event => event.id === eventId);
+    
+    if (eventIndex === -1) return false;
+    
+    events[eventIndex] = { ...events[eventIndex], ...updatedData };
+    localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(events));
+    return true;
+  } catch (error) {
+    console.error('Error updating event:', error);
+    return false;
+  }
 }

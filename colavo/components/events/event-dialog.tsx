@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon, BellRing, Clock } from 'lucide-react';
+import { CalendarIcon, Plus } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -26,12 +26,21 @@ import { cn } from '@/lib/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { addLocalEvent } from '@/lib/client-data';
 
+interface Event {
+  id: string;
+  title: string;
+  description?: string;
+  date: string;
+  time?: string;
+  location?: string;
+}
+
 interface EventDialogProps {
   projectId: string;
-  onEventAdded: (event?: any) => void;
+  onEventAdded: (event?: Event) => void;
   open?: boolean;
   setOpen?: (open: boolean) => void;
-  initialData?: any;
+  initialData?: Event;
   isEditMode?: boolean;
 }
 
@@ -174,7 +183,7 @@ export function EventDialog({ projectId, onEventAdded, open: controlledOpen, set
               Time
             </Label>
             <div className="col-span-3 flex items-center">
-              <Clock className="mr-2 h-4 w-4 text-gray-400" />
+              <Plus className="mr-2 h-4 w-4 text-gray-400" />
               <Input
                 id="time"
                 type="time"

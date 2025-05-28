@@ -20,7 +20,7 @@ export default async function ProjectLayout({
     return (
       <div className="container mx-auto px-4 py-16 text-center">
         <h1 className="text-3xl font-bold mb-4">Project Not Found</h1>
-        <p className="mb-6">The project you're looking for doesn't exist or you don't have access to it.</p>
+        <p className="mb-6">The project you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.</p>
         <Link 
           href="/dashboard" 
           className="text-blue-600 hover:underline"

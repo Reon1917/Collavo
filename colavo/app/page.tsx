@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { LoginButton } from '@/components/ui/login-button';
 import { useSession } from '@/lib/auth-client';
@@ -56,12 +57,13 @@ function LandingPageContent() {
             <div className="md:w-1/2 relative">
               <div className="absolute -top-4 -left-4 w-20 h-20 bg-yellow-400 rounded-full opacity-20 blur-xl"></div>
               <div className="absolute -bottom-8 -right-8 w-40 h-40 bg-blue-300 rounded-full opacity-20 blur-xl"></div>
-              <img 
+              <Image 
                 src="/landingpage-img/dashboard.png" 
                 alt="Collavo Dashboard Preview - Student Project Management" 
                 className="rounded-lg shadow-xl relative z-10"
                 width={600}
                 height={400}
+                priority
               />
             </div>
           </div>
@@ -73,7 +75,7 @@ function LandingPageContent() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-4">Designed for Student Success</h2>
           <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-            From solo assignments to complex group projects, Collavo gives you the tools to excel in today's competitive academic environment.
+            From solo assignments to complex group projects, Collavo gives you the tools to excel in today&apos;s competitive academic environment.
           </p>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -144,7 +146,7 @@ function LandingPageContent() {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-6">A University Project With Purpose</h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto text-gray-600">
-            Collavo was developed as a university project aimed at solving real academic challenges. We're committed to providing this tool completely free to help students collaborate more effectively.
+            Collavo was developed as a university project aimed at solving real academic challenges. We&apos;re committed to providing this tool completely free to help students collaborate more effectively.
           </p>
           <div className="flex flex-col md:flex-row gap-8 justify-center items-center max-w-4xl mx-auto">
             <div className="bg-white p-6 rounded-lg shadow-md flex-1">
@@ -153,7 +155,9 @@ function LandingPageContent() {
             </div>
             <div className="bg-white p-6 rounded-lg shadow-md flex-1">
               <h3 className="text-xl font-semibold mb-2">Our Vision</h3>
-              <p className="text-gray-600">A future where student collaboration is seamless, productive, and accessible to everyone.</p>
+              <p className="text-gray-600">
+                A future where student collaboration is seamless, productive, and accessible to everyone.
+              </p>
             </div>
           </div>
         </div>

@@ -108,12 +108,12 @@ export default function DashboardPage() {
 
         {/* Projects you're a member of */}
         <section>
-          <h2 className="text-2xl font-semibold mb-4">Projects You're In</h2>
+          <h2 className="text-2xl font-semibold mb-4">Projects You&apos;re In</h2>
           <div className="bg-gray-50 rounded-lg p-8 text-center">
             <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">No memberships yet</h3>
             <p className="text-gray-600">
-              You haven't been added to any projects as a member yet. Start collaborating by creating a project or being invited to one!
+              You haven&apos;t been added to any projects as a member yet. Start collaborating by creating a project or being invited to one!
             </p>
           </div>
         </section>

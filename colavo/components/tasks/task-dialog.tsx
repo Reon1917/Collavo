@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Task, TaskImportance, TaskStatus, User } from "@/types";
 import { addLocalTask } from "@/lib/client-data";
-import { getProjectById, getCurrentUser, getUserById } from "@/lib/data";
+import { getProjectById, getUserById } from "@/lib/data";
 
 interface TaskDialogProps {
   projectId: string;

@@ -6,9 +6,23 @@ import { ProjectMember, User } from '@/types';
 import { useState, useEffect } from 'react';
 import { PermissionModal } from '@/components/members/user-permission-modal';
 
+interface Project {
+  id: string;
+  name: string;
+  description: string;
+  members?: User[];
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  image?: string;
+}
+
 export default function MembersPage({ params }: { params: { id: string } }) {
   const { id } = params;
-  const [project, setProject] = useState<any>(null);
+  const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Fetch project data on client-side
@@ -39,7 +53,7 @@ export default function MembersPage({ params }: { params: { id: string } }) {
       <header className="mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold mb-2">Team Members</h1>
-          <p className="text-gray-600">{project.members.length} members</p>
+          <p className="text-gray-600">{project.members?.length || 0} members</p>
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700">
           Invite Member
@@ -53,7 +67,7 @@ export default function MembersPage({ params }: { params: { id: string } }) {
             <h2 className="text-xl font-semibold">Project Team</h2>
           </div>
           <div className="divide-y divide-gray-200">
-            {project.members.map((member: ProjectMember) => (
+            {project.members?.map((member: ProjectMember) => (
               <MemberItem 
                 key={member.userId} 
                 member={member} 
