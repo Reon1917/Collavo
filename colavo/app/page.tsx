@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Navbar } from '@/components/ui/navbar';
 
 export default function Home() {
   return (
@@ -7,22 +8,7 @@ export default function Home() {
       {/* Hero Section */}
       <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
         {/* Top navigation with logo */}
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <h1 className="text-3xl font-extrabold tracking-tight">
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-100">
-                  Coll<span className="text-blue-300">a</span>vo
-                </span>
-              </h1>
-            </div>
-            <nav className="hidden md:flex space-x-6">
-              <Link href="#features" className="text-white hover:text-blue-200 transition-colors">Features</Link>
-              <Link href="#how-it-works" className="text-white hover:text-blue-200 transition-colors">How It Works</Link>
-              <Link href="/dashboard" className="text-white hover:text-blue-200 transition-colors">Dashboard</Link>
-            </nav>
-          </div>
-        </div>
+        <Navbar />
 
         <div className="container mx-auto px-4 py-16 md:py-20">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
@@ -39,7 +25,7 @@ export default function Home() {
                     Get Started Free
                   </Button>
                 </Link>
-                <Button variant="outline" size="lg" className="border-white text-blue-700 hover:bg-white/10">
+                <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
                   See How It Works
                 </Button>
               </div>

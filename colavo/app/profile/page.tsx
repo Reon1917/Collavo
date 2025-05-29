@@ -1,106 +1,82 @@
-import { getCurrentUser } from '@/lib/data';
+import { auth } from '@/lib/auth';
+import { redirect } from 'next/navigation';
+import { Navbar } from '@/components/ui/navbar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { ArrowLeft, LogOut } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 export default async function ProfilePage() {
-  const user = await getCurrentUser();
+  // Get the current user
+  const session = await auth();
+  
+  if (!session) {
+    redirect('/login');
+  }
+  
+  const user = session.user;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/dashboard">
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
-            <h1 className="text-3xl font-bold">Profile Settings</h1>
-          </div>
-          <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50" asChild>
-            <Link href="/api/auth/signout" className="flex items-center gap-2">
-              <LogOut className="h-4 w-4" />
-              Log Out
-            </Link>
-          </Button>
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <Link href="/dashboard" className="text-blue-600 hover:text-blue-800 flex items-center">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Link>
         </div>
-
-        <div className="grid gap-8">
-          {/* Basic Information */}
+        
+        <div className="max-w-md mx-auto">
           <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-              <CardDescription>Update your personal details</CardDescription>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-2xl">Profile</CardTitle>
+              <CardDescription>
+                Manage your account information
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" defaultValue={user.name} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" defaultValue={user.email} disabled />
-                <p className="text-sm text-gray-500">Email cannot be changed</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Account Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Settings</CardTitle>
-              <CardDescription>Manage your account preferences</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="notifications">Email Notifications</Label>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="notifications"
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <Label htmlFor="notifications" className="text-sm">
-                    Receive email notifications about project updates
-                  </Label>
+            <CardContent className="space-y-6">
+              <div className="flex flex-col items-center space-y-3">
+                <Avatar className="h-24 w-24">
+                  <AvatarImage src={user.image || ''} alt={user.name || 'User'} />
+                  <AvatarFallback className="bg-blue-600 text-xl">
+                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-center">
+                  <h2 className="text-xl font-semibold">{user.name}</h2>
+                  <p className="text-gray-500">{user.email}</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Danger Zone */}
-          <Card className="border-red-200">
-            <CardHeader>
-              <CardTitle className="text-red-600">Danger Zone</CardTitle>
-              <CardDescription>Irreversible and destructive actions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+              
+              <div className="pt-4 space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium text-red-600">Delete Account</h3>
-                  <p className="text-sm text-gray-500">
-                    Once you delete your account, there is no going back. Please be certain.
-                  </p>
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">Full Name</h3>
+                  <p className="text-base">{user.name}</p>
                 </div>
-                <Button variant="destructive" size="sm">
-                  Delete Account
-                </Button>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">Email</h3>
+                  <p className="text-base">{user.email}</p>
+                </div>
+                {user.emailVerified ? (
+                  <div className="bg-green-50 text-green-800 text-sm py-2 px-3 rounded-md">
+                    Email verified
+                  </div>
+                ) : (
+                  <div className="bg-yellow-50 text-yellow-800 text-sm py-2 px-3 rounded-md">
+                    Email not verified
+                  </div>
+                )}
               </div>
             </CardContent>
+            <CardFooter className="border-t pt-6 flex justify-end">
+              <Button variant="outline" asChild>
+                <Link href="/dashboard">Return to Dashboard</Link>
+              </Button>
+            </CardFooter>
           </Card>
-
-          <div className="flex justify-end gap-4">
-            <Button variant="outline" asChild>
-              <Link href="/dashboard">Cancel</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/dashboard">Save Changes</Link>
-            </Button>
-          </div>
         </div>
       </div>
     </div>

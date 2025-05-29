@@ -1,45 +1,57 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { getCurrentUser, getProjectsLedByUserId, getProjectsMembershipByUserId, getUserById } from '@/lib/data';
-import { User } from 'lucide-react';
+import { Navbar } from '@/components/ui/navbar';
+import { auth } from '@/lib/auth';
+import { redirect } from 'next/navigation';
+import { User, PlusCircle, File, Users } from 'lucide-react';
+import { headers } from 'next/headers';
 
 export default async function DashboardPage() {
-  // Fetch the current user and their projects
-  const currentUser = await getCurrentUser();
-  const leadProjects = await getProjectsLedByUserId(currentUser.id);
-  const memberProjects = await getProjectsMembershipByUserId(currentUser.id);
+  // Get the current user using better-auth
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+  
+  if (!session) {
+    redirect('/login');
+  }
+  
+  const user = session.user;
+
+  // For now, we don't have project data, so we'll show a clean dashboard
+  // In the future, you can replace this with actual project data
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <header className="mb-8 flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-          <p className="text-gray-600">Welcome back to Collavo, {currentUser.name}!</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button className="bg-blue-600 hover:bg-blue-700" asChild>
-            <Link href="/project/new">Create New Project</Link>
-          </Button>
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/profile">
-              <User className="h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50">
+      {/* Include the Navbar at the top */}
+      <Navbar />
+      
+      <div className="container mx-auto px-4 py-8">
+        <header className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
+            <p className="text-gray-600">Welcome back to Collavo, {user.name}!</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button className="bg-blue-600 hover:bg-blue-700" asChild>
+              <Link href="/project/new">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Create New Project
+              </Link>
+            </Button>
+            <Button variant="outline" size="icon" asChild>
+              <Link href="/profile">
+                <User className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </header>
 
-      <div className="space-y-10">
-        {/* Projects you lead */}
-        <section>
-          <h2 className="text-2xl font-semibold mb-4">Projects You Lead</h2>
-          {leadProjects.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {leadProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-gray-50 rounded-lg p-8 text-center">
+        <div className="space-y-10">
+          {/* Projects you lead */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">Projects You Lead</h2>
+            <div className="bg-gray-50 rounded-lg p-8 text-center border border-gray-200">
               <h3 className="text-lg font-medium mb-2">No projects yet</h3>
               <p className="text-gray-600 mb-4">
                 Create your first project to get started
@@ -48,91 +60,66 @@ export default async function DashboardPage() {
                 <Link href="/project/new">Create Project</Link>
               </Button>
             </div>
-          )}
-        </section>
+          </section>
 
-        {/* Projects you're a member of */}
-        <section>
-          <h2 className="text-2xl font-semibold mb-4">Projects You're In</h2>
-          {memberProjects.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {memberProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-gray-50 rounded-lg p-8 text-center">
+          {/* Projects you're a member of */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">Projects You&apos;re In</h2>
+            <div className="bg-gray-50 rounded-lg p-8 text-center border border-gray-200">
               <h3 className="text-lg font-medium mb-2">No memberships yet</h3>
               <p className="text-gray-600">
-                You haven't been added to any projects as a member
+                You haven&apos;t been added to any projects as a member
               </p>
             </div>
-          )}
-        </section>
+          </section>
+
+          {/* Quick Access */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">Quick Access</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <QuickAccessCard 
+                title="Create Project" 
+                description="Start a new project and invite team members"
+                icon={<PlusCircle className="h-8 w-8 text-blue-600" />}
+                href="/project/new"
+              />
+              <QuickAccessCard 
+                title="Manage Files" 
+                description="Upload and organize your project files"
+                icon={<File className="h-8 w-8 text-green-600" />}
+                href="/dashboard"
+              />
+              <QuickAccessCard 
+                title="Team Collaboration" 
+                description="Coordinate with your team members"
+                icon={<Users className="h-8 w-8 text-purple-600" />}
+                href="/dashboard"
+              />
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   );
 }
 
-async function ProjectCard({ project }: { project: any }) {
-  // Calculate days remaining until deadline
-  const deadline = new Date(project.deadline);
-  const today = new Date();
-  const daysRemaining = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-  
-  // Determine status color based on days remaining
-  let statusColor = 'bg-green-100 text-green-800';
-  if (daysRemaining < 0) {
-    statusColor = 'bg-red-100 text-red-800';
-  } else if (daysRemaining <= 3) {
-    statusColor = 'bg-yellow-100 text-yellow-800';
-  }
-
-  // Fetch user details for the first 3 members
-  const memberDetails = await Promise.all(
-    project.members.slice(0, 3).map(async (member: any) => {
-      const user = await getUserById(member.userId);
-      return {
-        ...member,
-        name: user?.name || `User ${member.userId}`,
-        initials: user?.name ? user.name.split(' ').map((n: string) => n[0]).join('') : member.userId.charAt(member.userId.length - 1)
-      };
-    })
-  );
-
+function QuickAccessCard({ 
+  title, 
+  description, 
+  icon, 
+  href 
+}: { 
+  title: string; 
+  description: string; 
+  icon: React.ReactNode;
+  href: string;
+}) {
   return (
-    <Link href={`/project/${project.id}`}>
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-        <div className="p-5">
-          <h3 className="text-xl font-semibold mb-2 truncate">{project.name}</h3>
-          <p className="text-gray-600 text-sm mb-4 line-clamp-2">{project.description}</p>
-          
-          <div className="flex justify-between items-center">
-            <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${statusColor}`}>
-              {daysRemaining < 0 
-                ? 'Overdue' 
-                : daysRemaining === 0 
-                  ? 'Due today' 
-                  : `${daysRemaining} days left`}
-            </span>
-            <div className="flex -space-x-2">
-              {memberDetails.map((member) => (
-                <div 
-                  key={member.userId} 
-                  className="w-7 h-7 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs font-medium"
-                  title={member.name}
-                >
-                  {member.initials}
-                </div>
-              ))}
-              {project.members.length > 3 && (
-                <div className="w-7 h-7 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-xs">
-                  +{project.members.length - 3}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+    <Link href={href}>
+      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <div className="mb-4">{icon}</div>
+        <h3 className="text-xl font-semibold mb-2">{title}</h3>
+        <p className="text-gray-600">{description}</p>
       </div>
     </Link>
   );
