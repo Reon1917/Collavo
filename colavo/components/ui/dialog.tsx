@@ -99,10 +99,7 @@ function DialogContent({
 }: React.HTMLAttributes<HTMLDivElement>) {
   const { open, onOpenChange } = React.useContext(DialogContext)
   
-  // Early return if dialog is not open
-  if (!open) return null
-
-  // Handle escape key and body scroll
+  // Handle escape key and body scroll - MUST be before early return
   React.useEffect(() => {
     // Add keyboard listener when dialog opens
     const handleEscapeKey = (e: KeyboardEvent) => {
@@ -122,8 +119,10 @@ function DialogContent({
       document.body.style.overflow = ""
     }
   }, [open, onOpenChange])
-  
-  
+
+  // Early return if dialog is not open
+  if (!open) return null
+
   // Handle click outside
   const handleBackdropClick = () => {
     onOpenChange(false)

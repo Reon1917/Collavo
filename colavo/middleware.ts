@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -30,22 +29,21 @@ export async function middleware(request: NextRequest) {
   if (isPublicRoute) {
     return NextResponse.next();
   }
-  
+
   try {
-    // Check for valid session using better-auth
-    const session = await auth.api.getSession({
-      headers: request.headers
-    });
+    // Check for authentication cookie (better-auth sets this automatically)
+    const authCookie = request.cookies.get('better-auth.session_token') || 
+                      request.cookies.get('better-auth.session');
     
-    // If no session, user is not authenticated
-    if (!session) {
+    // If no auth cookie, user is not authenticated
+    if (!authCookie || !authCookie.value) {
       // Redirect to login with callback URL
       const url = new URL('/login', request.url);
       url.searchParams.set('callbackUrl', pathname);
       return NextResponse.redirect(url);
     }
     
-    // User is authenticated, continue
+    // User has auth cookie, continue (validation happens on API routes)
     return NextResponse.next();
   } catch (error) {
     console.error('Middleware auth error:', error);

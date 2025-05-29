@@ -7,6 +7,7 @@ export default async function FilesPage({ params }: { params: { id: string } }) 
   
   // TODO: Replace with actual API call to fetch project files
   // const files = await fetch(`/api/projects/${id}/files`).then(res => res.json());
+  // const project = await fetch(`/api/projects/${id}`).then(res => res.json());
   
   return (
     <div>

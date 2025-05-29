@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, FileText, Users, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Calendar, FileText, Users, Clock, CheckCircle } from 'lucide-react';
 
 export default async function ProjectPage({ params }: { params: { id: string } }) {
   const { id } = params;

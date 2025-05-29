@@ -1,4 +1,3 @@
-import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { Navbar } from '@/components/ui/navbar';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,12 +9,11 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
 export default async function NewProjectPage() {
-  // Get the current user
-  const session = await auth.getUserSession();
-  
-  if (!session) {
-    redirect('/login');
-  }
+  // TODO: Replace with proper authentication check
+  // const session = await fetch('/api/auth/session').then(res => res.json());
+  // if (!session) {
+  //   redirect('/login');
+  // }
 
   return (
     <div className="min-h-screen bg-gray-50">
