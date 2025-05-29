@@ -1,78 +1,68 @@
 import { User, Project, Task, Resource, ProjectMember } from '../types';
-import mockUsers from '../data/mockdata1.json';
-import mockTasksResources from '../data/mockdata2.json';
 
-// Type assertions for our mock data
-const users = mockUsers.users as User[];
-const projects = mockUsers.projects as Project[];
-const tasks = mockTasksResources.tasks as Task[];
-const resources = mockTasksResources.resources as Resource[];
+// Placeholder functions that need to be replaced with real backend calls
+const BACKEND_NOT_IMPLEMENTED = 'Backend not implemented yet. Replace this function with real API call.';
 
 // User data functions
 export async function getCurrentUser(): Promise<User> {
-  // For the prototype, we'll assume user1 is the current user
-  return users.find(user => user.id === 'user1') as User;
+  throw new Error(BACKEND_NOT_IMPLEMENTED);
 }
 
 export async function getUsers(): Promise<User[]> {
-  return users;
+  throw new Error(BACKEND_NOT_IMPLEMENTED);
 }
 
 export async function getUserById(id: string): Promise<User | undefined> {
-  return users.find(user => user.id === id);
+  throw new Error(BACKEND_NOT_IMPLEMENTED);
 }
 
 // Project data functions
 export async function getProjects(): Promise<Project[]> {
-  return projects;
+  throw new Error(BACKEND_NOT_IMPLEMENTED);
 }
 
 export async function getProjectById(id: string): Promise<Project | undefined> {
-  return projects.find(project => project.id === id);
+  throw new Error(BACKEND_NOT_IMPLEMENTED);
 }
 
 export async function getProjectsByUserId(userId: string): Promise<Project[]> {
-  return projects.filter(project => 
-    project.members.some((member: ProjectMember) => member.userId === userId)
-  );
+  throw new Error(BACKEND_NOT_IMPLEMENTED);
 }
 
 export async function getProjectsLedByUserId(userId: string): Promise<Project[]> {
-  return projects.filter(project => project.leader === userId);
+  throw new Error(BACKEND_NOT_IMPLEMENTED);
 }
 
 export async function getProjectsMembershipByUserId(userId: string): Promise<Project[]> {
-  return projects.filter(project => 
-    project.members.some((member: ProjectMember) => member.userId === userId && member.role === 'member')
-  );
+  throw new Error(BACKEND_NOT_IMPLEMENTED);
 }
 
 // Task data functions
 export async function getTasks(): Promise<Task[]> {
-  return tasks;
+  throw new Error(BACKEND_NOT_IMPLEMENTED);
 }
 
 export async function getTaskById(id: string): Promise<Task | undefined> {
-  return tasks.find(task => task.id === id);
+  throw new Error(BACKEND_NOT_IMPLEMENTED);
 }
 
 export async function getTasksByProjectId(projectId: string): Promise<Task[]> {
-  return tasks.filter(task => task.projectId === projectId);
+  throw new Error(BACKEND_NOT_IMPLEMENTED);
 }
 
 export async function getTasksByAssignee(userId: string): Promise<Task[]> {
-  return tasks.filter(task => task.assignedTo === userId);
+  throw new Error(BACKEND_NOT_IMPLEMENTED);
 }
 
 // Resource data functions
 export async function getResources(): Promise<Resource[]> {
-  return resources;
+  throw new Error(BACKEND_NOT_IMPLEMENTED);
 }
 
 export async function getResourceById(id: string): Promise<Resource | undefined> {
-  return resources.find(resource => resource.id === id);
+  throw new Error(BACKEND_NOT_IMPLEMENTED);
 }
 
 export async function getResourcesByProjectId(projectId: string): Promise<Resource[]> {
-  return resources.filter(resource => resource.projectId === projectId);
+  throw new Error(BACKEND_NOT_IMPLEMENTED);
 }

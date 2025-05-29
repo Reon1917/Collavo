@@ -5,88 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 const TASKS_STORAGE_KEY = 'colavo-tasks';
 const EVENTS_STORAGE_KEY = 'colavo-events';
 
-// Mock event data
-const mockEvents = [
-  {
-    id: 'event1',
-    projectId: 'project1',
-    title: 'Marketing Strategy Meeting',
-    description: 'Weekly team meeting to discuss marketing strategy and progress',
-    date: '2025-05-15T00:00:00.000Z',
-    time: '10:00',
-    location: 'Conference Room A',
-    createdAt: '2025-05-01T00:00:00.000Z',
-    type: 'event'
-  },
-  {
-    id: 'event2',
-    projectId: 'project1',
-    title: 'Presentation Rehearsal',
-    description: 'Final rehearsal for the marketing presentation',
-    date: '2025-05-18T00:00:00.000Z',
-    time: '14:00',
-    location: 'Main Hall',
-    createdAt: '2025-05-01T00:00:00.000Z',
-    type: 'event'
-  },
-  {
-    id: 'event3',
-    projectId: 'project2',
-    title: 'Lab Data Analysis Session',
-    description: 'Group session to analyze and discuss lab results',
-    date: '2025-05-16T00:00:00.000Z',
-    time: '13:00',
-    location: 'Physics Lab',
-    createdAt: '2025-05-01T00:00:00.000Z',
-    type: 'event'
-  },
-  {
-    id: 'event4',
-    projectId: 'project2',
-    title: 'Report Writing Workshop',
-    description: 'Workshop on scientific writing and data presentation',
-    date: '2025-05-19T00:00:00.000Z',
-    time: '15:00',
-    location: 'Library Study Room',
-    createdAt: '2025-05-01T00:00:00.000Z',
-    type: 'event'
-  },
-  {
-    id: 'event5',
-    projectId: 'project3',
-    title: 'Historical Research Discussion',
-    description: 'Group discussion on primary sources and research findings',
-    date: '2025-05-17T00:00:00.000Z',
-    time: '11:00',
-    location: 'History Department',
-    createdAt: '2025-05-01T00:00:00.000Z',
-    type: 'event'
-  },
-  {
-    id: 'event6',
-    projectId: 'project3',
-    title: 'Essay Draft Review',
-    description: 'Peer review session for essay drafts',
-    date: '2025-05-20T00:00:00.000Z',
-    time: '16:00',
-    location: 'Study Center',
-    createdAt: '2025-05-01T00:00:00.000Z',
-    type: 'event'
-  },
-  {
-    id: 'event7',
-    projectId: 'project4',
-    title: 'Study Group Session',
-    description: 'Group study session for finals preparation',
-    date: '2025-05-21T00:00:00.000Z',
-    time: '09:00',
-    location: 'Student Center',
-    createdAt: '2025-05-01T00:00:00.000Z',
-    type: 'event'
-  }
-];
-
-// Initialize local storage with mock data if empty
+// Initialize local storage with empty data if not exists
 export function initializeLocalStorage(): void {
   if (typeof window === 'undefined') return;
   
@@ -100,8 +19,8 @@ export function initializeLocalStorage(): void {
   // Check if events exist in local storage
   const storedEvents = localStorage.getItem(EVENTS_STORAGE_KEY);
   if (!storedEvents) {
-    // Initialize with mock events
-    localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(mockEvents));
+    // Initialize with empty array
+    localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify([]));
   }
 }
 
