@@ -22,7 +22,7 @@ export default async function DashboardPage() {
   // In the future, you can replace this with actual project data
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f9f8f0]">
       {/* Use the new DashboardNavbar for a more minimal design */}
       <DashboardNavbar />
       
@@ -38,24 +38,24 @@ export default async function DashboardPage() {
           {/* Projects you lead */}
           <section>
             <h2 className="text-2xl font-semibold mb-4">Projects You Lead</h2>
-            <div className="bg-white rounded-lg p-8 text-center border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-medium mb-2">No projects yet</h3>
-              <p className="text-gray-600 mb-4">
+            <div className="bg-white rounded-lg py-12 px-8 text-center border border-[#e5e4dd] shadow-sm">
+              <h3 className="text-xl font-medium mb-2">No projects yet</h3>
+              <p className="text-gray-600 mb-6">
                 Create your first project to get started
               </p>
-              <Button className="bg-blue-600 hover:bg-blue-700" asChild>
+              <Button className="bg-[#008080] hover:bg-[#008080]/90 text-white px-6 py-2 h-auto rounded-md" asChild>
                 <Link href="/project/new">Create Project</Link>
               </Button>
             </div>
           </section>
 
-          {/* Projects you&apos;re a member of */}
+          {/* Projects you're a member of */}
           <section>
-            <h2 className="text-2xl font-semibold mb-4">Projects You&apos;re In</h2>
-            <div className="bg-white rounded-lg p-8 text-center border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-medium mb-2">No memberships yet</h3>
+            <h2 className="text-2xl font-semibold mb-4">Projects You're In</h2>
+            <div className="bg-white rounded-lg py-12 px-8 text-center border border-[#e5e4dd] shadow-sm">
+              <h3 className="text-xl font-medium mb-2">No memberships yet</h3>
               <p className="text-gray-600">
-                You haven&apos;t been added to any projects as a member
+                You haven't been added to any projects as a member
               </p>
             </div>
           </section>
@@ -67,19 +67,19 @@ export default async function DashboardPage() {
               <QuickAccessCard 
                 title="Create Project" 
                 description="Start a new project and invite team members"
-                icon={<PlusCircle className="h-8 w-8 text-blue-600" />}
+                icon={<PlusCircle className="h-8 w-8 text-[#008080]" />}
                 href="/project/new"
               />
               <QuickAccessCard 
                 title="Manage Files" 
                 description="Upload and organize your project files"
-                icon={<File className="h-8 w-8 text-green-600" />}
+                icon={<File className="h-8 w-8 text-[#00FFFF]" />}
                 href="/dashboard"
               />
               <QuickAccessCard 
                 title="Team Collaboration" 
                 description="Coordinate with your team members"
-                icon={<Users className="h-8 w-8 text-purple-600" />}
+                icon={<Users className="h-8 w-8 text-[#008080]" />}
                 href="/dashboard"
               />
             </div>
@@ -103,7 +103,7 @@ function QuickAccessCard({
 }) {
   return (
     <Link href={href}>
-      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+      <div className="bg-white p-6 rounded-lg border border-[#e5e4dd] shadow-sm hover:shadow-md transition-shadow hover:border-[#00FFFF]">
         <div className="mb-4">{icon}</div>
         <h3 className="text-xl font-semibold mb-2">{title}</h3>
         <p className="text-gray-600">{description}</p>
