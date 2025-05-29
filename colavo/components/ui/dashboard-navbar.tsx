@@ -46,13 +46,13 @@ export function DashboardNavbar(): React.JSX.Element {
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-white border-b border-[#e5e4dd] sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Left side - Logo and Navigation */}
           <div className="flex items-center space-x-8">
             <Link href="/dashboard" className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-[#008080] rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">C</span>
               </div>
               <span className="text-xl font-bold text-gray-900">Collavo</span>
@@ -62,19 +62,19 @@ export function DashboardNavbar(): React.JSX.Element {
             <div className="hidden md:flex items-center space-x-6">
               <Link 
                 href="/dashboard" 
-                className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                className="text-gray-700 hover:text-[#008080] font-medium transition-colors"
               >
                 Dashboard
               </Link>
               <Link 
                 href="/projects" 
-                className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                className="text-gray-700 hover:text-[#008080] font-medium transition-colors"
               >
                 Projects
               </Link>
               <Link 
                 href="/team" 
-                className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                className="text-gray-700 hover:text-[#008080] font-medium transition-colors"
               >
                 Team
               </Link>
@@ -90,7 +90,7 @@ export function DashboardNavbar(): React.JSX.Element {
                 placeholder="Search projects, tasks, people..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 w-full bg-gray-50 border-gray-200 focus:bg-white focus:border-blue-500 transition-colors"
+                className="pl-10 pr-4 w-full bg-[#f9f8f0] border-[#e5e4dd] focus:bg-white focus:border-[#008080] transition-colors"
               />
             </form>
           </div>
@@ -98,7 +98,7 @@ export function DashboardNavbar(): React.JSX.Element {
           {/* Right side - Actions and User */}
           <div className="flex items-center space-x-4">
             {/* Create Button */}
-            <Button asChild className="bg-blue-600 hover:bg-blue-700">
+            <Button asChild className="bg-[#008080] hover:bg-[#008080]/90">
               <Link href="/project/new">
                 <Plus className="h-4 w-4 mr-2" />
                 Create
@@ -109,7 +109,7 @@ export function DashboardNavbar(): React.JSX.Element {
             <Button variant="ghost" size="sm" className="relative">
               <Bell className="h-5 w-5" />
               {/* Notification badge */}
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 h-4 w-4 bg-[#00FFFF] rounded-full text-xs text-gray-800 flex items-center justify-center">
                 3
               </span>
             </Button>
@@ -121,7 +121,7 @@ export function DashboardNavbar(): React.JSX.Element {
                   <Button variant="ghost" className="h-8 w-8 rounded-full p-0">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user.image || ''} alt={user.name} />
-                      <AvatarFallback className="bg-blue-600 text-white text-sm">
+                      <AvatarFallback className="bg-[#008080] text-white text-sm">
                         {formatInitials(user.name)}
                       </AvatarFallback>
                     </Avatar>
@@ -159,7 +159,7 @@ export function DashboardNavbar(): React.JSX.Element {
                 <Button variant="ghost" asChild>
                   <Link href="/login">Sign In</Link>
                 </Button>
-                <Button asChild>
+                <Button asChild className="bg-[#008080] hover:bg-[#008080]/90">
                   <Link href="/signup">Sign Up</Link>
                 </Button>
               </div>
