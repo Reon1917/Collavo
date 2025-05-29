@@ -1,6 +1,6 @@
 ---
-description: 
-globs: *.tsx,*ts
+description: UI / UX design standards for React & TSX files
+globs: *.tsx,*.ts
 alwaysApply: false
 ---
 

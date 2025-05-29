@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalendarIcon, Clock, MapPin, MoreHorizontal, Edit, Trash } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { formatDate, formatRelativeTime } from '@/utils';
+import { formatDate, formatRelativeTime } from '@/utils/date';
 import type { Event } from '@/types';
 
 interface EventItemProps {

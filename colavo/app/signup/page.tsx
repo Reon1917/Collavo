@@ -66,12 +66,13 @@ export default function SignupPage() {
     try {
       setIsLoading(true);
       await authClient.signIn.social({
-        provider: 'google',
-        callbackURL: '/dashboard',
-      });
+         provider: 'google',
+         callbackURL: '/dashboard',
+       });
     } catch (error) {
       console.error('Google signup error:', error);
       toast.error('An error occurred during Google signup');
+    } finally {
       setIsLoading(false);
     }
   };

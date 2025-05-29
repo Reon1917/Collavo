@@ -99,6 +99,9 @@ function DialogContent({
 }: React.HTMLAttributes<HTMLDivElement>) {
   const { open, onOpenChange } = React.useContext(DialogContext)
   
+  // Early return if dialog is not open
+  if (!open) return null
+
   // Handle escape key and body scroll
   React.useEffect(() => {
     // Add keyboard listener when dialog opens
@@ -120,8 +123,6 @@ function DialogContent({
     }
   }, [open, onOpenChange])
   
-  // Early return if dialog is not open
-  if (!open) return null
   
   // Handle click outside
   const handleBackdropClick = () => {

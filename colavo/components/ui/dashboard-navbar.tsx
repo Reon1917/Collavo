@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { formatInitials } from '@/utils';
+import { formatInitials } from '@/utils/format';
 
 export function DashboardNavbar(): React.JSX.Element {
   const { user, isAuthenticated, refetch } = useAuth();

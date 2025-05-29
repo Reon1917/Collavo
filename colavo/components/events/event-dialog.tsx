@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CalendarIcon, Clock, MapPin, Plus } from 'lucide-react';
+import { formatDateForInput } from '@/utils/date';
 import type { Event, CreateEventData, EventType } from '@/types';
 
 interface EventDialogProps {
@@ -53,7 +54,7 @@ export function EventDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger>
         {trigger || (
           <Button variant="outline" size="sm">
             <Plus className="h-4 w-4 mr-2" />
@@ -84,7 +85,7 @@ export function EventDialog({
             <Label htmlFor="type">Event Type</Label>
             <Select 
               value={formData.type} 
-              onValueChange={(value: EventType) => handleInputChange('type', value)}
+              onValueChange={(value) => handleInputChange('type', value as EventType)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select event type" />
@@ -106,7 +107,7 @@ export function EventDialog({
                 <Input
                   id="startDate"
                   type="datetime-local"
-                  value={formData.startDate.toISOString().slice(0, 16)}
+                  value={formatDateForInput(formData.startDate)}
                   onChange={(e) => handleInputChange('startDate', new Date(e.target.value))}
                   required
                 />
@@ -120,7 +121,7 @@ export function EventDialog({
                 <Input
                   id="endDate"
                   type="datetime-local"
-                  value={formData.endDate.toISOString().slice(0, 16)}
+                  value={formatDateForInput(formData.endDate)}
                   onChange={(e) => handleInputChange('endDate', new Date(e.target.value))}
                   required
                 />

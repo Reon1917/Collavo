@@ -107,15 +107,6 @@ export default function ForgotPasswordPage() {
                 {isLoading ? 'Sending instructions...' : 'Send Reset Instructions'}
               </Button>
             </form>
-          ) : (
-            <div className="bg-green-50 border border-green-100 rounded-md p-4 text-center">
-              <p className="text-green-800 mb-4">
-                We&apos;ve sent password reset instructions to <strong>{email}</strong>
-              </p>
-              <p className="text-sm text-gray-600">
-                If you don&apos;t see the email in your inbox, please check your spam folder.
-              </p>
-            </div>
           )}
         </CardContent>
         <CardFooter className="flex justify-center">
