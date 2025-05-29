@@ -200,7 +200,7 @@ export default function ProfilePage() {
             <CardHeader>
               <CardTitle>Quick Actions</CardTitle>
               <CardDescription>
-                Get started with Collavo's core features
+                Get started with Collavo&apos;s core features
               </CardDescription>
             </CardHeader>
             <CardContent>
