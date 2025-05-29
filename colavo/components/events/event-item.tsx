@@ -1,60 +1,148 @@
 "use client";
 
-import { BellRing, Calendar, MapPin, Clock } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { Event } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { CalendarIcon, Clock, MapPin, MoreHorizontal, Edit, Trash } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { formatDate, formatRelativeTime } from '@/utils/date';
+import type { Event } from '@/types';
 
 interface EventItemProps {
   event: Event;
+  onEdit?: (event: Event) => void;
+  onDelete?: (eventId: string) => void;
+  onUpdate?: (event: Event) => void;
 }
 
-export function EventItem({ event }: EventItemProps) {
-  const eventDate = new Date(event.date);
-  
+export function EventItem({ event, onEdit, onDelete }: EventItemProps) {
+  const handleEdit = () => {
+    onEdit?.(event);
+  };
+
+  const handleDelete = () => {
+    // TODO: Replace with proper confirmation dialog
+    // For now, calling the delete callback directly
+    onDelete?.(event.id);
+  };
+
+  const getEventTypeColor = (type: Event['type']) => {
+    switch (type) {
+      case 'meeting':
+        return 'bg-blue-100 text-blue-800';
+      case 'deadline':
+        return 'bg-red-100 text-red-800';
+      case 'milestone':
+        return 'bg-green-100 text-green-800';
+      case 'reminder':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const isUpcoming = event.startDate.getTime() > Date.now();
+  const isPast = event.endDate.getTime() < Date.now();
+
   return (
-    <div className="p-2 rounded-md bg-blue-50 border border-blue-200 text-xs flex flex-col gap-1">
-      <div className="flex items-center gap-1 font-medium text-blue-700">
-        <BellRing className="h-3 w-3" />
-        <span className="truncate">{event.title}</span>
-      </div>
-      
-      {event.location && (
-        <div className="flex items-center gap-1 text-blue-600">
-          <MapPin className="h-3 w-3" />
-          <span className="truncate">{event.location}</span>
+    <Card className={`transition-all hover:shadow-md ${isPast ? 'opacity-75' : ''}`}>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <CardTitle className="text-lg font-semibold mb-2">
+              {event.title}
+            </CardTitle>
+            <div className="flex items-center gap-2 mb-2">
+              <Badge className={getEventTypeColor(event.type)}>
+                {event.type}
+              </Badge>
+              {isUpcoming && (
+                <Badge variant="outline" className="text-green-600 border-green-600">
+                  Upcoming
+                </Badge>
+              )}
+              {isPast && (
+                <Badge variant="outline" className="text-gray-500 border-gray-400">
+                  Past
+                </Badge>
+              )}
+            </div>
+          </div>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleEdit}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDelete} className="text-red-600">
+                <Trash className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      )}
-      
-      <div className="flex items-center gap-1 text-blue-600">
-        <Calendar className="h-3 w-3" />
-        <span>{format(eventDate, 'MMM d')}</span>
-      </div>
+      </CardHeader>
 
-      <div className="flex items-center gap-1 text-blue-600">
-        <Clock className="h-3 w-3" />
-        <span>{event.time}</span>
-      </div>
-    </div>
+      <CardContent className="pt-0">
+        {event.description && (
+          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+            {event.description}
+          </p>
+        )}
+
+        <div className="space-y-2 text-sm text-gray-500">
+          <div className="flex items-center gap-2">
+            <CalendarIcon className="h-4 w-4" />
+            <span>
+              {event.isAllDay 
+                ? formatDate(event.startDate)
+                : `${formatDate(event.startDate)} ${event.startDate.toLocaleTimeString('en-US', { 
+                    hour: 'numeric', 
+                    minute: '2-digit' 
+                  })}`
+              }
+            </span>
+          </div>
+
+          {!event.isAllDay && event.endDate && (
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              <span>
+                Duration: {Math.round((event.endDate.getTime() - event.startDate.getTime()) / (1000 * 60))} minutes
+              </span>
+            </div>
+          )}
+
+          {event.location && (
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              <span>{event.location}</span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 text-xs text-gray-400 mt-3">
+            <span>Created {formatRelativeTime(event.createdAt)}</span>
+          </div>
+        </div>
+
+        {event.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-3">
+            {event.tags.map((tag, index) => (
+              <Badge key={index} variant="secondary" className="text-xs">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
-// Helper function to check if two dates are on the same day
-function isSameDay(date1: Date, date2: Date): boolean {
-  return (
-    date1.getFullYear() === date2.getFullYear() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate()
-  );
-}
-
-// Calendar view version with minimal info
-export function CalendarEventItem({ event }: EventItemProps) {
-  return (
-    <div className="p-1 rounded bg-blue-100 border-l-2 border-blue-500 text-xs mb-1 flex items-center gap-1">
-      <BellRing className="h-3 w-3 text-blue-600" />
-      <span className="truncate font-medium text-blue-700">{event.title}</span>
-      <span className="ml-auto text-blue-600">{event.time}</span>
-    </div>
-  );
-}
+// Calendar view version with minimal info - removing as it's mock implementation

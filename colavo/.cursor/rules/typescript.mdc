@@ -1,0 +1,501 @@
+---
+description: 
+globs: *.tsx,*.ts
+alwaysApply: false
+---
+# Cursor AI TypeScript Rules - Prevent Type Errors & Build Issues
+
+## Core TypeScript Rules
+
+### 1. Always Use Explicit Types for Function Parameters and Return Values
+```typescript
+// ❌ BAD - Implicit any types
+function processUser(user) {
+  return user.name;
+}
+
+// ✅ GOOD - Explicit types
+function processUser(user: User): string {
+  return user.name;
+}
+
+// ✅ GOOD - For async functions
+async function fetchUser(id: string): Promise<User | null> {
+  // implementation
+}
+```
+
+### 2. Define Interfaces/Types Before Using Them
+```typescript
+// ✅ Always define types first
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: Date;
+}
+
+interface ApiResponse<T> {
+  data: T;
+  success: boolean;
+  message?: string;
+}
+```
+
+### 3. Use Union Types Instead of Any
+```typescript
+// ❌ BAD - Using any
+let status: any = 'loading';
+
+// ✅ GOOD - Use union types
+type Status = 'loading' | 'success' | 'error';
+let status: Status = 'loading';
+```
+
+### 4. Always Handle Null/Undefined Cases
+```typescript
+// ❌ BAD - Not handling potential null
+function getUserName(user: User | null) {
+  return user.name; // TypeScript error
+}
+
+// ✅ GOOD - Proper null checking
+function getUserName(user: User | null): string {
+  return user?.name ?? 'Unknown';
+}
+
+// ✅ GOOD - Type guard
+function getUserName(user: User | null): string {
+  if (!user) return 'Unknown';
+  return user.name;
+}
+```
+
+## React & Next.js Specific Rules
+
+### 5. Always Type React Component Props
+```typescript
+// ❌ BAD - No prop types
+function UserCard({ user, onEdit }) {
+  // implementation
+}
+
+// ✅ GOOD - Explicit prop types
+interface UserCardProps {
+  user: User;
+  onEdit: (user: User) => void;
+  className?: string;
+}
+
+function UserCard({ user, onEdit, className }: UserCardProps) {
+  // implementation
+}
+```
+
+### 6. Type Event Handlers Correctly
+```typescript
+// ✅ GOOD - Proper event typing
+function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  e.preventDefault();
+  // implementation
+}
+
+function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+  setValue(e.target.value);
+}
+
+function handleButtonClick(e: React.MouseEvent<HTMLButtonElement>) {
+  // implementation
+}
+```
+
+### 7. Use Proper Types for useState and useEffect
+```typescript
+// ✅ GOOD - Explicit state typing
+const [user, setUser] = useState<User | null>(null);
+const [users, setUsers] = useState<User[]>([]);
+const [loading, setLoading] = useState<boolean>(false);
+
+// ✅ GOOD - useEffect with proper cleanup
+useEffect(() => {
+  const controller = new AbortController();
+  
+  async function fetchData() {
+    try {
+      const response = await fetch('/api/users', {
+        signal: controller.signal,
+      });
+      const data: User[] = await response.json();
+      setUsers(data);
+    } catch (error) {
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.error('Fetch error:', error);
+      }
+    }
+  }
+  
+  fetchData();
+  
+  return () => controller.abort();
+}, []);
+```
+
+## API & Data Fetching Rules
+
+### 8. Always Type API Responses
+```typescript
+// ✅ Define API response types
+interface ApiUser {
+  id: string;
+  name: string;
+  email: string;
+  created_at: string; // API returns string, not Date
+}
+
+interface ApiResponse<T> {
+  data: T;
+  success: boolean;
+  message?: string;
+}
+
+// ✅ Type your fetch functions
+async function fetchUsers(): Promise<User[]> {
+  const response = await fetch('/api/users');
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  const apiResponse: ApiResponse<ApiUser[]> = await response.json();
+  
+  // Transform API data to app data
+  return apiResponse.data.map(apiUser => ({
+    ...apiUser,
+    createdAt: new Date(apiUser.created_at),
+  }));
+}
+```
+
+### 9. Type Next.js API Routes Properly
+```typescript
+// ✅ Type API route handlers
+import { NextRequest, NextResponse } from 'next/server';
+
+interface CreateUserRequest {
+  name: string;
+  email: string;
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body: CreateUserRequest = await request.json();
+    
+    // Validate required fields
+    if (!body.name || !body.email) {
+      return NextResponse.json(
+        { error: 'Name and email are required' },
+        { status: 400 }
+      );
+    }
+    
+    const user = await createUser(body);
+    return NextResponse.json({ data: user, success: true });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+## Database & ORM Rules
+
+### 10. Type Database Schemas and Queries
+```typescript
+// ✅ Type Drizzle schemas properly
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// ✅ Infer types from schema
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+
+// ✅ Type database functions
+async function getUserById(id: number): Promise<User | null> {
+  const result = await db.select().from(users).where(eq(users.id, id));
+  return result[0] || null;
+}
+```
+
+## Error Handling Rules
+
+### 11. Always Use Proper Error Types
+```typescript
+// ✅ Create custom error types
+class ValidationError extends Error {
+  constructor(message: string, public field: string) {
+    super(message);
+    this.name = 'ValidationError';
+  }
+}
+
+// ✅ Type error handling properly
+function handleError(error: unknown): string {
+  if (error instanceof ValidationError) {
+    return `Validation error in ${error.field}: ${error.message}`;
+  }
+  
+  if (error instanceof Error) {
+    return error.message;
+  }
+  
+  return 'An unknown error occurred';
+}
+
+// ✅ Use Result pattern for functions that can fail
+type Result<T, E = Error> = 
+  | { success: true; data: T }
+  | { success: false; error: E };
+
+async function safeApiCall<T>(url: string): Promise<Result<T>> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      return { success: false, error: new Error(`HTTP ${response.status}`) };
+    }
+    const data: T = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error : new Error('Unknown error')
+    };
+  }
+}
+```
+
+## Utility & Helper Rules
+
+### 12. Create Type-Safe Utility Functions
+```typescript
+// ✅ Type-safe object key checking
+function hasProperty<T extends object, K extends PropertyKey>(
+  obj: T,
+  key: K
+): obj is T & Record<K, unknown> {
+  return key in obj;
+}
+
+// ✅ Type-safe array filtering
+function isNotNull<T>(value: T | null | undefined): value is T {
+  return value !== null && value !== undefined;
+}
+
+const validUsers = users.filter(isNotNull);
+
+// ✅ Type-safe environment variables
+interface EnvConfig {
+  DATABASE_URL: string;
+  API_KEY: string;
+  NODE_ENV: 'development' | 'production' | 'test';
+}
+
+function getEnvConfig(): EnvConfig {
+  const config = {
+    DATABASE_URL: process.env.DATABASE_URL,
+    API_KEY: process.env.API_KEY,
+    NODE_ENV: process.env.NODE_ENV as EnvConfig['NODE_ENV'],
+  };
+  
+  // Validate required env vars
+  if (!config.DATABASE_URL) {
+    throw new Error('DATABASE_URL is required');
+  }
+  
+  return config as EnvConfig;
+}
+```
+
+## Form Handling Rules
+
+### 13. Type Forms and Validation
+```typescript
+// ✅ Type form data properly
+interface LoginFormData {
+  email: string;
+  password: string;
+}
+
+interface FormErrors {
+  email?: string;
+  password?: string;
+}
+
+function validateLoginForm(data: LoginFormData): FormErrors {
+  const errors: FormErrors = {};
+  
+  if (!data.email) {
+    errors.email = 'Email is required';
+  } else if (!/\S+@\S+\.\S+/.test(data.email)) {
+    errors.email = 'Email is invalid';
+  }
+  
+  if (!data.password || data.password.length < 6) {
+    errors.password = 'Password must be at least 6 characters';
+  }
+  
+  return errors;
+}
+
+// ✅ Type form submission handlers
+async function handleLoginSubmit(
+  formData: LoginFormData
+): Promise<Result<User, FormErrors>> {
+  const errors = validateLoginForm(formData);
+  
+  if (Object.keys(errors).length > 0) {
+    return { success: false, error: errors };
+  }
+  
+  try {
+    const user = await loginUser(formData);
+    return { success: true, data: user };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: { email: 'Invalid credentials' }
+    };
+  }
+}
+```
+
+## Performance & Optimization Rules
+
+### 14. Type Performance-Critical Code
+```typescript
+// ✅ Type callback functions properly
+interface UseCallbackExample {
+  onUserSelect: (user: User) => void;
+  onUserDelete: (userId: string) => Promise<void>;
+}
+
+const UserList: React.FC<UseCallbackExample> = ({ onUserSelect, onUserDelete }) => {
+  const handleUserClick = useCallback(
+    (user: User) => {
+      onUserSelect(user);
+    },
+    [onUserSelect]
+  );
+  
+  const handleDeleteClick = useCallback(
+    async (userId: string) => {
+      await onUserDelete(userId);
+    },
+    [onUserDelete]
+  );
+  
+  // Component implementation
+};
+
+// ✅ Type memo components
+interface MemoizedUserCardProps {
+  user: User;
+  onEdit: (user: User) => void;
+}
+
+const MemoizedUserCard = React.memo<MemoizedUserCardProps>(({ user, onEdit }) => {
+  // Component implementation
+});
+```
+
+## Testing Rules
+
+### 15. Type Your Tests
+```typescript
+// ✅ Type test data and mocks
+interface MockUser {
+  id: string;
+  name: string;
+  email: string;
+}
+
+const createMockUser = (overrides: Partial<MockUser> = {}): MockUser => ({
+  id: '1',
+  name: 'John Doe',
+  email: 'john@example.com',
+  ...overrides,
+});
+
+// ✅ Type test functions
+describe('UserService', () => {
+  it('should fetch user by id', async () => {
+    const mockUser = createMockUser();
+    const fetchMock = jest.fn().mockResolvedValue(mockUser);
+    
+    const result = await getUserById('1');
+    expect(result).toEqual(mockUser);
+  });
+});
+```
+
+## Configuration Rules for tsconfig.json
+
+### 16. Strict TypeScript Configuration
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}
+```
+
+## ESLint Rules to Add
+
+### 17. Essential ESLint TypeScript Rules
+```json
+{
+  "extends": [
+    "@typescript-eslint/recommended",
+    "@typescript-eslint/recommended-requiring-type-checking"
+  ],
+  "rules": {
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/prefer-nullish-coalescing": "error",
+    "@typescript-eslint/prefer-optional-chain": "error",
+    "@typescript-eslint/no-non-null-assertion": "error"
+  }
+}
+```
+
+---
+
+## Quick Checklist Before Committing
+
+- [ ] All function parameters and return types are explicitly typed
+- [ ] No `any` types used (use `unknown` if needed)
+- [ ] All React component props are typed
+- [ ] API responses are properly typed
+- [ ] Error handling includes proper type checking
+- [ ] Environment variables are validated
+- [ ] Database queries return properly typed results
+- [ ] Form data and validation are typed
+- [ ] All async functions return Promise with proper type
+- [ ] No TypeScript errors in IDE
+- [ ] `npm run lint` passes
+- [ ] `npm run build` passes
+
+
+Following these rules will dramatically reduce TypeScript errors, improve code quality, and save hours of debugging time!

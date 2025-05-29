@@ -4,36 +4,40 @@ import { useState } from "react";
 import { Task, TaskStatus } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { updateLocalTask } from "@/lib/client-data";
 
 interface TaskStatusUpdateProps {
   task: Task;
   currentUserId: string;
-  onUpdate: () => void;
+  onUpdate?: () => void;
 }
 
 export function TaskStatusUpdate({ task, currentUserId, onUpdate }: TaskStatusUpdateProps) {
-  const [note, setNote] = useState(task.note || "");
+  const [note, setNote] = useState(task.notes || "");
   const [status, setStatus] = useState<TaskStatus>(task.status);
   const [isEditing, setIsEditing] = useState(false);
 
   const isAssigned = Array.isArray(task.assignedTo)
     ? task.assignedTo.includes(currentUserId)
-    : task.assignedTo === currentUserId;
+    : false;
 
   if (!isAssigned) {
-    return null;
+    return (
+      <div className="p-4 bg-gray-50 rounded-lg text-center">
+        <p className="text-sm text-gray-500">Only assigned team members can update this task</p>
+      </div>
+    );
   }
 
   const handleStatusChange = async (newStatus: TaskStatus) => {
     try {
-      await updateLocalTask(task.id, {
-        ...task,
-        status: newStatus,
-        note: note.trim(),
-      });
+      // TODO: Replace with actual API call to update task status
+      // await updateTaskStatus(task.id, newStatus, note.trim());
+      console.log('Updating task status:', { taskId: task.id, status: newStatus, note: note.trim() });
+      
       setStatus(newStatus);
-      onUpdate();
+      if (onUpdate) {
+        onUpdate();
+      }
     } catch (error) {
       console.error("Error updating task status:", error);
     }
@@ -45,12 +49,14 @@ export function TaskStatusUpdate({ task, currentUserId, onUpdate }: TaskStatusUp
 
   const handleNoteSave = async () => {
     try {
-      await updateLocalTask(task.id, {
-        ...task,
-        note: note.trim(),
-      });
+      // TODO: Replace with actual API call to update task notes
+      // await updateTaskNotes(task.id, note.trim());
+      console.log('Updating task notes:', { taskId: task.id, notes: note.trim() });
+      
       setIsEditing(false);
-      onUpdate();
+      if (onUpdate) {
+        onUpdate();
+      }
     } catch (error) {
       console.error("Error updating task note:", error);
     }
@@ -60,13 +66,20 @@ export function TaskStatusUpdate({ task, currentUserId, onUpdate }: TaskStatusUp
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium">Status:</span>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button
-            variant={status === "pending" ? "default" : "outline"}
+            variant={status === "backlog" ? "default" : "outline"}
             size="sm"
-            onClick={() => handleStatusChange("pending")}
+            onClick={() => handleStatusChange("backlog")}
           >
-            Pending
+            Backlog
+          </Button>
+          <Button
+            variant={status === "todo" ? "default" : "outline"}
+            size="sm"
+            onClick={() => handleStatusChange("todo")}
+          >
+            To Do
           </Button>
           <Button
             variant={status === "in-progress" ? "default" : "outline"}
@@ -74,6 +87,13 @@ export function TaskStatusUpdate({ task, currentUserId, onUpdate }: TaskStatusUp
             onClick={() => handleStatusChange("in-progress")}
           >
             In Progress
+          </Button>
+          <Button
+            variant={status === "review" ? "default" : "outline"}
+            size="sm"
+            onClick={() => handleStatusChange("review")}
+          >
+            Review
           </Button>
           <Button
             variant={status === "completed" ? "default" : "outline"}
@@ -89,9 +109,14 @@ export function TaskStatusUpdate({ task, currentUserId, onUpdate }: TaskStatusUp
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium">Notes:</span>
           {isEditing ? (
-            <Button size="sm" onClick={handleNoteSave}>
-              Save
-            </Button>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handleNoteSave}>
+                Save
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>
+                Cancel
+              </Button>
+            </div>
           ) : (
             <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
               Edit
@@ -106,8 +131,8 @@ export function TaskStatusUpdate({ task, currentUserId, onUpdate }: TaskStatusUp
             className="min-h-[100px]"
           />
         ) : (
-          <div className="p-3 bg-gray-50 rounded-md min-h-[100px]">
-            {note || "No notes added yet"}
+          <div className="p-3 bg-gray-50 rounded-md min-h-[100px] text-sm">
+            {note || <span className="text-gray-500 italic">No notes added yet</span>}
           </div>
         )}
       </div>

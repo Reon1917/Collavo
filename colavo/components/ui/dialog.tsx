@@ -99,25 +99,7 @@ function DialogContent({
 }: React.HTMLAttributes<HTMLDivElement>) {
   const { open, onOpenChange } = React.useContext(DialogContext)
   
-  // Early return if dialog is not open
-  if (!open) return null
-  
-  // Handle click outside
-  const handleBackdropClick = () => {
-    onOpenChange(false)
-  }
-  
-  // Prevent clicks on the content from closing the dialog
-  const handleContentClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-  }
-  
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") {
-      onOpenChange(false)
-    }
-  }
-  
+  // Handle escape key and body scroll - MUST be before early return
   React.useEffect(() => {
     // Add keyboard listener when dialog opens
     const handleEscapeKey = (e: KeyboardEvent) => {
@@ -137,6 +119,25 @@ function DialogContent({
       document.body.style.overflow = ""
     }
   }, [open, onOpenChange])
+
+  // Early return if dialog is not open
+  if (!open) return null
+
+  // Handle click outside
+  const handleBackdropClick = () => {
+    onOpenChange(false)
+  }
+  
+  // Prevent clicks on the content from closing the dialog
+  const handleContentClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+  }
+  
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      onOpenChange(false)
+    }
+  }
   
   return (
     <div 
