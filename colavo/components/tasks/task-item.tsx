@@ -25,8 +25,12 @@ export function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
         return "bg-green-100 text-green-800";
       case "in-progress":
         return "bg-blue-100 text-blue-800";
-      case "pending":
+      case "review":
+        return "bg-purple-100 text-purple-800";
+      case "todo":
         return "bg-yellow-100 text-yellow-800";
+      case "backlog":
+        return "bg-gray-100 text-gray-800";
       case "cancelled":
         return "bg-red-100 text-red-800";
       default:
@@ -57,7 +61,7 @@ export function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
             <div className="flex items-center gap-2 mb-2">
               <h3 className="font-semibold text-lg">{task.title}</h3>
               <Badge className={getStatusColor(task.status)}>
-                {task.status}
+                {task.status.replace('-', ' ')}
               </Badge>
               <Badge className={getImportanceColor(task.importance)}>
                 {task.importance}
@@ -65,14 +69,14 @@ export function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
             </div>
             
             {task.description && (
-              <p className="text-gray-600 mb-3">{task.description}</p>
+              <p className="text-gray-600 mb-3 line-clamp-2">{task.description}</p>
             )}
             
             <div className="flex items-center gap-4 text-sm text-gray-500">
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
                 <span>
-                  {task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline'}
+                  {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}
                 </span>
               </div>
               
@@ -88,7 +92,7 @@ export function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
                 <span>
-                  {task.createdAt ? new Date(task.createdAt).toLocaleDateString() : 'Recently created'}
+                  Created {new Date(task.createdAt).toLocaleDateString()}
                 </span>
               </div>
             </div>
