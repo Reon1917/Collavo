@@ -2,8 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileIcon, Plus, Upload } from 'lucide-react';
 
-export default async function FilesPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default async function FilesPage() {
   
   // TODO: Replace with actual API call to fetch project files
   // const files = await fetch(`/api/projects/${id}/files`).then(res => res.json());

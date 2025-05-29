@@ -15,9 +15,19 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 
+interface Permissions {
+  viewTasks: boolean
+  createTasks: boolean
+  assignTasks: boolean
+  editProjectDetails: boolean
+  inviteMembers: boolean
+  deleteProject: boolean
+}
+
 interface PermissionModalProps {
   isOpen: boolean
   onClose: () => void
+  onSave?: (memberId: string, permissions: Permissions, role: string) => void
   member: {
     id: string
     name: string
@@ -26,7 +36,7 @@ interface PermissionModalProps {
   }
 }
 
-export function PermissionModal({ isOpen, onClose, member }: PermissionModalProps) {
+export function PermissionModal({ isOpen, onClose, onSave, member }: PermissionModalProps) {
   const [permissions, setPermissions] = useState({
     viewTasks: true,
     createTasks: true,
@@ -46,8 +56,12 @@ export function PermissionModal({ isOpen, onClose, member }: PermissionModalProp
   const [selectedRole, setSelectedRole] = useState(member.role)
 
   const handleSave = () => {
-    // Here you would save the permissions to your backend
-    console.log("Saving permissions for", member.name, permissions, "with role:", selectedRole)
+    // TODO: Replace with actual API call to save permissions
+    // await updateMemberPermissions(member.id, permissions, selectedRole);
+    
+    if (onSave) {
+      onSave(member.id, permissions, selectedRole);
+    }
     onClose()
   }
 

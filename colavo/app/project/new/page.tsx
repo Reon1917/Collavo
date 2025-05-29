@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+
 import { Navbar } from '@/components/ui/navbar';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

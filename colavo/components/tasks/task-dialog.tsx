@@ -33,8 +33,10 @@ export function TaskDialog({ projectId, open = false, onOpenChange, onSubmit }: 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // TODO: Implement task creation when backend is ready
-    console.log("Task would be created:", { ...formData, projectId });
+    // TODO: Replace with actual API call to create task
+    // const taskData = { ...formData, projectId };
+    // await createTask(taskData);
+    console.log('Creating task for project:', projectId, formData);
     
     if (onSubmit) {
       onSubmit();
@@ -55,7 +57,7 @@ export function TaskDialog({ projectId, open = false, onOpenChange, onSubmit }: 
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange || (() => {})}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Create New Task</DialogTitle>
@@ -97,7 +99,7 @@ export function TaskDialog({ projectId, open = false, onOpenChange, onSubmit }: 
                   <SelectItem value="low">Low</SelectItem>
                   <SelectItem value="normal">Normal</SelectItem>
                   <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
+                  <SelectItem value="critical">Critical</SelectItem>
                 </SelectContent>
               </Select>
             </div>

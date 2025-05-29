@@ -9,11 +9,11 @@ interface CalendarTaskItemProps {
 export function CalendarTaskItem({ task }: CalendarTaskItemProps) {
   // Determine color based on importance
   const importanceColors = {
-    'minor': 'bg-gray-100 text-gray-800',
+    'low': 'bg-gray-100 text-gray-800',
     'normal': 'bg-blue-100 text-blue-800',
-    'major': 'bg-orange-100 text-orange-800',
+    'high': 'bg-orange-100 text-orange-800',
     'critical': 'bg-red-100 text-red-800'
-  };
+  } as const;
 
   return (
     <div 

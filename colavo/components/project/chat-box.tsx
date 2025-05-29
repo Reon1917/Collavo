@@ -8,7 +8,7 @@ type ChatMessage = {
   id: string;
   sender: {
     name: string;
-    avatar: string;
+    avatar?: string;
   };
   content: string;
   timestamp: Date;
@@ -16,23 +16,14 @@ type ChatMessage = {
 };
 
 type ChatBoxProps = {
+  messages?: ChatMessage[];
+  onSendMessage?: (message: string) => void;
   onClose: () => void;
+  projectName?: string;
 };
 
-export function ChatBox({ onClose }: ChatBoxProps) {
+export function ChatBox({ messages = [], onSendMessage, onClose, projectName = "Project" }: ChatBoxProps) {
   const [inputValue, setInputValue] = useState('');
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      sender: {
-        name: 'Alex Chen',
-        avatar: '/avatars/team-1.png', // You'll need to add these avatar images
-      },
-      content: 'I finished the slides pls check',
-      timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
-      isCurrentUser: false,
-    },
-  ]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom when messages change
@@ -41,39 +32,10 @@ export function ChatBox({ onClose }: ChatBoxProps) {
   }, [messages]);
 
   const handleSendMessage = () => {
-    if (inputValue.trim() === '') return;
-
-    // Add user message
-    const newMessage: ChatMessage = {
-      id: Date.now().toString(),
-      sender: {
-        name: 'You',
-        avatar: '/avatars/user.png', // You'll need to add this avatar image
-      },
-      content: inputValue,
-      timestamp: new Date(),
-      isCurrentUser: true,
-    };
-
-    setMessages([...messages, newMessage]);
-    setInputValue('');
+    if (inputValue.trim() === '' || !onSendMessage) return;
     
-    // Simulate teammate response after a short delay if this is the first user message
-    if (messages.length === 1) {
-      setTimeout(() => {
-        const responseMessage: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          sender: {
-            name: 'Alex Chen',
-            avatar: '/avatars/team-1.png',
-          },
-          content: 'alright thanks see ya later',
-          timestamp: new Date(),
-          isCurrentUser: false,
-        };
-        setMessages(prev => [...prev, responseMessage]);
-      }, 1000);
-    }
+    onSendMessage(inputValue);
+    setInputValue('');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -90,7 +52,7 @@ export function ChatBox({ onClose }: ChatBoxProps) {
           <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
             P
           </div>
-          <h3 className="font-semibold">Project Name</h3>
+          <h3 className="font-semibold">{projectName}</h3>
         </div>
         <Button 
           variant="ghost" 
@@ -116,20 +78,11 @@ export function ChatBox({ onClose }: ChatBoxProps) {
               >
                 <div className={`flex gap-2 max-w-[80%] ${message.isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}>
                   <div className="flex-shrink-0">
-                    {message.sender.avatar ? (
-                      <div className="h-8 w-8 rounded-full bg-gray-300 overflow-hidden">
-                        {/* Replace with actual Image component when you have the avatars */}
-                        <div className="h-full w-full flex items-center justify-center text-xs font-medium text-gray-600">
-                          {message.sender.name.charAt(0)}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
-                        <span className="text-xs font-medium text-gray-600">
-                          {message.sender.name.charAt(0)}
-                        </span>
-                      </div>
-                    )}
+                    <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
+                      <span className="text-xs font-medium text-gray-600">
+                        {message.sender.name.charAt(0)}
+                      </span>
+                    </div>
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">

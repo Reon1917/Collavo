@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, User, MoreHorizontal } from "lucide-react";
+import { Task } from "@/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,37 +12,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-interface Task {
-  id?: string;
-  title?: string;
-  description?: string;
-  status?: string;
-  importance?: string;
-  deadline?: string;
-  assignedTo?: string[];
-}
-
 interface TaskItemProps {
-  task: Task; // Using proper interface instead of any
+  task: Task;
   onUpdate?: () => void;
   onDelete?: () => void;
 }
 
 export function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
-  // Mock task data structure for demo
-  const mockTask = {
-    id: "1",
-    title: "Sample Task",
-    description: "This is a sample task description",
-    status: "pending",
-    importance: "normal",
-    deadline: new Date().toISOString(),
-    assignedTo: [],
-  };
-
-  // Use mockTask for now since task prop might be empty
-  const displayTask = { ...mockTask, ...task };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
@@ -59,7 +36,7 @@ export function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
 
   const getImportanceColor = (importance: string) => {
     switch (importance) {
-      case "urgent":
+      case "critical":
         return "bg-red-100 text-red-800";
       case "high":
         return "bg-orange-100 text-orange-800";
@@ -78,39 +55,41 @@ export function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <h3 className="font-semibold text-lg">{displayTask.title}</h3>
-              <Badge className={getStatusColor(displayTask.status)}>
-                {displayTask.status}
+              <h3 className="font-semibold text-lg">{task.title}</h3>
+              <Badge className={getStatusColor(task.status)}>
+                {task.status}
               </Badge>
-              <Badge className={getImportanceColor(displayTask.importance)}>
-                {displayTask.importance}
+              <Badge className={getImportanceColor(task.importance)}>
+                {task.importance}
               </Badge>
             </div>
             
-            {displayTask.description && (
-              <p className="text-gray-600 mb-3">{displayTask.description}</p>
+            {task.description && (
+              <p className="text-gray-600 mb-3">{task.description}</p>
             )}
             
             <div className="flex items-center gap-4 text-sm text-gray-500">
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
                 <span>
-                  {new Date(displayTask.deadline).toLocaleDateString()}
+                  {task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline'}
                 </span>
               </div>
               
               <div className="flex items-center gap-1">
                 <User className="h-4 w-4" />
                 <span>
-                  {displayTask.assignedTo.length > 0 
-                    ? `${displayTask.assignedTo.length} assigned` 
+                  {task.assignedTo && task.assignedTo.length > 0 
+                    ? `${task.assignedTo.length} assigned` 
                     : "Unassigned"}
                 </span>
               </div>
               
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
-                <span>Created today</span>
+                <span>
+                  {task.createdAt ? new Date(task.createdAt).toLocaleDateString() : 'Recently created'}
+                </span>
               </div>
             </div>
           </div>
