@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionCookie } from 'better-auth/cookies';
+import { auth } from '@/lib/auth';
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -10,45 +10,50 @@ export async function middleware(request: NextRequest) {
     '/login',
     '/signup',
     '/forgot-password',
-    '/api/auth/[...all]',
   ];
   
-  // Check if the current path is a public route
-  const isPublicRoute = publicRoutes.some(route => {
-    if (route.includes('[...')) {
-      const basePath = route.split('[')[0];
-      return pathname.startsWith(basePath);
-    }
-    return pathname === route;
-  });
-  
-  // Allow access to static files
+  // Allow access to static files and API routes
   if (
     pathname.startsWith('/_next') || 
     pathname.startsWith('/favicon.ico') ||
-    pathname.startsWith('/landingpage-img/')
+    pathname.startsWith('/landingpage-img/') ||
+    pathname.startsWith('/api/') ||
+    pathname.includes('.') // Allow files with extensions
   ) {
     return NextResponse.next();
   }
+  
+  // Check if the current path is a public route
+  const isPublicRoute = publicRoutes.includes(pathname);
   
   // For public routes, continue without authentication
   if (isPublicRoute) {
     return NextResponse.next();
   }
   
-  // Check for session cookie using better-auth
-  const sessionCookie = getSessionCookie(request);
-  
-  // If no session, user is not authenticated
-  if (!sessionCookie) {
-    // Redirect to login
+  try {
+    // Check for valid session using better-auth
+    const session = await auth.api.getSession({
+      headers: request.headers
+    });
+    
+    // If no session, user is not authenticated
+    if (!session) {
+      // Redirect to login with callback URL
+      const url = new URL('/login', request.url);
+      url.searchParams.set('callbackUrl', pathname);
+      return NextResponse.redirect(url);
+    }
+    
+    // User is authenticated, continue
+    return NextResponse.next();
+  } catch (error) {
+    console.error('Middleware auth error:', error);
+    // On error, redirect to login
     const url = new URL('/login', request.url);
-    url.searchParams.set('callbackUrl', encodeURI(request.url));
+    url.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(url);
   }
-  
-  // User is authenticated, continue
-  return NextResponse.next();
 }
 
 // Configure which paths should be processed by the middleware
@@ -59,7 +64,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - API routes
      */
-    '/((?!_next/static|_next/image).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api).*)',
   ],
 }; 

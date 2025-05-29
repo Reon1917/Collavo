@@ -1,9 +1,5 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
-import { getProjectById } from '@/lib/data';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { NavItem } from '@/components/project/nav-item';
 import { ChatButton } from '@/components/project/chat-button';
 
 export default async function ProjectLayout({
@@ -13,63 +9,54 @@ export default async function ProjectLayout({
   children: ReactNode;
   params: { id: string };
 }) {
-  const { id } = params;
-  const project = await getProjectById(id);
-
-  if (!project) {
-    return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-3xl font-bold mb-4">Project Not Found</h1>
-        <p className="mb-6">The project you're looking for doesn't exist or you don't have access to it.</p>
-        <Link 
-          href="/dashboard" 
-          className="text-blue-600 hover:underline"
-        >
-          Return to Dashboard
-        </Link>
-      </div>
-    );
-  }
+  // For now, we'll assume all projects exist since we don't have the backend implemented yet
+  // In the future, you can add real project validation here
 
   return (
     <div className="flex flex-col min-h-screen">
       {/* Main content */}
       <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col md:flex-row gap-6">
-          <aside className="md:w-64 flex-shrink-0">
-            <nav className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="font-semibold">Project Navigation</h2>
-              </div>
-              <div className="p-2">
-                <NavItem href={`/project/${id}`} exact>
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="lg:w-1/4">
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-lg font-semibold mb-4">Project Navigation</h2>
+              <nav className="space-y-2">
+                <Link 
+                  href={`/project/${params.id}`}
+                  className="block px-3 py-2 rounded-md hover:bg-blue-50 text-blue-600"
+                >
                   Overview
-                </NavItem>
-                <NavItem href={`/project/${id}/tasks`}>
-                  Tasks & Events
-                </NavItem>
-                <NavItem href={`/project/${id}/files`}>
-                  Files & Links
-                </NavItem>
-                <NavItem href={`/project/${id}/members`}>
-                  Members
-                </NavItem>
-              </div>
-            </nav>
-          </aside>
-          <main className="flex-1">
-            <div className="mb-6">
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/dashboard" className="flex items-center gap-2">
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to Dashboard
                 </Link>
-              </Button>
+                <Link 
+                  href={`/project/${params.id}/tasks`}
+                  className="block px-3 py-2 rounded-md hover:bg-blue-50 text-blue-600"
+                >
+                  Tasks
+                </Link>
+                <Link 
+                  href={`/project/${params.id}/members`}
+                  className="block px-3 py-2 rounded-md hover:bg-blue-50 text-blue-600"
+                >
+                  Members
+                </Link>
+                <Link 
+                  href={`/project/${params.id}/files`}
+                  className="block px-3 py-2 rounded-md hover:bg-blue-50 text-blue-600"
+                >
+                  Files
+                </Link>
+              </nav>
             </div>
-            <div className="p-8">
+          </div>
+          <div className="lg:w-3/4">
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-gray-900">Project {params.id}</h1>
+                <p className="text-gray-600">Manage your project&apos;s tasks, members, and files</p>
+              </div>
               {children}
             </div>
-          </main>
+          </div>
         </div>
       </div>
 

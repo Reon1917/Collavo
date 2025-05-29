@@ -1,177 +1,184 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/ui/navbar';
+import { CheckCircle, Star, Users, Calendar } from 'lucide-react';
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
-      <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-        {/* Top navigation with logo */}
-        <Navbar />
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      {/* Navigation */}
+      <Navbar />
 
-        <div className="container mx-auto px-4 py-16 md:py-20">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="md:w-1/2 space-y-6">
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-                Transform Chaos into Academic Excellence
-              </h2>
-              <p className="text-lg md:text-xl opacity-90">
-                The ultimate project management tool designed specifically for students. Crush deadlines, streamline group work, and boost your academic performance with our intuitive platform.
-              </p>
-              <div className="flex flex-wrap gap-4 pt-4">
-                <Link href="/dashboard">
-                  <Button size="lg" className="bg-white text-blue-700 hover:bg-blue-50">
-                    Get Started Free
-                  </Button>
-                </Link>
-                <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
-                  See How It Works
-                </Button>
-              </div>
-              <p className="text-sm text-blue-100">
-                Built by students, for students.
-              </p>
-            </div>
-            <div className="md:w-1/2 relative">
-              <div className="absolute -top-4 -left-4 w-20 h-20 bg-yellow-400 rounded-full opacity-20 blur-xl"></div>
-              <div className="absolute -bottom-8 -right-8 w-40 h-40 bg-blue-300 rounded-full opacity-20 blur-xl"></div>
-              <img 
-                src="/landingpage-img/dashboard.png" 
-                alt="Collavo Dashboard Preview - Student Project Management" 
-                className="rounded-lg shadow-xl relative z-10"
-                width={600}
-                height={400}
-              />
+      {/* Hero Section */}
+      <div className="container mx-auto px-4 py-16">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
+          <div className="lg:w-1/2 space-y-8">
+            <h1 className="text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight">
+              The Future of{' '}
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                Project Collaboration
+              </span>
+            </h1>
+            <p className="text-xl text-gray-600 leading-relaxed">
+              Streamline your team&apos;s workflow with our powerful project management platform. 
+              From task tracking to seamless communication, everything you need in one place.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-4">
+                <Link href="/signup">Get Started Free</Link>
+              </Button>
+              <Button size="lg" variant="outline" className="text-lg px-8 py-4">
+                <Link href="#features">Learn More</Link>
+              </Button>
             </div>
           </div>
+          <div className="lg:w-1/2">
+            <Image
+              src="/landingpage-img/dashboard.png"
+              alt="Project management dashboard"
+              width={600}
+              height={450}
+              className="rounded-lg shadow-2xl"
+              loading="lazy"
+              quality={75}
+            />
+          </div>
         </div>
-      </header>
+      </div>
 
       {/* Features Section */}
-      <section id="features" className="py-16 bg-gray-50">
+      <section id="features" className="bg-gray-50 py-20">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-4">Designed for Student Success</h2>
-          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-            From solo assignments to complex group projects, Collavo gives you the tools to excel in today's competitive academic environment.
-          </p>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Everything You Need to Succeed
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Our comprehensive suite of tools helps teams stay organized, communicate effectively, 
+              and deliver projects on time.
+            </p>
+          </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <FeatureCard 
-              title="Intelligent Task Management" 
-              description="Prioritize assignments, track progress, and never miss another deadline with our smart task system built for academic workflows."
-              icon="📝"
+            <FeatureCard
+              icon={<CheckCircle className="h-8 w-8 text-blue-600" />}
+              title="Task Management"
+              description="Create, assign, and track tasks with powerful filtering and sorting options."
             />
-            <FeatureCard 
-              title="Frictionless Collaboration" 
-              description="Invite classmates, assign responsibilities, and coordinate effortlessly—even with the most challenging group projects."
-              icon="👥"
+            <FeatureCard
+              icon={<Users className="h-8 w-8 text-green-600" />}
+              title="Team Collaboration"
+              description="Work together seamlessly with real-time updates and team communication tools."
             />
-            <FeatureCard 
-              title="Visual Deadline Tracking" 
-              description="Transform overwhelming semester schedules into clear visual timelines that help you plan ahead and stay in control."
-              icon="📅"
+            <FeatureCard
+              icon={<Calendar className="h-8 w-8 text-purple-600" />}
+              title="Project Timeline"
+              description="Visualize project progress with interactive timelines and milestone tracking."
             />
-            <FeatureCard 
-              title="Centralized Resource Hub" 
-              description="Connect all your academic tools—Google Docs, Canva, research papers, and more—in one organized workspace."
-              icon="📁"
+            <FeatureCard
+              icon={<Star className="h-8 w-8 text-yellow-600" />}
+              title="Quality Assurance"
+              description="Ensure project quality with built-in review workflows and approval processes."
             />
-            <FeatureCard 
-              title="Strategic Reminder System" 
-              description="Our intelligent notifications adapt to your work patterns, alerting you at optimal times to maximize productivity."
-              icon="⏰"
+            <FeatureCard
+              icon={<CheckCircle className="h-8 w-8 text-indigo-600" />}
+              title="Progress Tracking"
+              description="Monitor project progress with detailed analytics and reporting tools."
             />
-            <FeatureCard 
-              title="Academic Privacy Controls" 
-              description="Maintain control over your intellectual property with customizable sharing permissions for every project and document."
-              icon="🔒"
+            <FeatureCard
+              icon={<Users className="h-8 w-8 text-red-600" />}
+              title="Resource Management"
+              description="Efficiently allocate and manage team resources across multiple projects."
             />
           </div>
         </div>
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-16">
+      <section id="how-it-works" className="py-20">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-4">Your Path to Academic Excellence</h2>
-          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-            Getting started takes less than 60 seconds. No complicated setup, no learning curve—just immediate productivity.
-          </p>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              How Collavo Works
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Get started in minutes and transform how your team collaborates on projects.
+            </p>
+          </div>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <StepCard 
-              number="1" 
-              title="Create Your Project Space" 
-              description="Set up a dedicated workspace for each class or assignment with all the tools you need in one place."
+            <StepCard
+              step="01"
+              title="Create Your Project"
+              description="Set up your project workspace and invite team members to collaborate."
             />
-            <StepCard 
-              number="2" 
-              title="Organize & Delegate" 
-              description="Break complex assignments into manageable tasks and distribute work among team members with precision."
+            <StepCard
+              step="02"
+              title="Organize Tasks"
+              description="Break down your project into manageable tasks and assign them to team members."
             />
-            <StepCard 
-              number="3" 
-              title="Execute & Excel" 
-              description="Track progress in real-time, adapt to changes, and deliver exceptional results that stand out to professors."
+            <StepCard
+              step="03"
+              title="Track Progress"
+              description="Monitor progress in real-time and keep everyone aligned with project goals."
             />
-          </div>
-        </div>
-      </section>
-
-      {/* About University Project Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-6">A University Project With Purpose</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto text-gray-600">
-            Collavo was developed as a university project aimed at solving real academic challenges. We're committed to providing this tool completely free to help students collaborate more effectively.
-          </p>
-          <div className="flex flex-col md:flex-row gap-8 justify-center items-center max-w-4xl mx-auto">
-            <div className="bg-white p-6 rounded-lg shadow-md flex-1">
-              <h3 className="text-xl font-semibold mb-2">Our Mission</h3>
-              <p className="text-gray-600">To empower students with collaborative tools that enhance learning outcomes and reduce project stress.</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-md flex-1">
-              <h3 className="text-xl font-semibold mb-2">Our Vision</h3>
-              <p className="text-gray-600">A future where student collaboration is seamless, productive, and accessible to everyone.</p>
-            </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-blue-600 text-white">
+      <section className="bg-gradient-to-r from-blue-600 to-indigo-700 py-20">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-6">Ready to Revolutionize Your Academic Experience?</h2>
-          <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-            Join the growing community of students who are transforming how academic projects get done. Your future self will thank you.
+          <h2 className="text-4xl font-bold text-white mb-4">
+            Ready to Transform Your Team&apos;s Productivity?
+          </h2>
+          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            Join thousands of teams who have already streamlined their workflow with Collavo.
           </p>
-          <Link href="/dashboard">
-            <Button size="lg" className="bg-white text-blue-700 hover:bg-blue-50">
-              Start Using Collavo Today
-            </Button>
-          </Link>
-          <p className="mt-4 text-sm opacity-75">100% Free University Project</p>
+          <Button size="lg" variant="secondary" className="text-lg px-8 py-4">
+            <Link href="/signup">Start Your Free Trial</Link>
+          </Button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-8 bg-gray-900 text-gray-400">
+      <footer className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <h3 className="text-white text-xl font-bold">Collavo</h3>
-              <p>Elevating Student Collaboration</p>
+          <div className="grid md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="text-2xl font-bold mb-4">Collavo</h3>
+              <p className="text-gray-400">
+                The ultimate project management platform for modern teams.
+              </p>
             </div>
-            <div className="flex gap-6">
-              <Link href="#features" className="hover:text-white">Features</Link>
-              <Link href="#how-it-works" className="hover:text-white">How It Works</Link>
-              <Link href="#" className="hover:text-white">Contact</Link>
-              <Link href="#" className="hover:text-white">Privacy</Link>
+            <div>
+              <h4 className="text-lg font-semibold mb-4">Product</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link href="#features" className="hover:text-white">Features</Link></li>
+                <li><Link href="#pricing" className="hover:text-white">Pricing</Link></li>
+                <li><Link href="#integrations" className="hover:text-white">Integrations</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-lg font-semibold mb-4">Company</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link href="#about" className="hover:text-white">About</Link></li>
+                <li><Link href="#careers" className="hover:text-white">Careers</Link></li>
+                <li><Link href="#contact" className="hover:text-white">Contact</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-lg font-semibold mb-4">Support</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link href="#help" className="hover:text-white">Help Center</Link></li>
+                <li><Link href="#docs" className="hover:text-white">Documentation</Link></li>
+                <li><Link href="#status" className="hover:text-white">Status</Link></li>
+              </ul>
             </div>
           </div>
-          <div className="mt-8 text-center text-sm">
-            &copy; {new Date().getFullYear()} Collavo. University Project. All rights reserved.
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; 2024 Collavo. All rights reserved.</p>
           </div>
         </div>
       </footer>
@@ -179,7 +186,7 @@ export default function Home() {
   );
 }
 
-function FeatureCard({ title, description, icon }: { title: string; description: string; icon: string }) {
+function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
       <div className="text-4xl mb-4">{icon}</div>
@@ -189,11 +196,11 @@ function FeatureCard({ title, description, icon }: { title: string; description:
   );
 }
 
-function StepCard({ number, title, description }: { number: string; title: string; description: string }) {
+function StepCard({ step, title, description }: { step: string; title: string; description: string }) {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-center">
       <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
-        {number}
+        {step}
       </div>
       <h3 className="text-xl font-semibold mb-2">{title}</h3>
       <p className="text-gray-600">{description}</p>

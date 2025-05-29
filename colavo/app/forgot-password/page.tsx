@@ -2,16 +2,13 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { ArrowLeft } from 'lucide-react';
 
 export default function ForgotPasswordPage() {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -27,7 +24,6 @@ export default function ForgotPasswordPage() {
     try {
       setIsLoading(true);
       
-      // Send password reset request to the server
       const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: {
@@ -35,33 +31,52 @@ export default function ForgotPasswordPage() {
         },
         body: JSON.stringify({ email }),
       });
-
+      
       const data = await response.json();
-
+      
       if (response.ok) {
         setIsSubmitted(true);
-        toast.success('Password reset instructions sent to your email');
+        toast.success('Password reset link sent to your email');
       } else {
-        toast.error(data.error || 'Failed to send password reset email');
+        toast.error(data.error || 'An error occurred');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Password reset error:', error);
-      toast.error(error?.message || 'An error occurred');
+      toast.error('An error occurred while processing your request');
     } finally {
       setIsLoading(false);
     }
   };
 
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
+            <CardDescription>
+              We&apos;ve sent a password reset link to {email}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-gray-600 mb-4">
+              Click the link in the email to reset your password. If you don&apos;t see it, check your spam folder.
+            </p>
+            <Link href="/login">
+              <Button variant="outline" className="w-full">
+                Back to Sign In
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <div className="flex items-center mb-2">
-            <Link href="/login" className="text-blue-600 hover:text-blue-800 flex items-center">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Login
-            </Link>
-          </div>
           <CardTitle className="text-2xl font-bold text-center">Reset Password</CardTitle>
           <CardDescription className="text-center">
             {!isSubmitted 
@@ -95,10 +110,10 @@ export default function ForgotPasswordPage() {
           ) : (
             <div className="bg-green-50 border border-green-100 rounded-md p-4 text-center">
               <p className="text-green-800 mb-4">
-                We've sent password reset instructions to <strong>{email}</strong>
+                We&apos;ve sent password reset instructions to <strong>{email}</strong>
               </p>
               <p className="text-sm text-gray-600">
-                If you don't see the email in your inbox, please check your spam folder.
+                If you don&apos;t see the email in your inbox, please check your spam folder.
               </p>
             </div>
           )}
