@@ -2,8 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Send } from 'lucide-react';
-import Image from 'next/image';
+import { Send, X } from 'lucide-react';
 
 type ChatMessage = {
   id: string;

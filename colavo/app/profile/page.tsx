@@ -218,7 +218,7 @@ export default function ProfilePage() {
                 <Button variant="outline" asChild className="h-auto p-4 justify-start">
                   <Link href="/dashboard">
                     <CheckSquare className="h-5 w-5 mr-3" />
-                    <div className="text-left">
+                    <div className="text-center">
                       <div className="font-medium">View Dashboard</div>
                       <div className="text-xs text-muted-foreground">See your overview</div>
                     </div>

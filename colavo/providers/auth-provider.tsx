@@ -3,16 +3,8 @@
 import { ReactNode, createContext, useContext, useEffect, useState, useCallback } from "react";
 import { Toaster } from "sonner";
 import { authClient } from "@/lib/auth-client";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  image?: string | null;
-  emailVerified?: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+import type { User } from "@/types";
+import { isNotNullish } from "@/utils";
 
 interface AuthContextType {
   user: User | null;
@@ -27,59 +19,67 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-export function AuthProvider({ children }: AuthProviderProps) {
+export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element {
   const sessionData = authClient.useSession();
   const [user, setUser] = useState<User | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  const isLoading = sessionData.isPending || !isInitialized;
+  const isAuthenticated = Boolean(user && sessionData.data?.user);
+
   useEffect(() => {
-    if (sessionData.data?.user) {
-      setUser(sessionData.data.user);
-    } else {
-      setUser(null);
-    }
-    if (!isInitialized && !sessionData.isPending) {
+    if (!sessionData.isPending) {
+      const sessionUser = sessionData.data?.user;
+      
+      if (sessionUser && isNotNullish(sessionUser)) {
+        const transformedUser: User = {
+          id: sessionUser.id,
+          name: sessionUser.name,
+          email: sessionUser.email,
+          ...(sessionUser.image !== undefined && { image: sessionUser.image }),
+          ...(sessionUser.emailVerified !== undefined && { emailVerified: sessionUser.emailVerified }),
+          ...(sessionUser.createdAt !== undefined && { createdAt: sessionUser.createdAt }),
+          ...(sessionUser.updatedAt !== undefined && { updatedAt: sessionUser.updatedAt }),
+        };
+        setUser(transformedUser);
+      } else {
+        setUser(null);
+      }
+      
       setIsInitialized(true);
     }
-  }, [sessionData.data, sessionData.isPending, isInitialized]);
+  }, [sessionData.data, sessionData.isPending]);
 
-  const refetch = useCallback(async () => {
+  const refetch = useCallback(async (): Promise<void> => {
     try {
       await sessionData.refetch();
       await new Promise(resolve => setTimeout(resolve, 0));
     } catch (error) {
-      console.error('Session refetch error:', error);
+      console.error("Failed to refetch session:", error);
     }
-  }, [sessionData.refetch]);
+  }, [sessionData]);
 
-  const value: AuthContextType = {
+  const contextValue: AuthContextType = {
     user,
-    isLoading: sessionData.isPending || !isInitialized,
-    isAuthenticated: !!user,
+    isLoading,
+    isAuthenticated,
     refetch,
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={contextValue}>
+      <Toaster />
       {children}
-      <Toaster 
-        position="top-right" 
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: 'white',
-            border: '1px solid #e5e7eb',
-          },
-        }}
-      />
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
+  
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
+  
   return context;
 } 

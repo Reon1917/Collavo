@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Navbar } from '@/components/ui/navbar';
+import { DashboardNavbar } from '@/components/ui/dashboard-navbar';
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { User, PlusCircle, File, Users } from 'lucide-react';
+import { PlusCircle, File, Users } from 'lucide-react';
 import { headers } from 'next/headers';
 
 export default async function DashboardPage() {
@@ -23,27 +23,14 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Include the Navbar at the top */}
-      <Navbar />
+      {/* Use the new DashboardNavbar for a more minimal design */}
+      <DashboardNavbar />
       
       <div className="container mx-auto px-4 py-8">
-        <header className="mb-8 flex justify-between items-center">
+        <header className="mb-8">
           <div>
             <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
             <p className="text-gray-600">Welcome back to Collavo, {user.name}!</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button className="bg-blue-600 hover:bg-blue-700" asChild>
-              <Link href="/project/new">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Create New Project
-              </Link>
-            </Button>
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/profile">
-                <User className="h-4 w-4" />
-              </Link>
-            </Button>
           </div>
         </header>
 
@@ -51,7 +38,7 @@ export default async function DashboardPage() {
           {/* Projects you lead */}
           <section>
             <h2 className="text-2xl font-semibold mb-4">Projects You Lead</h2>
-            <div className="bg-gray-50 rounded-lg p-8 text-center border border-gray-200">
+            <div className="bg-white rounded-lg p-8 text-center border border-gray-200 shadow-sm">
               <h3 className="text-lg font-medium mb-2">No projects yet</h3>
               <p className="text-gray-600 mb-4">
                 Create your first project to get started
@@ -62,10 +49,10 @@ export default async function DashboardPage() {
             </div>
           </section>
 
-          {/* Projects you're a member of */}
+          {/* Projects you&apos;re a member of */}
           <section>
             <h2 className="text-2xl font-semibold mb-4">Projects You&apos;re In</h2>
-            <div className="bg-gray-50 rounded-lg p-8 text-center border border-gray-200">
+            <div className="bg-white rounded-lg p-8 text-center border border-gray-200 shadow-sm">
               <h3 className="text-lg font-medium mb-2">No memberships yet</h3>
               <p className="text-gray-600">
                 You haven&apos;t been added to any projects as a member
