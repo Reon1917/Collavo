@@ -1,0 +1,273 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Cursor Rules: UI/UX Guidelines for Next.js 15 & shadcn/ui
+
+## Core Design Principles
+
+### 1. Modern Web Standards
+- Always use semantic HTML elements (`<main>`, `<section>`, `<article>`, `<nav>`, `<header>`, `<footer>`)
+- Implement proper ARIA labels and roles for accessibility
+- Follow WCAG 2.1 AA guidelines for contrast ratios (4.5:1 for normal text, 3:1 for large text)
+- Use `next/image` with proper alt attributes for all images
+
+### 2. Component Architecture
+- Prefer shadcn/ui components over custom implementations
+- Create compound components for complex UI patterns
+- Use Tailwind CSS utility classes, avoid custom CSS unless absolutely necessary
+- Implement proper loading states with Suspense boundaries
+- Always provide fallback UI for error boundaries
+
+### 3. Layout & Spacing
+- Use consistent spacing scale: `space-4` (16px), `space-6` (24px), `space-8` (32px), `space-12` (48px)
+- Implement responsive design mobile-first approach
+- Use CSS Grid and Flexbox for layouts, prefer `grid` for 2D layouts
+- Maintain 8px grid system alignment
+- Use `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8` for main content containers
+
+## Next.js 15 Specific Guidelines
+
+### 1. App Router Best Practices
+- Use Server Components by default, only add `"use client"` when necessary
+- Implement proper loading.tsx and error.tsx files for each route segment
+- Use parallel routes for dashboard-like interfaces with `@slot` syntax
+- Leverage intercepting routes for modals and overlays
+
+### 2. Performance Optimization
+- Implement streaming with `<Suspense>` for slow components
+- Use `unstable_cache` for expensive server-side operations
+- Optimize images with `priority` prop for above-the-fold content
+- Implement proper metadata with `generateMetadata` function
+- Use dynamic imports for heavy client components
+
+### 3. Data Fetching Patterns
+```typescript
+// Prefer server components with direct data fetching
+async function ProjectList() {
+  const projects = await getProjects();
+  return <div>{/* render projects */}</div>;
+}
+
+// Use React Query/SWR only for client-side mutations
+function useUpdateProject() {
+  return useMutation({
+    mutationFn: updateProject,
+    onSuccess: () => {
+      // Optimistic updates
+    }
+  });
+}
+```
+
+## shadcn/ui Component Guidelines
+
+### 1. Component Usage Patterns
+- Always import components from `@/components/ui/*`
+- Use `cn()` utility for conditional classes: `cn("base-classes", condition && "conditional-classes")`
+- Implement proper form validation with `react-hook-form` and `zod`
+- Use `Popover` for dropdowns, `Dialog` for modals, `Sheet` for slide-overs
+
+### 2. Form Design Patterns
+```typescript
+// Standard form structure
+<form onSubmit={handleSubmit(onSubmit)}>
+  <div className="space-y-6">
+    <FormField
+      control={control}
+      name="title"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Title</FormLabel>
+          <FormControl>
+            <Input placeholder="Enter title..." {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+    <Button type="submit" disabled={isSubmitting}>
+      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      Submit
+    </Button>
+  </div>
+</form>
+```
+
+### 3. Data Display Components
+- Use `Table` with proper sorting and pagination for data lists
+- Implement `Card` components for content grouping
+- Use `Badge` for status indicators with semantic colors
+- Implement `Skeleton` components for loading states
+
+## Responsive Design Rules
+
+### 1. Breakpoint Strategy
+- Mobile: `default` (320px+)
+- Tablet: `md:` (768px+)
+- Desktop: `lg:` (1024px+)
+- Large Desktop: `xl:` (1280px+)
+
+### 2. Component Responsive Patterns
+```typescript
+// Responsive grid patterns
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  {/* items */}
+</div>
+
+// Responsive navigation
+<nav className="hidden md:flex md:space-x-8">
+  {/* desktop nav */}
+</nav>
+<Sheet> {/* mobile nav */}
+  <SheetTrigger className="md:hidden">
+    <Menu className="h-6 w-6" />
+  </SheetTrigger>
+</Sheet>
+```
+
+## Accessibility Requirements
+
+### 1. Keyboard Navigation
+- All interactive elements must be keyboard accessible
+- Implement proper focus management with `useAutoFocus` or `autoFocus` props
+- Use `Tab`, `Shift+Tab`, `Enter`, `Space`, and arrow keys appropriately
+- Provide visible focus indicators with `focus-visible:ring-2`
+
+### 2. Screen Reader Support
+- Use proper heading hierarchy (h1 → h2 → h3)
+- Implement `aria-label`, `aria-describedby`, and `aria-expanded` attributes
+- Use `VisuallyHidden` component for screen reader only content
+- Provide meaningful error messages and form feedback
+
+### 3. Color and Contrast
+```typescript
+// Use semantic color classes
+<Button variant="destructive"> // for dangerous actions
+<Button variant="secondary">   // for secondary actions
+<Badge variant="outline">      // for neutral status
+<Alert variant="destructive">  // for error states
+```
+
+## Animation and Interaction Guidelines
+
+### 1. Micro-interactions
+- Use `transition-all duration-200 ease-in-out` for hover states
+- Implement loading states with `animate-pulse` or `animate-spin`
+- Use `transform hover:scale-105` for subtle hover effects
+- Avoid animations longer than 300ms for UI feedback
+
+### 2. Page Transitions
+```typescript
+// Use Framer Motion for complex animations
+import { motion } from "framer-motion";
+
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.3 }}
+>
+  {content}
+</motion.div>
+```
+
+## State Management Patterns
+
+### 1. Form State
+- Use `react-hook-form` with `zod` validation
+- Implement optimistic updates for better UX
+- Show loading states during form submission
+- Provide clear success/error feedback
+
+### 2. UI State
+- Use `useState` for simple component state
+- Use `useReducer` for complex state logic
+- Implement `useOptimistic` for immediate UI updates
+- Use Zustand for complex client-side state management
+
+## Error Handling and Feedback
+
+### 1. Error States
+```typescript
+// Implement proper error boundaries
+<ErrorBoundary fallback={<ErrorFallback />}>
+  <SuspenseWrapper>
+    <AsyncComponent />
+  </SuspenseWrapper>
+</ErrorBoundary>
+
+// Show user-friendly error messages
+<Alert variant="destructive">
+  <AlertCircle className="h-4 w-4" />
+  <AlertTitle>Error</AlertTitle>
+  <AlertDescription>
+    Something went wrong. Please try again.
+  </AlertDescription>
+</Alert>
+```
+
+### 2. Loading States
+- Use `Skeleton` components for content loading
+- Implement `<Suspense>` boundaries with meaningful fallbacks
+- Show progress indicators for long operations
+- Provide cancellation options for lengthy processes
+
+## Performance Guidelines
+
+### 1. Bundle Optimization
+- Use dynamic imports for heavy components: `const HeavyComponent = dynamic(() => import('./HeavyComponent'))`
+- Implement code splitting at route level
+- Use `next/bundle-analyzer` to monitor bundle size
+- Lazy load images and components below the fold
+
+### 2. Runtime Performance
+- Memoize expensive calculations with `useMemo`
+- Use `useCallback` for event handlers passed to child components
+- Implement virtual scrolling for long lists
+- Debounce search inputs and API calls
+
+## Testing Requirements
+
+### 1. Component Testing
+- Write tests for all interactive components
+- Test keyboard navigation and accessibility
+- Use `@testing-library/react` with user-centric queries
+- Test error states and edge cases
+
+### 2. Visual Testing
+- Implement Storybook for component documentation
+- Test responsive behavior across breakpoints
+- Verify color contrast ratios
+- Test dark/light mode compatibility
+
+## Code Organization
+
+### 1. File Structure
+```
+src/
+├── app/                 # Next.js 15 app router
+├── components/
+│   ├── ui/             # shadcn/ui components
+│   └── custom/         # Custom components
+├── lib/                # Utilities and configurations
+├── hooks/              # Custom React hooks
+└── types/              # TypeScript type definitions
+```
+
+### 2. Naming Conventions
+- Use PascalCase for components: `UserProfile.tsx`
+- Use camelCase for functions and variables: `handleSubmit`
+- Use kebab-case for file names: `user-profile.tsx`
+- Use SCREAMING_SNAKE_CASE for constants: `API_BASE_URL`
+
+## Final Notes
+
+- Always prioritize user experience over developer convenience
+- Test on real devices, not just browser dev tools
+- Follow the principle of progressive enhancement
+- Keep components small and focused on single responsibility
+- Document complex UI patterns and interactions
+- Regularly audit for accessibility compliance
+
+- Monitor Core Web Vitals and optimize accordingly
