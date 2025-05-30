@@ -1,7 +1,7 @@
 ---
 description: 
-globs: 
-alwaysApply: true
+globs: *.ts,*.tsx
+alwaysApply: false
 ---
 Only use shadcn components 
 use a command like this to install shadcn npx shadcn@latest add accordion
