@@ -11,6 +11,7 @@ import { AddMemberForm } from '@/components/project/AddMemberForm';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { use } from 'react';
 
 interface Member {
   id: string;
@@ -27,13 +28,10 @@ interface MembersPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function MembersPage({ params }: MembersPageProps) {
-  const { id: projectId } = await params;
+export default function MembersPage({ params }: MembersPageProps) {
+  // Use React.use() to unwrap the promise in a client component
+  const { id: projectId } = use(params);
 
-  return <MembersPageClient projectId={projectId} />;
-}
-
-function MembersPageClient({ projectId }: { projectId: string }) {
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
