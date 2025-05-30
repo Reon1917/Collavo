@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { projects, members, permissions } from '@/db/schema';
 import { createId } from '@paralleldrive/cuid2';
-import { eq, or, and } from 'drizzle-orm';
+import { eq, or, and, ne } from 'drizzle-orm';
 
 // GET /api/projects - List user's projects
 export async function GET(request: NextRequest) {
@@ -20,8 +20,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get projects where user is either leader or member
-    const userProjects = await db
+    // Get projects where user is the leader (directly from projects table)
+    const ledProjects = await db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        description: projects.description,
+        deadline: projects.deadline,
+        createdAt: projects.createdAt,
+        updatedAt: projects.updatedAt,
+        leaderId: projects.leaderId,
+      })
+      .from(projects)
+      .where(eq(projects.leaderId, session.user.id));
+
+    // Get projects where user is a member but NOT the leader
+    const memberProjectsQuery = await db
       .select({
         id: projects.id,
         name: projects.name,
@@ -33,24 +47,23 @@ export async function GET(request: NextRequest) {
         role: members.role,
       })
       .from(projects)
-      .leftJoin(members, eq(members.projectId, projects.id))
+      .innerJoin(members, eq(members.projectId, projects.id))
       .where(
-        or(
-          eq(projects.leaderId, session.user.id),
-          and(
-            eq(members.userId, session.user.id)
-          )
+        and(
+          eq(members.userId, session.user.id),
+          ne(projects.leaderId, session.user.id) // Exclude projects where user is leader
         )
       );
 
-    // Group projects by role
-    const ledProjects = userProjects.filter(p => p.leaderId === session.user.id);
-    const memberProjects = userProjects.filter(p => p.leaderId !== session.user.id && p.role === 'member');
+    // Extract just the project data (remove the role field for consistency)
+    const memberProjects = memberProjectsQuery.map(({ role, ...project }) => project);
+
+    const total = ledProjects.length + memberProjects.length;
 
     return NextResponse.json({
       ledProjects,
       memberProjects,
-      total: userProjects.length
+      total
     });
 
   } catch (error) {
