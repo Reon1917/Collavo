@@ -7,6 +7,7 @@ import {
 	integer,
 	varchar,
 	pgEnum,
+	index,
 } from "drizzle-orm/pg-core";
 import { createId } from "@paralleldrive/cuid2";
 import { relations } from "drizzle-orm";
@@ -57,11 +58,6 @@ export const verification = pgTable("verification", {
 	updatedAt: timestamp('updated_at').$defaultFn(() => /* @__PURE__ */ new Date())
 });
 
-
-
-
-
-
 // Enums
 export const taskImportanceEnum = pgEnum("task_importance", [
 	"low",
@@ -77,34 +73,71 @@ export const taskStatusEnum = pgEnum("task_status", [
 	"cancelled"
 ]);
 
+export const permissionTypeEnum = pgEnum("permission_type", [
+	"createTask",
+	"handleTask", 
+	"updateTask",
+	"handleEvent",
+	"handleFile",
+	"addMember",
+	"createEvent",
+	"viewFiles"
+]);
+
+export const memberRoleEnum = pgEnum("member_role", [
+	"leader",
+	"member"
+]);
+
 // Projects table
 export const projects = pgTable("projects", {
 	id: text("id").primaryKey().$defaultFn(() => createId()),
 	name: varchar("name", { length: 255 }).notNull(),
 	description: text("description"),
-	leaderId: text("leader_id").notNull(), // References better-auth user id
+	leaderId: text("leader_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
 	deadline: timestamp("deadline"),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Members table - tracks project membership and permissions
+// Invitations table for external users
+export const invitations = pgTable("invitations", {
+	id: text("id").primaryKey().$defaultFn(() => createId()),
+	email: text("email").notNull(),
+	projectId: text("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+	invitedBy: text("invited_by").notNull().references(() => user.id, { onDelete: "cascade" }),
+	token: text("token").notNull().unique(),
+	expiresAt: timestamp("expires_at").notNull(),
+	acceptedAt: timestamp("accepted_at"),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+	emailProjectIdx: index("idx_invitations_email_project").on(table.email, table.projectId),
+	tokenIdx: index("idx_invitations_token").on(table.token),
+}));
+
+// Members table - simplified with role-based approach
 export const members = pgTable("members", {
 	id: text("id").primaryKey().$defaultFn(() => createId()),
-	userId: text("user_id").notNull(), // References better-auth user id
+	userId: text("user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
 	projectId: text("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
-
-	// Permission flags - leader can modify these
-	createTask: boolean("create_task").default(false).notNull(), //creation both main and sub tasks
-	handleTask: boolean("handle_task").default(false).notNull(), //modification of main and sub tasks
-	handleEvent: boolean("handle_event").default(false).notNull(), //modification of events
-	handleFile: boolean("handle_file").default(true).notNull(), // Default true for all members it is for handling files and link crud
-	addMember: boolean("add_member").default(false).notNull(),
-	createEvent: boolean("create_event").default(false).notNull(),
-	viewFiles: boolean("view_files").default(true).notNull(),
-
+	role: memberRoleEnum("role").default("member").notNull(),
 	joinedAt: timestamp("joined_at").defaultNow().notNull(),
-});
+}, (table) => ({
+	userProjectIdx: index("idx_members_user_project").on(table.userId, table.projectId),
+	projectIdx: index("idx_members_project").on(table.projectId),
+}));
+
+// Permissions table - normalized permission system
+export const permissions = pgTable("permissions", {
+	id: text("id").primaryKey().$defaultFn(() => createId()),
+	memberId: text("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
+	permission: permissionTypeEnum("permission").notNull(),
+	granted: boolean("granted").default(false).notNull(),
+	grantedAt: timestamp("granted_at").defaultNow().notNull(),
+	grantedBy: text("granted_by").references(() => user.id, { onDelete: 'set null' }),
+}, (table) => ({
+	memberPermissionIdx: index("idx_permissions_member_permission").on(table.memberId, table.permission),
+}));
 
 // Main tasks table
 export const mainTasks = pgTable("main_tasks", {
@@ -114,26 +147,32 @@ export const mainTasks = pgTable("main_tasks", {
 	description: text("description"),
 	importanceLevel: taskImportanceEnum("importance_level").default("medium").notNull(),
 	deadline: timestamp("deadline"),
-	createdBy: text("created_by").notNull(), // References better-auth user id
+	createdBy: text("created_by").notNull().references(() => user.id, { onDelete: 'cascade' }),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+	projectIdx: index("idx_main_tasks_project").on(table.projectId),
+	createdByIdx: index("idx_main_tasks_created_by").on(table.createdBy),
+}));
 
-// Sub tasks table
+// Sub tasks table - removed redundant projectId
 export const subTasks = pgTable("sub_tasks", {
 	id: text("id").primaryKey().$defaultFn(() => createId()),
 	mainTaskId: text("main_task_id").notNull().references(() => mainTasks.id, { onDelete: "cascade" }),
-	projectId: text("project_id").references(() => projects.id, { onDelete: "cascade" }), // Optional as mentioned
-	assignedId: text("assigned_id"), // References better-auth user id - can be null if unassigned
+	assignedId: text("assigned_id").references(() => user.id, { onDelete: 'set null' }),
 	title: varchar("title", { length: 500 }).notNull(),
 	description: text("description"),
 	status: taskStatusEnum("status").default("pending").notNull(),
 	note: text("note"),
 	deadline: timestamp("deadline"),
-	createdBy: text("created_by").notNull(), // References better-auth user id
+	createdBy: text("created_by").notNull().references(() => user.id, { onDelete: 'cascade' }),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+	mainTaskIdx: index("idx_sub_tasks_main_task").on(table.mainTaskId),
+	assignedIdx: index("idx_sub_tasks_assigned").on(table.assignedId),
+	statusIdx: index("idx_sub_tasks_status").on(table.status),
+}));
 
 // Events table
 export const events = pgTable("events", {
@@ -143,16 +182,19 @@ export const events = pgTable("events", {
 	description: text("description"),
 	datetime: timestamp("datetime").notNull(),
 	location: varchar("location", { length: 500 }),
-	createdBy: text("created_by").notNull(), // References better-auth user id
+	createdBy: text("created_by").notNull().references(() => user.id, { onDelete: 'cascade' }),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+	projectDatetimeIdx: index("idx_events_project_datetime").on(table.projectId, table.datetime),
+	createdByIdx: index("idx_events_created_by").on(table.createdBy),
+}));
 
 // Files table
 export const files = pgTable("files", {
 	id: text("id").primaryKey().$defaultFn(() => createId()),
 	projectId: text("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
-	addedBy: text("added_by").notNull(), // References better-auth user id
+	addedBy: text("added_by").notNull().references(() => user.id, { onDelete: 'cascade' }),
 	name: varchar("name", { length: 500 }).notNull(),
 	description: text("description"),
 	url: text("url"), // For external links or file URLs
@@ -160,21 +202,66 @@ export const files = pgTable("files", {
 	size: integer("size"), // File size in bytes
 	mimeType: varchar("mime_type", { length: 100 }), // File MIME type
 	addedAt: timestamp("added_at").defaultNow().notNull(),
-});
-
-// Relations
-export const projectsRelations = relations(projects, ({ many }) => ({
-	members: many(members),
-	mainTasks: many(mainTasks),
-	subTasks: many(subTasks),
-	events: many(events),
-	files: many(files),
+}, (table) => ({
+	projectIdx: index("idx_files_project").on(table.projectId),
+	addedByIdx: index("idx_files_added_by").on(table.addedBy),
 }));
 
-export const membersRelations = relations(members, ({ one }) => ({
+// Relations
+export const userRelations = relations(user, ({ many }) => ({
+	projectsLed: many(projects),
+	memberships: many(members),
+	mainTasksCreated: many(mainTasks),
+	subTasksCreated: many(subTasks),
+	subTasksAssigned: many(subTasks),
+	eventsCreated: many(events),
+	filesAdded: many(files),
+	invitationsSent: many(invitations),
+}));
+
+export const projectsRelations = relations(projects, ({ one, many }) => ({
+	leader: one(user, {
+		fields: [projects.leaderId],
+		references: [user.id],
+	}),
+	members: many(members),
+	mainTasks: many(mainTasks),
+	events: many(events),
+	files: many(files),
+	invitations: many(invitations),
+}));
+
+export const invitationsRelations = relations(invitations, ({ one }) => ({
+	project: one(projects, {
+		fields: [invitations.projectId],
+		references: [projects.id],
+	}),
+	invitedBy: one(user, {
+		fields: [invitations.invitedBy],
+		references: [user.id],
+	}),
+}));
+
+export const membersRelations = relations(members, ({ one, many }) => ({
+	user: one(user, {
+		fields: [members.userId],
+		references: [user.id],
+	}),
 	project: one(projects, {
 		fields: [members.projectId],
 		references: [projects.id],
+	}),
+	permissions: many(permissions),
+}));
+
+export const permissionsRelations = relations(permissions, ({ one }) => ({
+	member: one(members, {
+		fields: [permissions.memberId],
+		references: [members.id],
+	}),
+	grantedBy: one(user, {
+		fields: [permissions.grantedBy],
+		references: [user.id],
 	}),
 }));
 
@@ -182,6 +269,10 @@ export const mainTasksRelations = relations(mainTasks, ({ one, many }) => ({
 	project: one(projects, {
 		fields: [mainTasks.projectId],
 		references: [projects.id],
+	}),
+	createdBy: one(user, {
+		fields: [mainTasks.createdBy],
+		references: [user.id],
 	}),
 	subTasks: many(subTasks),
 }));
@@ -191,9 +282,13 @@ export const subTasksRelations = relations(subTasks, ({ one }) => ({
 		fields: [subTasks.mainTaskId],
 		references: [mainTasks.id],
 	}),
-	project: one(projects, {
-		fields: [subTasks.projectId],
-		references: [projects.id],
+	assignedTo: one(user, {
+		fields: [subTasks.assignedId],
+		references: [user.id],
+	}),
+	createdBy: one(user, {
+		fields: [subTasks.createdBy],
+		references: [user.id],
 	}),
 }));
 
@@ -202,6 +297,10 @@ export const eventsRelations = relations(events, ({ one }) => ({
 		fields: [events.projectId],
 		references: [projects.id],
 	}),
+	createdBy: one(user, {
+		fields: [events.createdBy],
+		references: [user.id],
+	}),
 }));
 
 export const filesRelations = relations(files, ({ one }) => ({
@@ -209,14 +308,27 @@ export const filesRelations = relations(files, ({ one }) => ({
 		fields: [files.projectId],
 		references: [projects.id],
 	}),
+	addedBy: one(user, {
+		fields: [files.addedBy],
+		references: [user.id],
+	}),
 }));
 
 // Types for TypeScript inference
+export type User = typeof user.$inferSelect;
+export type NewUser = typeof user.$inferInsert;
+
 export type Project = typeof projects.$inferSelect;
 export type NewProject = typeof projects.$inferInsert;
 
+export type Invitation = typeof invitations.$inferSelect;
+export type NewInvitation = typeof invitations.$inferInsert;
+
 export type Member = typeof members.$inferSelect;
 export type NewMember = typeof members.$inferInsert;
+
+export type Permission = typeof permissions.$inferSelect;
+export type NewPermission = typeof permissions.$inferInsert;
 
 export type MainTask = typeof mainTasks.$inferSelect;
 export type NewMainTask = typeof mainTasks.$inferInsert;

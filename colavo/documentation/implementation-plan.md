@@ -1,329 +1,537 @@
-# Collavo Implementation Plan
+# Collavo Phase 1 Implementation Plan
 
-## Core Database Structure Reference
-Our application is built on the following key database tables:
-- `projects`: Stores project details and references leader
-- `members`: Tracks project membership and permissions
-- `mainTasks`: Stores parent tasks in a project
-- `subTasks`: Stores child tasks assigned to specific members
-- `events`: Stores project events/meetings
-- `files`: Stores uploaded files and linked resources
+## Phase 1 Scope: Minimum Viable Functionality
 
-## Permission System
-The permission system is built around boolean flags in the `members` table:
-- `createTask`: Ability to create main tasks and sub-tasks
-- `handleTask`: Ability to edit/delete task details
-- `handleEvent`: Ability to modify events
-- `handleFile`: Ability to manage files (default: true)
-- `addMember`: Ability to add new members
-- `createEvent`: Ability to create new events
-- `viewFiles`: Ability to view files (default: true)
+**Goal**: Get core project management working with basic functionality:
+1. Create projects with automatic leader setup
+2. Add members by ID, email, or username
+3. Create and manage main tasks and sub-tasks
+4. Basic permission enforcement
 
-## Implementation Plan
+## Database Schema Reference (Updated)
 
-### 1. Project Creation and Leadership
+### Core Tables for Phase 1:
+- `projects`: Project details with leader reference
+- `members`: Project membership with role (leader/member)
+- `permissions`: Normalized permission system
+- `mainTasks`: Parent tasks
+- `subTasks`: Child tasks with assignments
+- `user`: Better-auth user management
 
-#### Project Creation Flow
-1. User navigates to "Create New Project" page
-2. User inputs project details:
-   - Project name (required)
-   - Project description (optional)
-   - Project deadline (optional)
-3. System creates a new project record:
-   ```ts
-   const newProject = {
-     id: createId(), // Auto-generated CUID
-     name: projectName,
-     description: projectDescription,
-     leaderId: currentUserId, // Current authenticated user
-     deadline: projectDeadline,
-     createdAt: new Date(),
-     updatedAt: new Date()
-   };
-   ```
+### Permission Types:
+- `createTask`: Create main tasks and sub-tasks
+- `handleTask`: Edit/delete task details
+- `updateTask`: Change task status and add notes
+- `addMember`: Add new members to project
 
-4. System automatically creates a member record for the leader:
-   ```ts
-   const leaderMember = {
-     id: createId(),
-     userId: currentUserId,
-     projectId: newProject.id,
-     createTask: true,
-     handleTask: true,
-     handleEvent: true,
-     handleFile: true,
-     addMember: true,
-     createEvent: true, 
-     viewFiles: true,
-     joinedAt: new Date()
-   };
-   ```
+## Phase 1 Implementation Steps
 
-#### Leader Permissions
-- Project leaders have all permissions enabled by default
-- Leaders can modify all aspects of the project including:
-  - Adding/removing members
-  - Modifying member permissions
-  - Creating/editing/deleting tasks and events
-  - Managing all files
+### 1. Project Creation Flow
 
-### 2. Member Management
-
-#### Adding Members
-1. Leader navigates to the "Members" page within a project
-2. Leader can add members via:
-   - Email invitation (for users not yet in the system)
-   - User ID (for existing users)
-
-3. When adding by email:
-   ```ts
-   // Check if user exists with the email
-   const existingUser = await getUserByEmail(email);
-   
-   if (existingUser) {
-     // Add existing user as member
-     await addMemberToProject(projectId, existingUser.id, defaultPermissions);
-   } else {
-     // Store invitation in a separate table
-     // Send email with signup link that will add them to project upon registration
-     await createAndSendInvitation(email, projectId);
-   }
-   ```
-
-4. Default permissions for new members:
-   ```ts
-   const defaultMemberPermissions = {
-     createTask: false,
-     handleTask: false,
-     handleEvent: false,
-     handleFile: true,  // Can add/delete files by default
-     addMember: false,
-     createEvent: false,
-     viewFiles: true    // Can view files by default
-   };
-   ```
-
-#### Managing Member Permissions
-1. Leader navigates to member details page
-2. UI displays toggles for each permission type
-3. Leader can enable/disable permissions
-4. System updates member record with new permission settings:
-   ```ts
-   await updateMemberPermissions(memberId, {
-     createTask: createTaskEnabled,
-     handleTask: handleTaskEnabled,
-     handleEvent: handleEventEnabled,
-     handleFile: handleFileEnabled,
-     addMember: addMemberEnabled,
-     createEvent: createEventEnabled,
-     viewFiles: viewFilesEnabled
-   });
-   ```
-
-### 3. Task Management
-
-#### Main Task Creation
-1. User with `createTask` permission navigates to tasks page
-2. User provides task details:
-   - Title (required)
-   - Description (optional)
-   - Importance level (low/medium/high/critical)
-   - Deadline (optional)
-3. System creates main task:
-   ```ts
-   const newMainTask = {
-     id: createId(),
-     projectId: currentProjectId,
-     title: taskTitle,
-     description: taskDescription,
-     importanceLevel: taskImportance, // From enum: low, medium, high, critical
-     deadline: taskDeadline,
-     createdBy: currentUserId,
-     createdAt: new Date(),
-     updatedAt: new Date()
-   };
-   ```
-
-#### Sub-Task Creation
-1. User with `createTask` permission selects a main task
-2. User provides sub-task details:
-   - Title (required)
-   - Description (optional)
-   - Assigned member (optional)
-   - Deadline (optional)
-3. System creates sub-task:
-   ```ts
-   const newSubTask = {
-     id: createId(),
-     mainTaskId: parentTaskId,
-     projectId: currentProjectId,
-     assignedId: assignedMemberId, // Can be null if unassigned
-     title: subTaskTitle,
-     description: subTaskDescription,
-     status: "pending", // From enum: pending, in_progress, completed, cancelled
-     note: null,
-     deadline: subTaskDeadline,
-     createdBy: currentUserId,
-     createdAt: new Date(),
-     updatedAt: new Date()
-   };
-   ```
-
-#### Task Handling
-1. **Task Editing**:
-   - Users with `handleTask` permission can edit any task details
-   - Task modification updates the `updatedAt` timestamp
-
-2. **Task Status Updates**:
-   - Leader (with `handleTask`) can update any sub-task status
-   - Assigned members can update the status of their assigned sub-tasks:
-     ```ts
-     // Check if current user has permission to update this task
-     const canUpdate = 
-       currentUserId === task.assignedId || // Is assigned to the task
-       userHasPermission(currentUserId, projectId, "handleTask") || // Has handleTask permission
-       isProjectLeader(currentUserId, projectId); // Is project leader
-     
-     if (canUpdate) {
-       await updateSubTaskStatus(taskId, newStatus);
-     }
-     ```
-
-3. **Task Notes**:
-   - Leaders can add/edit notes on any sub-task
-   - Assigned members can add/edit notes on their assigned sub-tasks
-   - Notes provide context for status changes or additional information
-
-### 4. Event Management
-
-#### Event Creation
-1. Users with `createEvent` permission can create new events
-2. Required event details:
-   - Title
-   - Date and time
-   - Optional: description, location
-3. System creates event record:
-   ```ts
-   const newEvent = {
-     id: createId(),
-     projectId: currentProjectId,
-     title: eventTitle,
-     description: eventDescription,
-     datetime: eventDateTime,
-     location: eventLocation,
-     createdBy: currentUserId,
-     createdAt: new Date(),
-     updatedAt: new Date()
-   };
-   ```
-
-#### Event Handling
-1. Users with `handleEvent` permission can modify/delete events
-2. All members can view events regardless of permissions
-3. Event modifications update the `updatedAt` timestamp
-
-### 5. File Management
-
-#### File/Resource Addition
-1. By default, all members can add files (`handleFile` = true)
-2. File addition flow:
-   - User uploads file or adds external link
-   - System creates file record:
-     ```ts
-     const newFile = {
-       id: createId(),
-       projectId: currentProjectId,
-       addedBy: currentUserId,
-       name: fileName,
-       description: fileDescription,
-       url: fileIsExternalLink ? externalUrl : null,
-       uploadThingId: fileIsUploaded ? uploadedFileId : null,
-       size: fileSize,
-       mimeType: fileMimeType,
-       addedAt: new Date()
-     };
-     ```
-
-3. File visibility:
-   - By default, all members can view files (`viewFiles` = true)
-   - Leader can restrict file viewing for specific members
-
-## API Implementation Plan
-
-### Authentication Endpoints
-- `/api/auth/register` - User registration
-- `/api/auth/login` - User login
-- `/api/auth/logout` - User logout
-- `/api/auth/reset-password` - Password reset
-
-### Project Endpoints
-- `/api/projects` - GET (list projects), POST (create project)
-- `/api/projects/:id` - GET (project details), PUT (update project), DELETE (delete project)
-- `/api/projects/:id/members` - GET (list members), POST (add member)
-- `/api/projects/:id/members/:memberId` - GET (member details), PUT (update permissions), DELETE (remove member)
-
-### Task Endpoints
-- `/api/projects/:id/tasks` - GET (list main tasks), POST (create main task)
-- `/api/projects/:id/tasks/:taskId` - GET (task details), PUT (update task), DELETE (delete task)
-- `/api/projects/:id/tasks/:taskId/subtasks` - GET (list subtasks), POST (create subtask)
-- `/api/projects/:id/tasks/:taskId/subtasks/:subtaskId` - GET, PUT, DELETE
-
-### Event Endpoints
-- `/api/projects/:id/events` - GET (list events), POST (create event)
-- `/api/projects/:id/events/:eventId` - GET, PUT, DELETE
-
-### File Endpoints
-- `/api/projects/:id/files` - GET (list files), POST (upload file/add link)
-- `/api/projects/:id/files/:fileId` - GET, PUT, DELETE
-
-## Frontend Implementation
-
-### Access Control Logic
-All UI elements should respect permission settings:
+#### API Endpoint: `POST /api/projects`
 ```ts
-// Example permission check function
-function canPerformAction(
-  userId: string, 
-  projectId: string, 
-  action: 'createTask' | 'handleTask' | 'createEvent' | 'handleEvent' | 'addMember' | 'handleFile' | 'viewFiles'
-): boolean {
-  // Check if user is project leader
-  if (isProjectLeader(userId, projectId)) {
-    return true;
-  }
-  
-  // Get member record
-  const memberRecord = getMemberRecord(userId, projectId);
-  if (!memberRecord) return false;
-  
-  // Check specific permission
-  return memberRecord[action] === true;
+// Request body
+interface CreateProjectRequest {
+  name: string;
+  description?: string;
+  deadline?: string; // ISO date string
+}
+
+// Implementation
+async function createProject(data: CreateProjectRequest, currentUserId: string) {
+  // 1. Create project
+  const project = await db.insert(projects).values({
+    id: createId(),
+    name: data.name,
+    description: data.description,
+    leaderId: currentUserId,
+    deadline: data.deadline ? new Date(data.deadline) : null,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }).returning();
+
+  // 2. Create leader member record
+  const leaderMember = await db.insert(members).values({
+    id: createId(),
+    userId: currentUserId,
+    projectId: project[0].id,
+    role: "leader",
+    joinedAt: new Date()
+  }).returning();
+
+  // 3. Grant all permissions to leader
+  const allPermissions = ['createTask', 'handleTask', 'updateTask', 'addMember'];
+  const permissionInserts = allPermissions.map(permission => ({
+    id: createId(),
+    memberId: leaderMember[0].id,
+    permission,
+    granted: true,
+    grantedAt: new Date(),
+    grantedBy: currentUserId
+  }));
+
+  await db.insert(permissions).values(permissionInserts);
+
+  return project[0];
 }
 ```
 
-### UI Components
-- Use permission checks to conditionally render UI elements
-- Disable action buttons when user lacks permission
-- Show appropriate messaging when permissions are missing
+#### Frontend Implementation
+```tsx
+// components/project/CreateProjectForm.tsx
+function CreateProjectForm() {
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    deadline: ''
+  });
 
-## Implementation Phases
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const response = await fetch('/api/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
 
-### Phase 1: Core Authentication and Project Creation
-- Implement user registration/login flow
-- Create project creation functionality
-- Setup basic project dashboard
+    if (response.ok) {
+      const project = await response.json();
+      router.push(`/project/${project.id}`);
+    }
+  };
 
-### Phase 2: Member and Permission Management
-- Implement member invitation system
-- Build permission management UI
-- Create member listing and details pages
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="text"
+        placeholder="Project Name"
+        value={formData.name}
+        onChange={(e) => setFormData({...formData, name: e.target.value})}
+        required
+      />
+      <textarea
+        placeholder="Description (optional)"
+        value={formData.description}
+        onChange={(e) => setFormData({...formData, description: e.target.value})}
+      />
+      <input
+        type="date"
+        value={formData.deadline}
+        onChange={(e) => setFormData({...formData, deadline: e.target.value})}
+      />
+      <button type="submit">Create Project</button>
+    </form>
+  );
+}
+```
 
-### Phase 3: Task Management
-- Implement main task and sub-task creation
-- Build task listing, filtering, and details views
-- Create task status update functionality
+### 2. Member Management - Add by ID/Email/Username
 
-### Phase 4: Events and Files
-- Implement event creation and management
-- Build file upload and external link functionality
-- Create file browser and preview components 
+#### API Endpoint: `POST /api/projects/:projectId/members`
+```ts
+interface AddMemberRequest {
+  identifier: string; // Can be userId, email, or username
+  identifierType: 'id' | 'email' | 'username';
+}
+
+async function addMember(projectId: string, data: AddMemberRequest, currentUserId: string) {
+  // 1. Check if current user has addMember permission
+  const hasPermission = await checkPermission(currentUserId, projectId, 'addMember');
+  if (!hasPermission) {
+    throw new Error('Insufficient permissions');
+  }
+
+  // 2. Find user by identifier
+  let targetUser;
+  switch (data.identifierType) {
+    case 'id':
+      targetUser = await db.select().from(user).where(eq(user.id, data.identifier)).limit(1);
+      break;
+    case 'email':
+      targetUser = await db.select().from(user).where(eq(user.email, data.identifier)).limit(1);
+      break;
+    case 'username':
+      // Assuming you have a username field
+      targetUser = await db.select().from(user).where(eq(user.name, data.identifier)).limit(1);
+      break;
+  }
+
+  if (!targetUser.length) {
+    throw new Error('User not found');
+  }
+
+  // 3. Check if already a member
+  const existingMember = await db.select().from(members)
+    .where(and(
+      eq(members.userId, targetUser[0].id),
+      eq(members.projectId, projectId)
+    )).limit(1);
+
+  if (existingMember.length) {
+    throw new Error('User is already a member');
+  }
+
+  // 4. Create member record
+  const newMember = await db.insert(members).values({
+    id: createId(),
+    userId: targetUser[0].id,
+    projectId: projectId,
+    role: "member",
+    joinedAt: new Date()
+  }).returning();
+
+  // 5. Grant default permissions (none for now, leader can add later)
+  // You can add default permissions here if needed
+
+  return {
+    member: newMember[0],
+    user: targetUser[0]
+  };
+}
+
+// Permission checking helper
+async function checkPermission(userId: string, projectId: string, permission: string): Promise<boolean> {
+  // Check if user is project leader
+  const project = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
+  if (project[0]?.leaderId === userId) return true;
+
+  // Check member permissions
+  const memberPermission = await db.select()
+    .from(members)
+    .innerJoin(permissions, eq(permissions.memberId, members.id))
+    .where(and(
+      eq(members.userId, userId),
+      eq(members.projectId, projectId),
+      eq(permissions.permission, permission),
+      eq(permissions.granted, true)
+    )).limit(1);
+
+  return memberPermission.length > 0;
+}
+```
+
+#### Frontend Implementation
+```tsx
+// components/project/AddMemberForm.tsx
+function AddMemberForm({ projectId }: { projectId: string }) {
+  const [identifier, setIdentifier] = useState('');
+  const [identifierType, setIdentifierType] = useState<'id' | 'email' | 'username'>('email');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const response = await fetch(`/api/projects/${projectId}/members`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, identifierType })
+    });
+
+    if (response.ok) {
+      // Refresh member list
+      window.location.reload(); // Temporary - use proper state management
+    } else {
+      const error = await response.json();
+      alert(error.message);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <select 
+        value={identifierType} 
+        onChange={(e) => setIdentifierType(e.target.value as any)}
+      >
+        <option value="email">Email</option>
+        <option value="username">Username</option>
+        <option value="id">User ID</option>
+      </select>
+      
+      <input
+        type="text"
+        placeholder={`Enter ${identifierType}`}
+        value={identifier}
+        onChange={(e) => setIdentifier(e.target.value)}
+        required
+      />
+      
+      <button type="submit">Add Member</button>
+    </form>
+  );
+}
+```
+
+### 3. Task Management
+
+#### API Endpoints for Tasks
+
+**Create Main Task: `POST /api/projects/:projectId/tasks`**
+```ts
+interface CreateMainTaskRequest {
+  title: string;
+  description?: string;
+  importanceLevel: 'low' | 'medium' | 'high' | 'critical';
+  deadline?: string;
+}
+
+async function createMainTask(projectId: string, data: CreateMainTaskRequest, currentUserId: string) {
+  // Check permission
+  const hasPermission = await checkPermission(currentUserId, projectId, 'createTask');
+  if (!hasPermission) {
+    throw new Error('Insufficient permissions');
+  }
+
+  const mainTask = await db.insert(mainTasks).values({
+    id: createId(),
+    projectId: projectId,
+    title: data.title,
+    description: data.description,
+    importanceLevel: data.importanceLevel,
+    deadline: data.deadline ? new Date(data.deadline) : null,
+    createdBy: currentUserId,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }).returning();
+
+  return mainTask[0];
+}
+```
+
+**Create Sub-Task: `POST /api/projects/:projectId/tasks/:mainTaskId/subtasks`**
+```ts
+interface CreateSubTaskRequest {
+  title: string;
+  description?: string;
+  assignedId?: string; // User ID to assign to
+  deadline?: string;
+}
+
+async function createSubTask(mainTaskId: string, data: CreateSubTaskRequest, currentUserId: string) {
+  // Get main task to check project
+  const mainTask = await db.select().from(mainTasks).where(eq(mainTasks.id, mainTaskId)).limit(1);
+  if (!mainTask.length) {
+    throw new Error('Main task not found');
+  }
+
+  // Check permission
+  const hasPermission = await checkPermission(currentUserId, mainTask[0].projectId, 'createTask');
+  if (!hasPermission) {
+    throw new Error('Insufficient permissions');
+  }
+
+  const subTask = await db.insert(subTasks).values({
+    id: createId(),
+    mainTaskId: mainTaskId,
+    title: data.title,
+    description: data.description,
+    assignedId: data.assignedId,
+    status: 'pending',
+    deadline: data.deadline ? new Date(data.deadline) : null,
+    createdBy: currentUserId,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }).returning();
+
+  return subTask[0];
+}
+```
+
+#### Frontend Task Components
+```tsx
+// components/tasks/CreateTaskForm.tsx
+function CreateTaskForm({ projectId }: { projectId: string }) {
+  const [taskType, setTaskType] = useState<'main' | 'sub'>('main');
+  const [mainTaskId, setMainTaskId] = useState('');
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    importanceLevel: 'medium' as const,
+    deadline: '',
+    assignedId: ''
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const url = taskType === 'main' 
+      ? `/api/projects/${projectId}/tasks`
+      : `/api/projects/${projectId}/tasks/${mainTaskId}/subtasks`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    if (response.ok) {
+      // Reset form and refresh task list
+      setFormData({ title: '', description: '', importanceLevel: 'medium', deadline: '', assignedId: '' });
+      // Trigger refresh
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <select value={taskType} onChange={(e) => setTaskType(e.target.value as any)}>
+        <option value="main">Main Task</option>
+        <option value="sub">Sub Task</option>
+      </select>
+
+      {taskType === 'sub' && (
+        <select 
+          value={mainTaskId} 
+          onChange={(e) => setMainTaskId(e.target.value)}
+          required
+        >
+          <option value="">Select Main Task</option>
+          {/* Map through main tasks */}
+        </select>
+      )}
+
+      <input
+        type="text"
+        placeholder="Task Title"
+        value={formData.title}
+        onChange={(e) => setFormData({...formData, title: e.target.value})}
+        required
+      />
+
+      <textarea
+        placeholder="Description"
+        value={formData.description}
+        onChange={(e) => setFormData({...formData, description: e.target.value})}
+      />
+
+      {taskType === 'main' && (
+        <select 
+          value={formData.importanceLevel}
+          onChange={(e) => setFormData({...formData, importanceLevel: e.target.value as any})}
+        >
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+          <option value="critical">Critical</option>
+        </select>
+      )}
+
+      <input
+        type="date"
+        value={formData.deadline}
+        onChange={(e) => setFormData({...formData, deadline: e.target.value})}
+      />
+
+      {taskType === 'sub' && (
+        <select 
+          value={formData.assignedId}
+          onChange={(e) => setFormData({...formData, assignedId: e.target.value})}
+        >
+          <option value="">Unassigned</option>
+          {/* Map through project members */}
+        </select>
+      )}
+
+      <button type="submit">Create {taskType === 'main' ? 'Main' : 'Sub'} Task</button>
+    </form>
+  );
+}
+```
+
+### 4. Data Fetching Helpers
+
+```ts
+// lib/api/projects.ts
+export async function getProject(projectId: string) {
+  const response = await fetch(`/api/projects/${projectId}`);
+  return response.json();
+}
+
+export async function getProjectMembers(projectId: string) {
+  const response = await fetch(`/api/projects/${projectId}/members`);
+  return response.json();
+}
+
+export async function getProjectTasks(projectId: string) {
+  const response = await fetch(`/api/projects/${projectId}/tasks`);
+  return response.json();
+}
+
+// lib/api/permissions.ts
+export async function getUserPermissions(projectId: string) {
+  const response = await fetch(`/api/projects/${projectId}/my-permissions`);
+  return response.json();
+}
+```
+
+## Phase 1 File Structure
+
+```
+colavo/
+├── app/
+│   ├── api/
+│   │   └── projects/
+│   │       ├── route.ts                 # GET, POST projects
+│   │       └── [id]/
+│   │           ├── route.ts             # GET, PUT, DELETE project
+│   │           ├── members/
+│   │           │   └── route.ts         # GET, POST members
+│   │           └── tasks/
+│   │               ├── route.ts         # GET, POST main tasks
+│   │               └── [taskId]/
+│   │                   └── subtasks/
+│   │                       └── route.ts # GET, POST sub tasks
+│   ├── project/
+│   │   ├── new/
+│   │   │   └── page.tsx                 # Create project page
+│   │   └── [id]/
+│   │       ├── page.tsx                 # Project dashboard
+│   │       ├── members/
+│   │       │   └── page.tsx             # Members management
+│   │       └── tasks/
+│   │           └── page.tsx             # Task management
+│   └── dashboard/
+│       └── page.tsx                     # User dashboard
+├── components/
+│   ├── project/
+│   │   ├── CreateProjectForm.tsx
+│   │   ├── AddMemberForm.tsx
+│   │   └── ProjectCard.tsx
+│   └── tasks/
+│       ├── CreateTaskForm.tsx
+│       ├── TaskList.tsx
+│       └── TaskCard.tsx
+└── lib/
+    ├── api/
+    │   ├── projects.ts
+    │   ├── members.ts
+    │   └── tasks.ts
+    └── utils/
+        └── permissions.ts
+```
+
+## Phase 1 Testing Checklist
+
+### ✅ Basic Functionality Tests
+1. **Project Creation**
+   - [ ] Create project with name only
+   - [ ] Create project with full details
+   - [ ] Verify leader gets all permissions automatically
+
+2. **Member Management**
+   - [ ] Add member by email
+   - [ ] Add member by username
+   - [ ] Add member by ID
+   - [ ] Prevent duplicate members
+   - [ ] Handle non-existent users
+
+3. **Task Management**
+   - [ ] Create main task
+   - [ ] Create sub-task under main task
+   - [ ] Assign sub-task to member
+   - [ ] Verify permission checking works
+
+4. **Permission System**
+   - [ ] Leader can do everything
+   - [ ] Members without permissions cannot create tasks
+   - [ ] Members without permissions cannot add members
+
+This Phase 1 implementation gives you the core functionality to start testing and building upon, with a solid foundation for the normalized permission system. 
