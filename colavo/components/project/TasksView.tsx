@@ -316,12 +316,6 @@ export function TasksView({ projectId }: TasksViewProps) {
                 projectId={projectId} 
                 onTaskCreated={handleTaskCreated}
                 members={project.members}
-                trigger={
-                  <Button className="bg-[#008080] hover:bg-[#006666] text-white">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create First Task
-                  </Button>
-                }
               />
             )}
           </CardContent>
@@ -389,10 +383,8 @@ function TaskCard({ task, project, onUpdate }: {
             )}
           </div>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
+            <DropdownMenuTrigger className="h-8 w-8 p-0 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center">
+              <MoreVertical className="h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem>
