@@ -1,51 +1,98 @@
+"use client"
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { DashboardNavbar } from '@/components/ui/dashboard-navbar';
-import { auth } from '@/lib/auth';
-import { redirect } from 'next/navigation';
-import { PlusCircle, File, Users, FolderOpen, UserPlus, Calendar, Crown, User } from 'lucide-react';
-import { headers } from 'next/headers';
+import { PlusCircle, File, Users, FolderOpen, UserPlus, Calendar, Crown, User, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
+import { authClient } from '@/lib/auth-client';
+import { redirect } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
-// Fetch projects data
-async function getProjects() {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/projects`, {
-      cache: 'no-store',
-      headers: {
-        // Pass session headers for server-side requests
-      }
-    });
-    
-    if (!response.ok) {
-      console.error('Failed to fetch projects:', response.status);
-      return { ledProjects: [], memberProjects: [], total: 0 };
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching projects:', error);
-    return { ledProjects: [], memberProjects: [], total: 0 };
-  }
+interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  deadline?: string;
+  createdAt: string;
+  updatedAt: string;
+  leaderId: string;
+  role?: string;
 }
 
-export default async function DashboardPage() {
-  // Get the current user using better-auth
-  const session = await auth.api.getSession({
-    headers: await headers()
-  });
-  
-  if (!session) {
-    redirect('/login');
+interface ProjectsData {
+  ledProjects: Project[];
+  memberProjects: Project[];
+  total: number;
+}
+
+export default function DashboardPage() {
+  const { data: session, isPending } = authClient.useSession();
+  const [projectsData, setProjectsData] = useState<ProjectsData>({ ledProjects: [], memberProjects: [], total: 0 });
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch projects data from API
+  const fetchProjects = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/projects', {
+        cache: 'no-store',
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast.error('Please log in to view your projects');
+          return;
+        }
+        throw new Error('Failed to fetch projects');
+      }
+      
+      const data = await response.json();
+      setProjectsData(data);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      toast.error('Failed to load projects');
+      setProjectsData({ ledProjects: [], memberProjects: [], total: 0 });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isPending && session?.user) {
+      fetchProjects();
+    } else if (!isPending && !session) {
+      // Redirect to login if not authenticated
+      window.location.href = '/login';
+    }
+  }, [session, isPending]);
+
+  // Loading state
+  if (isPending || isLoading) {
+    return (
+      <div className="min-h-screen bg-[#f9f8f0] dark:bg-gray-950">
+        <DashboardNavbar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center">
+              <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-[#008080]" />
+              <p className="text-gray-600 dark:text-gray-400">Loading your dashboard...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
-  
+
+  // Not authenticated
+  if (!session?.user) {
+    return null; // Will redirect
+  }
+
   const user = session.user;
-  
-  // For now, show static content as we don't have server-side project fetching set up
-  // This would be replaced with actual project data in a full implementation
-  const projectsData = { ledProjects: [], memberProjects: [], total: 0 };
 
   return (
     <div className="min-h-screen bg-[#f9f8f0] dark:bg-gray-950">
@@ -63,10 +110,15 @@ export default async function DashboardPage() {
         <div className="space-y-12">
           {/* Projects you lead */}
           <section>
-            <h2 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">Projects You Lead</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Projects You Lead</h2>
+              <Badge variant="outline" className="text-sm">
+                {projectsData.ledProjects.length} project{projectsData.ledProjects.length !== 1 ? 's' : ''}
+              </Badge>
+            </div>
             {projectsData.ledProjects.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {projectsData.ledProjects.map((project: any) => (
+                {projectsData.ledProjects.map((project) => (
                   <ProjectCard 
                     key={project.id} 
                     project={project} 
@@ -100,10 +152,15 @@ export default async function DashboardPage() {
 
           {/* Projects you're a member of */}
           <section>
-            <h2 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">Projects You're In</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Projects You're In</h2>
+              <Badge variant="outline" className="text-sm">
+                {projectsData.memberProjects.length} project{projectsData.memberProjects.length !== 1 ? 's' : ''}
+              </Badge>
+            </div>
             {projectsData.memberProjects.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {projectsData.memberProjects.map((project: any) => (
+                {projectsData.memberProjects.map((project) => (
                   <ProjectCard 
                     key={project.id} 
                     project={project} 
@@ -160,7 +217,7 @@ function ProjectCard({
   project, 
   role 
 }: { 
-  project: any; 
+  project: Project; 
   role: 'leader' | 'member';
 }) {
   const isLeader = role === 'leader';
