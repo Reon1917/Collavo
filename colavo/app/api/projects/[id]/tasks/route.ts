@@ -9,7 +9,7 @@ import { eq, and } from 'drizzle-orm';
 async function checkPermission(userId: string, projectId: string, permission: string): Promise<boolean> {
   // Check if user is project leader
   const project = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
-  if (project[0]?.leaderId === userId) return true;
+  if (project.length > 0 && project[0]?.leaderId === userId) return true;
 
   // Check member permissions
   const memberPermission = await db
@@ -19,7 +19,7 @@ async function checkPermission(userId: string, projectId: string, permission: st
     .where(and(
       eq(members.userId, userId),
       eq(members.projectId, projectId),
-      eq(permissions.permission, permission),
+      eq(permissions.permission, permission as any),
       eq(permissions.granted, true)
     )).limit(1);
 
@@ -42,13 +42,15 @@ async function checkProjectAccess(projectId: string, userId: string) {
   if (!project.length) return false;
 
   const projectData = project[0];
+  if (!projectData) return false;
+  
   return projectData.leaderId === userId || projectData.memberUserId === userId;
 }
 
 // GET /api/projects/[id]/tasks - List project main tasks
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -62,7 +64,7 @@ export async function GET(
       );
     }
 
-    const projectId = params.id;
+    const { id: projectId } = await params;
     const hasAccess = await checkProjectAccess(projectId, session.user.id);
 
     if (!hasAccess) {
@@ -135,7 +137,7 @@ export async function GET(
 // POST /api/projects/[id]/tasks - Create new main task
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -149,7 +151,7 @@ export async function POST(
       );
     }
 
-    const projectId = params.id;
+    const { id: projectId } = await params;
 
     // Check if user has createTask permission
     const hasPermission = await checkPermission(session.user.id, projectId, 'createTask');
@@ -212,6 +214,13 @@ export async function POST(
 
     // Get creator details for response
     const creator = await db.select().from(user).where(eq(user.id, session.user.id)).limit(1);
+
+    if (!creator.length || !creator[0] || !newTask.length || !newTask[0]) {
+      return NextResponse.json(
+        { error: 'Failed to create task or fetch creator details' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       ...newTask[0],

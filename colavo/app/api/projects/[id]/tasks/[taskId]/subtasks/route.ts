@@ -29,7 +29,7 @@ async function checkPermission(userId: string, projectId: string, permission: st
 // GET /api/projects/[id]/tasks/[taskId]/subtasks - List sub-tasks for a main task
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string; taskId: string } }
+  { params }: { params: Promise<{ id: string; taskId: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -43,8 +43,7 @@ export async function GET(
       );
     }
 
-    const projectId = params.id;
-    const mainTaskId = params.taskId;
+    const { id: projectId, taskId: mainTaskId } = await params;
 
     // Verify main task exists and belongs to project
     const mainTask = await db
@@ -123,7 +122,7 @@ export async function GET(
 // POST /api/projects/[id]/tasks/[taskId]/subtasks - Create new sub-task
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string; taskId: string } }
+  { params }: { params: Promise<{ id: string; taskId: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -137,8 +136,7 @@ export async function POST(
       );
     }
 
-    const projectId = params.id;
-    const mainTaskId = params.taskId;
+    const { id: projectId, taskId: mainTaskId } = await params;
 
     // Verify main task exists and belongs to project
     const mainTask = await db

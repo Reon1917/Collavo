@@ -48,7 +48,7 @@ async function checkProjectAccess(projectId: string, userId: string) {
 // GET /api/projects/[id]/members - List project members
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -62,7 +62,7 @@ export async function GET(
       );
     }
 
-    const projectId = params.id;
+    const { id: projectId } = await params;
     const hasAccess = await checkProjectAccess(projectId, session.user.id);
 
     if (!hasAccess) {
@@ -123,7 +123,7 @@ export async function GET(
 // POST /api/projects/[id]/members - Add project member
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -137,7 +137,7 @@ export async function POST(
       );
     }
 
-    const projectId = params.id;
+    const { id: projectId } = await params;
 
     // Check if user has addMember permission
     const hasPermission = await checkPermission(session.user.id, projectId, 'addMember');

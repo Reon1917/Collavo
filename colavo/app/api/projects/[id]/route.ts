@@ -33,7 +33,7 @@ async function checkProjectAccess(projectId: string, userId: string) {
 // GET /api/projects/[id] - Get project details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -47,7 +47,7 @@ export async function GET(
       );
     }
 
-    const projectId = params.id;
+    const { id: projectId } = await params;
     const { hasAccess } = await checkProjectAccess(projectId, session.user.id);
 
     if (!hasAccess) {
@@ -134,7 +134,7 @@ export async function GET(
 // PUT /api/projects/[id] - Update project
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -148,7 +148,7 @@ export async function PUT(
       );
     }
 
-    const projectId = params.id;
+    const { id: projectId } = await params;
     const { hasAccess, isLeader } = await checkProjectAccess(projectId, session.user.id);
 
     if (!hasAccess) {
@@ -229,7 +229,7 @@ export async function PUT(
 // DELETE /api/projects/[id] - Delete project
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({
@@ -243,7 +243,7 @@ export async function DELETE(
       );
     }
 
-    const projectId = params.id;
+    const { id: projectId } = await params;
     const { hasAccess, isLeader } = await checkProjectAccess(projectId, session.user.id);
 
     if (!hasAccess) {
