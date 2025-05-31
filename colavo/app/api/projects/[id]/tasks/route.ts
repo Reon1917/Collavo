@@ -126,7 +126,6 @@ export async function GET(
     return NextResponse.json(tasksWithSubTasks);
 
   } catch (error) {
-    console.error('Error fetching project tasks:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -230,7 +229,6 @@ export async function POST(
     }, { status: 201 });
 
   } catch (error) {
-    console.error('Error creating main task:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

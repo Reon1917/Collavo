@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -113,8 +113,7 @@ export function CreateSubTaskForm({
       toast.success('Subtask created successfully!');
       handleFinish();
     } catch (error) {
-      console.error('Error creating subtask:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create subtask');
+      toast.error('Failed to create subtask');
     } finally {
       setIsLoading(false);
     }

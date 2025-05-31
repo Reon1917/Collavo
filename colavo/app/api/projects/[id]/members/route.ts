@@ -112,7 +112,6 @@ export async function GET(
     return NextResponse.json(membersWithPermissions);
 
   } catch (error) {
-    console.error('Error fetching project members:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -251,7 +250,6 @@ export async function POST(
     }, { status: 201 });
 
   } catch (error) {
-    console.error('Error adding project member:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

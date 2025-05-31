@@ -226,7 +226,6 @@ export async function PATCH(
     return NextResponse.json(updatedSubTaskWithUser[0]);
 
   } catch (error) {
-    console.error('Error updating subtask:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -307,7 +306,6 @@ export async function DELETE(
     });
 
   } catch (error) {
-    console.error('Error deleting subtask:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

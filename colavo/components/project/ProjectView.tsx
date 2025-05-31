@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Calendar, 
@@ -13,9 +12,6 @@ import {
   Crown, 
   User, 
   Plus, 
-  CheckCircle, 
-  Clock, 
-  AlertCircle,
   FileText,
   Loader2
 } from 'lucide-react';
@@ -90,37 +86,40 @@ export function ProjectView({ projectId }: ProjectViewProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
-  useEffect(() => {
-    fetchProjectData();
-  }, [projectId]);
-
-  const fetchProjectData = async () => {
+  const fetchProjectData = useCallback(async () => {
     setIsLoading(true);
     
     try {
-      // Fetch project details
-      const projectResponse = await fetch(`/api/projects/${projectId}`);
+      // Fetch project details and tasks in parallel
+      const [projectResponse, tasksResponse] = await Promise.all([
+        fetch(`/api/projects/${projectId}`),
+        fetch(`/api/projects/${projectId}/tasks`)
+      ]);
+      
       if (!projectResponse.ok) {
-        throw new Error('Failed to fetch project details');
+        throw new Error('Failed to fetch project data');
       }
+      
       const projectData = await projectResponse.json();
       setProject(projectData);
 
-      // Fetch tasks
-      const tasksResponse = await fetch(`/api/projects/${projectId}/tasks`);
-      if (!tasksResponse.ok) {
-        throw new Error('Failed to fetch tasks');
+      // Tasks response might fail if no tasks exist, that's okay
+      if (tasksResponse.ok) {
+        const tasksData = await tasksResponse.json();
+        setTasks(tasksData);
+      } else {
+        setTasks([]);
       }
-      const tasksData = await tasksResponse.json();
-      setTasks(tasksData);
-
-    } catch (error) {
-      console.error('Error fetching project data:', error);
+    } catch {
       toast.error('Failed to load project data');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    fetchProjectData();
+  }, [fetchProjectData]);
 
   const handleMemberAdded = () => {
     fetchProjectData(); // Refresh project data
@@ -142,7 +141,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
     return (
       <div className="text-center py-12">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Project not found</h2>
-        <p className="text-gray-600 dark:text-gray-400">The project you're looking for doesn't exist or you don't have access to it.</p>
+        <p className="text-gray-600 dark:text-gray-400">The project you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.</p>
       </div>
     );
   }
@@ -305,10 +304,10 @@ export function ProjectView({ projectId }: ProjectViewProps) {
                     onTaskCreated={handleTaskCreated}
                     members={project.members}
                     trigger={
-                      <Button className="bg-[#008080] hover:bg-[#006666] text-white">
+                      <button className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#008080] hover:bg-[#006666] text-white rounded-md font-medium transition-colors">
                         <Plus className="h-4 w-4 mr-2" />
                         Create First Task
-                      </Button>
+                      </button>
                     }
                   />
                 )}

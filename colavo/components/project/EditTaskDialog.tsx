@@ -130,8 +130,7 @@ export function EditTaskDialog({
       onOpenChange(false);
       onTaskUpdated?.();
     } catch (error) {
-      console.error('Error updating task:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to update task');
+      toast.error('Failed to update task');
     } finally {
       setIsLoading(false);
     }

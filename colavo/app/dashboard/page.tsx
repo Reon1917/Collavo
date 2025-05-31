@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { authClient } from '@/lib/auth-client';
-import { redirect } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -52,8 +51,7 @@ export default function DashboardPage() {
       
       const data = await response.json();
       setProjectsData(data);
-    } catch (error) {
-      console.error('Error fetching projects:', error);
+    } catch {
       toast.error('Failed to load projects');
       setProjectsData({ ledProjects: [], memberProjects: [], total: 0 });
     } finally {
@@ -153,7 +151,7 @@ export default function DashboardPage() {
           {/* Projects you're a member of */}
           <section>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Projects You're In</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Projects You&apos;re In</h2>
               <Badge variant="outline" className="text-sm">
                 {projectsData.memberProjects.length} project{projectsData.memberProjects.length !== 1 ? 's' : ''}
               </Badge>
@@ -176,7 +174,7 @@ export default function DashboardPage() {
                   </div>
                   <h3 className="text-2xl font-semibold mb-3 text-gray-900 dark:text-white">No memberships yet</h3>
                   <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                    You haven't been added to any projects as a member. Create a project or wait for team invitations to get started.
+                    You haven&apos;t been added to any projects as a member. Create a project or wait for team invitations to get started.
                   </p>
                 </div>
               </div>

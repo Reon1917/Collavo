@@ -151,8 +151,7 @@ export function SubTaskDetailsDialog({
       setEditMode('view');
       onSubTaskUpdated?.();
     } catch (error) {
-      console.error('Error updating subtask:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to update subtask');
+      toast.error('Failed to update subtask');
     } finally {
       setIsLoading(false);
     }
@@ -217,8 +216,7 @@ export function SubTaskDetailsDialog({
       setEditMode('view');
       onSubTaskUpdated?.();
     } catch (error) {
-      console.error('Error updating subtask details:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to update subtask details');
+      toast.error('Failed to update subtask details');
     } finally {
       setIsLoading(false);
     }
@@ -260,8 +258,7 @@ export function SubTaskDetailsDialog({
       setIsOpen(false);
       onSubTaskUpdated?.();
     } catch (error) {
-      console.error('Error deleting subtask:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to delete subtask');
+      toast.error('Failed to delete subtask');
     } finally {
       setIsDeleting(false);
     }

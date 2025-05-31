@@ -1,26 +1,19 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { 
   Calendar, 
-  Clock, 
   User, 
-  CheckCircle, 
-  Circle, 
-  PlayCircle,
-  AlertCircle,
-  Search,
-  Filter,
-  Plus,
   FileText,
+  Search,
   Loader2,
+  AlertCircle,
   MoreVertical,
   Edit,
   Trash2,
@@ -30,11 +23,11 @@ import { CreateTaskForm } from '@/components/project/CreateTaskForm';
 import { CreateSubTaskForm } from '@/components/project/CreateSubTaskForm';
 import { SubTaskDetailsDialog } from '@/components/project/SubTaskDetailsDialog';
 import { EditTaskDialog } from '@/components/project/EditTaskDialog';
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { toast } from 'sonner';
 import { formatDistanceToNow, format, isAfter } from 'date-fns';
 import { formatInitials } from '@/utils/format';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface TasksViewProps {
   projectId: string;
@@ -98,61 +91,46 @@ export function TasksView({ projectId }: TasksViewProps) {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('created');
 
-  useEffect(() => {
-    fetchData();
-  }, [projectId]);
-
-  const fetchData = async () => {
-    setIsLoading(true);
-    
+  const fetchData = useCallback(async () => {
     try {
-      // Fetch project details
-      const projectResponse = await fetch(`/api/projects/${projectId}`);
-      if (!projectResponse.ok) {
-        throw new Error('Failed to fetch project details');
+      setIsLoading(true);
+      
+      // Fetch project details and tasks in parallel
+      const [projectResponse, tasksResponse] = await Promise.all([
+        fetch(`/api/projects/${projectId}`),
+        fetch(`/api/projects/${projectId}/tasks`)
+      ]);
+
+      if (!projectResponse.ok || !tasksResponse.ok) {
+        throw new Error('Failed to fetch data');
       }
-      const projectData = await projectResponse.json();
+
+      const [projectData, tasksData] = await Promise.all([
+        projectResponse.json(),
+        tasksResponse.json()
+      ]);
+
       setProject(projectData);
-
-      // Fetch tasks
-      const tasksResponse = await fetch(`/api/projects/${projectId}/tasks`);
-      if (!tasksResponse.ok) {
-        throw new Error('Failed to fetch tasks');
-      }
-      const tasksData = await tasksResponse.json();
       setTasks(tasksData);
-
-    } catch (error) {
-      console.error('Error fetching data:', error);
+    } catch {
       toast.error('Failed to load tasks');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleTaskCreated = () => {
-    fetchData(); // Refresh tasks
-  };
-
-  const getImportanceColor = (level: string) => {
-    switch (level) {
-      case 'critical': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800';
-      case 'high': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400 border-orange-200 dark:border-orange-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400 border-gray-200 dark:border-gray-800';
-    }
+    fetchData();
   };
 
   const getTaskProgress = (task: Task) => {
-    if (task.subTasks.length === 0) return 0;
-    const completed = task.subTasks.filter(st => st.status === 'completed').length;
-    return (completed / task.subTasks.length) * 100;
-  };
-
-  const isOverdue = (deadline: string | null) => {
-    if (!deadline) return false;
-    return isAfter(new Date(), new Date(deadline));
+    if (!task.subTasks || task.subTasks.length === 0) return 0;
+    const completedSubTasks = task.subTasks.filter(st => st.status === 'completed').length;
+    return Math.round((completedSubTasks / task.subTasks.length) * 100);
   };
 
   const filteredAndSortedTasks = tasks
@@ -329,25 +307,11 @@ function TaskCard({ task, project, onUpdate }: {
   project: Project;
   onUpdate: () => void;
 }) {
-  const [isDeleting, setIsDeleting] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
-  const progress = task.subTasks.length > 0 
-    ? (task.subTasks.filter(st => st.status === 'completed').length / task.subTasks.length) * 100 
-    : 0;
-
-  const isOverdue = task.deadline && isAfter(new Date(), new Date(task.deadline));
-  
-  const getImportanceColor = (level: string) => {
-    switch (level) {
-      case 'critical': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800';
-      case 'high': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400 border-orange-200 dark:border-orange-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400 border-gray-200 dark:border-gray-800';
-    }
-  };
+  const totalSubTasks = task.subTasks.length;
+  const completedSubTasks = task.subTasks.filter(st => st.status === 'completed').length;
+  const progress = totalSubTasks > 0 ? (completedSubTasks / totalSubTasks) * 100 : 0;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -370,26 +334,24 @@ function TaskCard({ task, project, onUpdate }: {
   };
 
   const handleDeleteTask = async () => {
-    setIsDeleting(true);
+    if (!window.confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
+      return;
+    }
 
     try {
       const response = await fetch(`/api/projects/${project.id}/tasks/${task.id}`, {
         method: 'DELETE',
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to delete task');
+      if (response.ok) {
+        toast.success('Task deleted successfully');
+        onUpdate();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to delete task');
       }
-
-      toast.success('Task deleted successfully!');
-      setShowDeleteDialog(false);
-      onUpdate();
-    } catch (error) {
-      console.error('Error deleting task:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to delete task');
-    } finally {
-      setIsDeleting(false);
+    } catch {
+      toast.error('Failed to delete task');
     }
   };
 
@@ -405,16 +367,10 @@ function TaskCard({ task, project, onUpdate }: {
               <div className="flex items-center gap-2 mb-2">
                 <Badge 
                   variant="outline" 
-                  className={`text-xs font-medium border ${getImportanceColor(task.importanceLevel)}`}
+                  className={`text-xs font-medium border ${task.importanceLevel === 'critical' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800' : task.importanceLevel === 'high' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400 border-orange-200 dark:border-orange-800' : task.importanceLevel === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800' : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800'}`}
                 >
                   {task.importanceLevel.charAt(0).toUpperCase() + task.importanceLevel.slice(1)}
                 </Badge>
-                {isOverdue && (
-                  <Badge variant="destructive" className="text-xs">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    Overdue
-                  </Badge>
-                )}
               </div>
               <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
                 {task.title}
@@ -428,13 +384,8 @@ function TaskCard({ task, project, onUpdate }: {
             <DropdownMenu>
               <DropdownMenuTrigger 
                 className="h-8 w-8 p-0 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center"
-                disabled={isDeleting}
               >
-                {isDeleting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <MoreVertical className="h-4 w-4" />
-                )}
+                <MoreVertical className="h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {canModifyTask && (
@@ -445,9 +396,8 @@ function TaskCard({ task, project, onUpdate }: {
                 )}
                 {canModifyTask && (
                   <DropdownMenuItem 
-                    onClick={() => setShowDeleteDialog(true)}
+                    onClick={handleDeleteTask}
                     className="text-red-600 focus:text-red-600"
-                    disabled={isDeleting}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete Task
@@ -567,15 +517,9 @@ function TaskCard({ task, project, onUpdate }: {
                 <User className="h-3 w-3" />
                 <span>{task.creatorName}</span>
               </div>
-              {task.deadline && (
-                <div className={`flex items-center gap-1 ${isOverdue ? 'text-red-600' : ''}`}>
-                  <Calendar className="h-3 w-3" />
-                  <span>{format(new Date(task.deadline), 'MMM dd')}</span>
-                </div>
-              )}
             </div>
             <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
+              <Calendar className="h-3 w-3" />
               <span>{formatDistanceToNow(new Date(task.createdAt), { addSuffix: true })}</span>
             </div>
           </div>
@@ -590,19 +534,6 @@ function TaskCard({ task, project, onUpdate }: {
         projectId={project.id}
         projectDeadline={project.deadline}
         onTaskUpdated={onUpdate}
-      />
-
-      {/* Delete Confirmation Dialog */}
-      <ConfirmationDialog
-        isOpen={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        title="Delete Task"
-        description="Are you sure you want to delete this task? This action cannot be undone and will also delete all subtasks."
-        confirmText="Delete"
-        cancelText="Cancel"
-        onConfirm={handleDeleteTask}
-        isLoading={isDeleting}
-        variant="destructive"
       />
     </>
   );

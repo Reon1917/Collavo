@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { projects, members, permissions, user } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 // Helper function to check if user has access to project
 async function checkProjectAccess(projectId: string, userId: string) {
@@ -124,7 +124,6 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Error fetching project details:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -219,7 +218,6 @@ export async function PUT(
     return NextResponse.json(updatedProject[0]);
 
   } catch (error) {
-    console.error('Error updating project:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -268,7 +266,6 @@ export async function DELETE(
     return NextResponse.json({ message: 'Project deleted successfully' });
 
   } catch (error) {
-    console.error('Error deleting project:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

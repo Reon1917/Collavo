@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { projects, members, permissions } from '@/db/schema';
 import { createId } from '@paralleldrive/cuid2';
-import { eq, or, and, ne } from 'drizzle-orm';
+import { eq, and, ne } from 'drizzle-orm';
 
 // GET /api/projects - List user's projects
 export async function GET(request: NextRequest) {
@@ -44,7 +44,6 @@ export async function GET(request: NextRequest) {
         createdAt: projects.createdAt,
         updatedAt: projects.updatedAt,
         leaderId: projects.leaderId,
-        role: members.role,
       })
       .from(projects)
       .innerJoin(members, eq(members.projectId, projects.id))
@@ -55,8 +54,8 @@ export async function GET(request: NextRequest) {
         )
       );
 
-    // Extract just the project data (remove the role field for consistency)
-    const memberProjects = memberProjectsQuery.map(({ role, ...project }) => project);
+    // Extract just the project data
+    const memberProjects = memberProjectsQuery;
 
     const total = ledProjects.length + memberProjects.length;
 
@@ -67,7 +66,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error fetching projects:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -186,7 +184,6 @@ export async function POST(request: NextRequest) {
 
     } catch (error) {
       // Cleanup on failure - delete in reverse order
-      console.error('Error in project creation, attempting cleanup:', error);
       
       try {
         // Delete permissions if member was created
@@ -198,21 +195,19 @@ export async function POST(request: NextRequest) {
         if (createdMember) {
           await db.delete(members).where(eq(members.id, memberRecordId));
         }
-        
+
         // Delete project if it was created
         if (createdProject) {
           await db.delete(projects).where(eq(projects.id, projectId));
         }
       } catch (cleanupError) {
-        console.error('Error during cleanup:', cleanupError);
-        // Continue with original error
+        // Log cleanup error but don't throw
       }
-      
-      throw error;
+
+      throw error; // Re-throw original error
     }
 
   } catch (error) {
-    console.error('Error creating project:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

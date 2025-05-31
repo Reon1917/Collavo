@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarIcon, Loader2, Plus, X, FileText, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Calendar } from '@/components/ui/calendar';
@@ -127,20 +127,19 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
         }),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create task');
+      if (response.ok) {
+        const task = await response.json();
+        setCreatedMainTaskId(task.id);
+        toast.success('Main task created successfully!');
+        
+        // Move to sub-task creation step
+        setStep('sub');
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to create task');
       }
-
-      const task = await response.json();
-      setCreatedMainTaskId(task.id);
-      toast.success('Main task created successfully!');
-      
-      // Move to sub-task creation step
-      setStep('sub');
     } catch (error) {
-      console.error('Error creating main task:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create task');
+      toast.error('Failed to create task');
     } finally {
       setIsLoading(false);
     }
@@ -248,8 +247,7 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
       toast.success(`Created ${validSubTasks.length} sub-task(s) successfully!`);
       handleFinish();
     } catch (error) {
-      console.error('Error creating sub-tasks:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create sub-tasks');
+      toast.error('Failed to create sub-tasks');
     } finally {
       setIsLoading(false);
     }
@@ -298,8 +296,15 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#008080] hover:bg-[#006666] text-white rounded-md font-medium transition-colors">
-        {trigger || defaultTrigger}
+      <DialogTrigger asChild>
+        {trigger ? (
+          trigger
+        ) : (
+          <button className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#008080] hover:bg-[#006666] text-white rounded-md font-medium transition-colors">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Task
+          </button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
         <DialogHeader>
