@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Task, TaskStatus } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 
 interface TaskStatusUpdateProps {
   task: Task;

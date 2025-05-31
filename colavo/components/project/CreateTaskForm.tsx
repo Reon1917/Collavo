@@ -298,16 +298,16 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger, pro
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {trigger ? (
-          trigger
-        ) : (
-          <button className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#008080] hover:bg-[#006666] text-white rounded-md font-medium transition-colors">
-            <Plus className="h-4 w-4 mr-2" />
-            Create Task
-          </button>
-        )}
-      </DialogTrigger>
+      {trigger ? (
+        <div onClick={() => setIsOpen(true)}>
+          {trigger}
+        </div>
+      ) : (
+        <DialogTrigger className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#008080] hover:bg-[#006666] text-white rounded-md font-medium transition-colors">
+          <Plus className="h-4 w-4 mr-2" />
+          Create Task
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-2">

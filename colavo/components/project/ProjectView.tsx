@@ -11,14 +11,14 @@ import {
   Users, 
   Crown, 
   User, 
-  Plus, 
-  FileText,
   Loader2,
   Edit,
   CheckCircle,
   Trash2,
   Settings,
-  CheckSquare
+  CheckSquare,
+  Plus,
+  UserPlus
 } from 'lucide-react';
 import { AddMemberForm } from '@/components/project/AddMemberForm';
 import { CreateTaskForm } from '@/components/project/CreateTaskForm';
@@ -188,15 +188,6 @@ export function ProjectView({ projectId }: ProjectViewProps) {
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {project.name}
               </h1>
-              {canEditProject && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-              )}
             </div>
             {project.description && (
               <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
@@ -228,39 +219,8 @@ export function ProjectView({ projectId }: ProjectViewProps) {
               <roleDisplay.icon className="h-3 w-3 mr-1" />
               {roleDisplay.label}
             </Badge>
-            {canDeleteProject && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-950"
-              >
-                <Trash2 className="h-4 w-4 mr-1" />
-                Delete Project
-              </Button>
-            )}
           </div>
         </div>
-
-        {/* Role-specific action buttons */}
-        {(canAddMembers || canCreateTasks) && (
-          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-3">
-              {canCreateTasks && (
-                <CreateTaskForm 
-                  projectId={projectId} 
-                  onTaskCreated={handleTaskCreated}
-                  members={project.members}
-                />
-              )}
-              {canAddMembers && (
-                <AddMemberForm 
-                  projectId={projectId} 
-                  onMemberAdded={handleMemberAdded}
-                />
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Tabs */}
@@ -269,9 +229,6 @@ export function ProjectView({ projectId }: ProjectViewProps) {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="tasks">Tasks ({tasks.length})</TabsTrigger>
           <TabsTrigger value="members">Members ({project.members.length})</TabsTrigger>
-          {project.isLeader && (
-            <TabsTrigger value="settings">Project Settings</TabsTrigger>
-          )}
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -326,6 +283,73 @@ export function ProjectView({ projectId }: ProjectViewProps) {
               </CardContent>
             </Card>
           </div>
+
+          {/* Admin Actions for Leaders */}
+          {project.isLeader && (
+            <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-gray-900 dark:text-white">Project Management</CardTitle>
+                <CardDescription>
+                  Manage your project settings and team. Only project leaders can access these actions.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Quick Actions */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-gray-900 dark:text-white">Quick Actions</h4>
+                    <div className="space-y-2">
+                      {canCreateTasks && (
+                        <CreateTaskForm 
+                          projectId={projectId} 
+                          onTaskCreated={handleTaskCreated}
+                          members={project.members}
+                          trigger={
+                            <div className="flex items-center justify-start p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors">
+                              <Plus className="h-4 w-4 mr-2 text-[#008080]" />
+                              <span className="text-sm font-medium text-gray-900 dark:text-white">Create New Task</span>
+                            </div>
+                          }
+                        />
+                      )}
+                      {canAddMembers && (
+                        <div className="flex items-center justify-start p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                             onClick={() => setActiveTab('members')}>
+                          <UserPlus className="h-4 w-4 mr-2 text-[#008080]" />
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">Add Team Member</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Project Settings */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-gray-900 dark:text-white">Project Settings</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div className="flex items-center">
+                          <Edit className="h-4 w-4 mr-2 text-gray-500" />
+                          <span className="text-sm text-gray-700 dark:text-gray-300">Edit Project Details</span>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          Edit
+                        </Button>
+                      </div>
+                      <div className="flex items-center justify-between p-3 border border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-950/20">
+                        <div className="flex items-center">
+                          <Trash2 className="h-4 w-4 mr-2 text-red-500" />
+                          <span className="text-sm text-red-700 dark:text-red-300">Delete Project</span>
+                        </div>
+                        <Button variant="destructive" size="sm">
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         {/* Tasks Tab */}
@@ -337,6 +361,12 @@ export function ProjectView({ projectId }: ProjectViewProps) {
                 projectId={projectId} 
                 onTaskCreated={handleTaskCreated}
                 members={project.members}
+                trigger={
+                  <div className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#008080] hover:bg-[#006666] text-white rounded-md font-medium transition-colors cursor-pointer">
+                    <Plus className="h-4 w-4" />
+                    Create Task
+                  </div>
+                }
               />
             )}
           </div>
@@ -357,6 +387,12 @@ export function ProjectView({ projectId }: ProjectViewProps) {
                     projectId={projectId} 
                     onTaskCreated={handleTaskCreated}
                     members={project.members}
+                    trigger={
+                      <div className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#008080] hover:bg-[#006666] text-white rounded-md font-medium transition-colors cursor-pointer">
+                        <Plus className="h-4 w-4" />
+                        Create Task
+                      </div>
+                    }
                   />
                 )}
               </CardContent>
@@ -374,13 +410,15 @@ export function ProjectView({ projectId }: ProjectViewProps) {
         <TabsContent value="members" className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Team Members</h2>
-            {canAddMembers && (
-              <AddMemberForm 
-                projectId={projectId} 
-                onMemberAdded={handleMemberAdded}
-              />
-            )}
           </div>
+          
+          {/* Add Member Form for Leaders */}
+          {canAddMembers && (
+            <AddMemberForm 
+              projectId={projectId} 
+              onMemberAdded={handleMemberAdded}
+            />
+          )}
           
           <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
             <CardHeader>
@@ -460,45 +498,6 @@ export function ProjectView({ projectId }: ProjectViewProps) {
             </CardContent>
           </Card>
         </TabsContent>
-
-        {/* Project Settings Tab (Leader Only) */}
-        {project.isLeader && (
-          <TabsContent value="settings" className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Project Settings</h2>
-            
-            <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white">Project Management</CardTitle>
-                <CardDescription>
-                  Manage project settings and permissions. Only project leaders can access these settings.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                  <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white">Edit Project Details</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Update project name, description, and deadline</p>
-                  </div>
-                  <Button variant="outline">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                  </Button>
-                </div>
-                
-                <div className="flex items-center justify-between p-4 border border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-950/20">
-                  <div>
-                    <h4 className="font-medium text-red-900 dark:text-red-100">Delete Project</h4>
-                    <p className="text-sm text-red-600 dark:text-red-400">Permanently delete this project and all its data</p>
-                  </div>
-                  <Button variant="destructive">
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
       </Tabs>
     </div>
   );
