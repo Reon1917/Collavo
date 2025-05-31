@@ -20,7 +20,7 @@ interface EditTaskDialogProps {
   task: Task;
   projectId: string;
   projectDeadline: string | null;
-  onTaskUpdated?: () => void;
+  onTaskUpdated?: (updatedTask: Partial<Task> & { id: string }) => void;
 }
 
 interface Task {
@@ -128,10 +128,15 @@ export function EditTaskDialog({
 
       toast.success('Task updated successfully!');
       onOpenChange(false);
-      onTaskUpdated?.();
+      onTaskUpdated?.({
+        id: task.id,
+        title: formData.title.trim(),
+        description: formData.description.trim() || null,
+        importanceLevel: formData.importanceLevel,
+        deadline: formData.deadline?.toISOString()
+      });
     } catch (error) {
-      console.error('Error updating task:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to update task');
+      toast.error('Failed to update task');
     } finally {
       setIsLoading(false);
     }

@@ -67,8 +67,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
       // Trigger refresh callback
       onMemberAdded?.();
     } catch (error) {
-      console.error('Error adding member:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to add member');
+      toast.error('Failed to add member');
     } finally {
       setIsLoading(false);
     }

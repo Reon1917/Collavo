@@ -111,7 +111,6 @@ export async function GET(
     return NextResponse.json(taskSubTasks);
 
   } catch (error) {
-    console.error('Error fetching sub-tasks:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -245,7 +244,6 @@ export async function POST(
     }, { status: 201 });
 
   } catch (error) {
-    console.error('Error creating sub-task:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -2,7 +2,36 @@
 
 import React from 'react';
 import { Chart } from 'react-google-charts';
-import { Task } from '@/types';
+
+// Database schema types for tasks
+interface Task {
+  id: string;
+  title: string;
+  description: string | null;
+  importanceLevel: 'low' | 'medium' | 'high' | 'critical';
+  deadline: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  creatorName: string;
+  creatorEmail: string;
+  subTasks: SubTask[];
+}
+
+interface SubTask {
+  id: string;
+  title: string;
+  description: string | null;
+  status: 'pending' | 'in_progress' | 'completed';
+  note: string | null;
+  deadline: string | null;
+  assignedId: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  assignedUserName: string | null;
+  assignedUserEmail: string | null;
+}
 
 interface GanttChartProps {
   tasks: Task[];
@@ -23,50 +52,35 @@ export function GanttChart({ tasks }: GanttChartProps) {
     ];
     
     const rows = tasks.map(task => {
-      // Use startDate or fallback to creation date
-      const startDate = task.startDate ? new Date(task.startDate) : new Date(task.createdAt);
+      // Use creation date as start date (could be enhanced with actual start date field)
+      const startDate = new Date(task.createdAt);
       
-      // Use dueDate or calculate end date based on start date
-      const endDate = task.dueDate ? new Date(task.dueDate) : new Date(startDate.getTime() + (24 * 60 * 60 * 1000)); // Add 1 day if no due date
+      // Use deadline or calculate end date based on start date
+      const endDate = task.deadline ? new Date(task.deadline) : new Date(startDate.getTime() + (7 * 24 * 60 * 60 * 1000)); // Add 7 days if no deadline
       
-      // Calculate percent complete based on status
+      // Calculate percent complete based on subtask completion
       let percentComplete = 0;
-      switch (task.status) {
-        case 'backlog':
-        case 'todo':
-          percentComplete = 0;
-          break;
-        case 'in-progress':
-          percentComplete = 50;
-          break;
-        case 'review':
-          percentComplete = 75;
-          break;
-        case 'completed':
-          percentComplete = 100;
-          break;
-        case 'cancelled':
-          percentComplete = 0;
-          break;
-        default:
-          percentComplete = 0;
+      if (task.subTasks && task.subTasks.length > 0) {
+        const completedSubTasks = task.subTasks.filter(st => st.status === 'completed').length;
+        percentComplete = Math.round((completedSubTasks / task.subTasks.length) * 100);
       }
       
-      // TODO: Replace with actual user names from backend
-      // For now, show assigned user IDs or "Unassigned"
-      const assignedResource = task.assignedTo.length > 0 
-        ? task.assignedTo.join(', ') 
-        : 'Unassigned';
+      // Get assigned users from subtasks
+      const assignedUsers = task.subTasks
+        ?.filter(st => st.assignedUserName)
+        .map(st => st.assignedUserName)
+        .filter((name, index, arr) => arr.indexOf(name) === index) // Remove duplicates
+        .join(', ') || 'Unassigned';
       
       return [
         task.id,
         task.title,
-        assignedResource,
+        assignedUsers,
         startDate,
         endDate,
         null,  // Duration (calculated automatically)
         percentComplete,
-        task.dependencies.length > 0 ? task.dependencies.join(', ') : null
+        null // Dependencies (could be enhanced with actual dependency tracking)
       ];
     });
     
@@ -78,24 +92,24 @@ export function GanttChart({ tasks }: GanttChartProps) {
   // If no tasks, show a message
   if (tasks.length === 0) {
     return (
-      <div className="p-8 text-center bg-white rounded-lg shadow">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No Tasks Available</h3>
-        <p className="text-gray-500">Create tasks in this project to view them in the Gantt chart.</p>
+      <div className="p-8 text-center bg-white dark:bg-gray-900 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Tasks Available</h3>
+        <p className="text-gray-500 dark:text-gray-400">Create tasks in this project to view them in the Gantt chart.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-4">
+    <div className="bg-white dark:bg-gray-900 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-4">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Project Timeline</h3>
-        <p className="text-sm text-gray-500">Gantt chart view of project tasks and dependencies</p>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Project Timeline</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Gantt chart view of project tasks and progress</p>
       </div>
       <Chart
         width="100%"
         height="400px"
         chartType="Gantt"
-        loader={<div className="p-8 text-center text-gray-500">Loading Chart...</div>}
+        loader={<div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading Chart...</div>}
         data={chartData}
         options={{
           height: 400,

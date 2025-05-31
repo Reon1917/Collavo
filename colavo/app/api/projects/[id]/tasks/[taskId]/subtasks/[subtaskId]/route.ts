@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { projects, members, permissions, mainTasks, subTasks, user } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { requireProjectAccess, hasPermission } from '@/lib/auth-helpers';
 
 // Helper function to check if user has permission
 async function checkPermission(userId: string, projectId: string, permission: string): Promise<boolean> {
@@ -44,6 +45,9 @@ export async function PATCH(
 
     const { id: projectId, taskId: mainTaskId, subtaskId } = await params;
 
+    // Use centralized access control
+    const access = await requireProjectAccess(session.user.id, projectId);
+
     // Verify subtask exists and belongs to the main task and project
     const existingSubTask = await db
       .select({
@@ -78,33 +82,21 @@ export async function PATCH(
       );
     }
 
-    // Check permissions: user must be the assignee or project leader
+    // Check permissions: user must be the assignee, have updateTask permission, or be project leader
     const isAssignee = subtask.assignedId === session.user.id;
-    const isLeader = await checkPermission(session.user.id, projectId, 'updateTask') || 
-                    await db.select().from(projects).where(and(
-                      eq(projects.id, projectId),
-                      eq(projects.leaderId, session.user.id)
-                    )).then(result => result.length > 0);
+    const canUpdateTasks = access.isLeader || access.permissions.includes('updateTask');
 
-    if (!isAssignee && !isLeader) {
+    if (!isAssignee && !canUpdateTasks) {
       return NextResponse.json(
-        { error: 'You can only update subtasks assigned to you or if you are the project leader' },
+        { error: 'You can only update subtasks assigned to you' },
         { status: 403 }
       );
     }
 
     const body = await request.json();
-    const { status, note, title, description, assignedId, deadline } = body;
+    const { title, description, status, note, deadline, assignedId } = body;
 
-    // Validate status if provided
-    if (status && !['pending', 'in_progress', 'completed'].includes(status)) {
-      return NextResponse.json(
-        { error: 'Invalid status. Must be pending, in_progress, or completed' },
-        { status: 400 }
-      );
-    }
-
-    // Validate title if provided
+    // Validate input
     if (title !== undefined) {
       if (!title || typeof title !== 'string' || title.trim().length === 0) {
         return NextResponse.json(
@@ -120,32 +112,19 @@ export async function PATCH(
       }
     }
 
-    // Validate assigned user if provided
-    if (assignedId !== undefined) {
-      if (assignedId && assignedId !== subtask.assignedId) {
-        // Check if new assigned user is a member of the project
-        const assignedMember = await db
-          .select()
-          .from(members)
-          .where(and(
-            eq(members.userId, assignedId),
-            eq(members.projectId, projectId)
-          ))
-          .limit(1);
-
-        if (!assignedMember.length) {
-          return NextResponse.json(
-            { error: 'Assigned user is not a member of this project' },
-            { status: 400 }
-          );
-        }
-      }
+    if (status !== undefined && !['pending', 'in_progress', 'completed'].includes(status)) {
+      return NextResponse.json(
+        { error: 'Invalid status. Must be pending, in_progress, or completed' },
+        { status: 400 }
+      );
     }
 
     // Validate deadline format if provided
     let deadlineDate = undefined;
     if (deadline !== undefined) {
-      if (deadline) {
+      if (deadline === null) {
+        deadlineDate = null;
+      } else {
         deadlineDate = new Date(deadline);
         if (isNaN(deadlineDate.getTime())) {
           return NextResponse.json(
@@ -153,38 +132,27 @@ export async function PATCH(
             { status: 400 }
           );
         }
-      } else {
-        deadlineDate = null;
       }
     }
 
-    // Prepare update data
+    // Regular members can only update status and note of their assigned subtasks
+    // Leaders and users with updateTask permission can update all fields
     const updateData: any = {
       updatedAt: new Date()
     };
 
-    if (status !== undefined) {
-      updateData.status = status;
-    }
-
-    if (note !== undefined) {
-      updateData.note = note?.trim() || null;
-    }
-
-    if (title !== undefined) {
-      updateData.title = title.trim();
-    }
-
-    if (description !== undefined) {
-      updateData.description = description?.trim() || null;
-    }
-
-    if (assignedId !== undefined) {
-      updateData.assignedId = assignedId || null;
-    }
-
-    if (deadline !== undefined) {
-      updateData.deadline = deadlineDate;
+    if (isAssignee && !canUpdateTasks) {
+      // Regular assignee can only update status and note
+      if (status !== undefined) updateData.status = status;
+      if (note !== undefined) updateData.note = note?.trim() || null;
+    } else if (canUpdateTasks) {
+      // Leaders and users with updateTask permission can update all fields
+      if (title !== undefined) updateData.title = title.trim();
+      if (description !== undefined) updateData.description = description?.trim() || null;
+      if (status !== undefined) updateData.status = status;
+      if (note !== undefined) updateData.note = note?.trim() || null;
+      if (deadline !== undefined) updateData.deadline = deadlineDate;
+      if (assignedId !== undefined) updateData.assignedId = assignedId;
     }
 
     // Update subtask
@@ -194,39 +162,47 @@ export async function PATCH(
       .where(eq(subTasks.id, subtaskId))
       .returning();
 
-    if (!updatedSubTask.length) {
+    if (!updatedSubTask.length || !updatedSubTask[0]) {
       return NextResponse.json(
         { error: 'Failed to update subtask' },
         { status: 500 }
       );
     }
 
-    // Get updated subtask with assigned user details
-    const updatedSubTaskWithUser = await db
-      .select({
-        id: subTasks.id,
-        title: subTasks.title,
-        description: subTasks.description,
-        status: subTasks.status,
-        note: subTasks.note,
-        deadline: subTasks.deadline,
-        assignedId: subTasks.assignedId,
-        createdBy: subTasks.createdBy,
-        createdAt: subTasks.createdAt,
-        updatedAt: subTasks.updatedAt,
-        assignedUserName: user.name,
-        assignedUserEmail: user.email,
-        assignedUserImage: user.image
-      })
-      .from(subTasks)
-      .leftJoin(user, eq(user.id, subTasks.assignedId))
-      .where(eq(subTasks.id, subtaskId))
-      .limit(1);
+    // Get assigned user details for response
+    let assignedUser = null;
+    if (updatedSubTask[0].assignedId) {
+      const assignedUserResult = await db
+        .select({
+          name: user.name,
+          email: user.email
+        })
+        .from(user)
+        .where(eq(user.id, updatedSubTask[0].assignedId))
+        .limit(1);
 
-    return NextResponse.json(updatedSubTaskWithUser[0]);
+      if (assignedUserResult.length > 0) {
+        assignedUser = assignedUserResult[0];
+      }
+    }
+
+    return NextResponse.json({
+      ...updatedSubTask[0],
+      assignedUserName: assignedUser?.name || null,
+      assignedUserEmail: assignedUser?.email || null
+    });
 
   } catch (error) {
-    console.error('Error updating subtask:', error);
+    if (error instanceof Error) {
+      if (error.message.includes('not found') || error.message.includes('access denied')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 404 }
+        );
+      }
+    }
+    
+    console.error('Subtask PATCH error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -307,7 +283,6 @@ export async function DELETE(
     });
 
   } catch (error) {
-    console.error('Error deleting subtask:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

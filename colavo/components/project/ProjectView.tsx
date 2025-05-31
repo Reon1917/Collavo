@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Calendar, 
@@ -13,16 +12,18 @@ import {
   Crown, 
   User, 
   Plus, 
-  CheckCircle, 
-  Clock, 
-  AlertCircle,
   FileText,
-  Loader2
+  Loader2,
+  Edit,
+  CheckCircle,
+  Trash2,
+  Settings,
+  CheckSquare
 } from 'lucide-react';
 import { AddMemberForm } from '@/components/project/AddMemberForm';
 import { CreateTaskForm } from '@/components/project/CreateTaskForm';
 import { toast } from 'sonner';
-import { formatDistanceToNow, format } from 'date-fns';
+import { formatDistanceToNow, format, isAfter } from 'date-fns';
 import { formatInitials } from '@/utils/format';
 
 interface ProjectViewProps {
@@ -42,6 +43,8 @@ interface Project {
   members: Member[];
   userPermissions: string[];
   isLeader: boolean;
+  userRole: 'leader' | 'member' | null;
+  currentUserId: string;
 }
 
 interface Member {
@@ -90,37 +93,40 @@ export function ProjectView({ projectId }: ProjectViewProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
-  useEffect(() => {
-    fetchProjectData();
-  }, [projectId]);
-
-  const fetchProjectData = async () => {
+  const fetchProjectData = useCallback(async () => {
     setIsLoading(true);
     
     try {
-      // Fetch project details
-      const projectResponse = await fetch(`/api/projects/${projectId}`);
+      // Fetch project details and tasks in parallel
+      const [projectResponse, tasksResponse] = await Promise.all([
+        fetch(`/api/projects/${projectId}`),
+        fetch(`/api/projects/${projectId}/tasks`)
+      ]);
+      
       if (!projectResponse.ok) {
-        throw new Error('Failed to fetch project details');
+        throw new Error('Failed to fetch project data');
       }
+      
       const projectData = await projectResponse.json();
       setProject(projectData);
 
-      // Fetch tasks
-      const tasksResponse = await fetch(`/api/projects/${projectId}/tasks`);
-      if (!tasksResponse.ok) {
-        throw new Error('Failed to fetch tasks');
+      // Tasks response might fail if no tasks exist, that's okay
+      if (tasksResponse.ok) {
+        const tasksData = await tasksResponse.json();
+        setTasks(tasksData);
+      } else {
+        setTasks([]);
       }
-      const tasksData = await tasksResponse.json();
-      setTasks(tasksData);
-
-    } catch (error) {
-      console.error('Error fetching project data:', error);
+    } catch {
       toast.error('Failed to load project data');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    fetchProjectData();
+  }, [fetchProjectData]);
 
   const handleMemberAdded = () => {
     fetchProjectData(); // Refresh project data
@@ -142,13 +148,35 @@ export function ProjectView({ projectId }: ProjectViewProps) {
     return (
       <div className="text-center py-12">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Project not found</h2>
-        <p className="text-gray-600 dark:text-gray-400">The project you're looking for doesn't exist or you don't have access to it.</p>
+        <p className="text-gray-600 dark:text-gray-400">The project you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.</p>
       </div>
     );
   }
 
-  const canAddMembers = project.userPermissions.includes('addMember') || project.isLeader;
-  const canCreateTasks = project.userPermissions.includes('createTask') || project.isLeader;
+  // Role-based permission checks
+  const canAddMembers = project.userPermissions.includes('addMember');
+  const canCreateTasks = project.userPermissions.includes('createTask');
+  const canEditProject = project.isLeader; // Only leaders can edit project details
+  const canDeleteProject = project.isLeader; // Only leaders can delete projects
+  const canManagePermissions = project.isLeader; // Only leaders can manage member permissions
+
+  // Get current user's role display
+  const getUserRoleDisplay = () => {
+    if (project.isLeader) {
+      return {
+        label: 'Project Leader',
+        icon: Crown,
+        className: "bg-[#008080] hover:bg-[#006666] text-white"
+      };
+    }
+    return {
+      label: 'Team Member',
+      icon: User,
+      className: "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+    };
+  };
+
+  const roleDisplay = getUserRoleDisplay();
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
@@ -156,9 +184,20 @@ export function ProjectView({ projectId }: ProjectViewProps) {
       <div className="bg-white dark:bg-gray-900 rounded-xl p-8 border border-gray-200/60 dark:border-gray-700 shadow-md">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              {project.name}
-            </h1>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                {project.name}
+              </h1>
+              {canEditProject && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
             {project.description && (
               <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
                 {project.description}
@@ -181,26 +220,47 @@ export function ProjectView({ projectId }: ProjectViewProps) {
               )}
             </div>
           </div>
-          <Badge 
-            variant={project.isLeader ? "default" : "secondary"}
-            className={project.isLeader 
-              ? "bg-[#008080] hover:bg-[#006666] text-white" 
-              : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-            }
-          >
-            {project.isLeader ? (
-              <>
-                <Crown className="h-3 w-3 mr-1" />
-                Leader
-              </>
-            ) : (
-              <>
-                <User className="h-3 w-3 mr-1" />
-                Member
-              </>
+          <div className="flex items-center gap-3">
+            <Badge 
+              variant={project.isLeader ? "default" : "secondary"}
+              className={roleDisplay.className}
+            >
+              <roleDisplay.icon className="h-3 w-3 mr-1" />
+              {roleDisplay.label}
+            </Badge>
+            {canDeleteProject && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-950"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete Project
+              </Button>
             )}
-          </Badge>
+          </div>
         </div>
+
+        {/* Role-specific action buttons */}
+        {(canAddMembers || canCreateTasks) && (
+          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3">
+              {canCreateTasks && (
+                <CreateTaskForm 
+                  projectId={projectId} 
+                  onTaskCreated={handleTaskCreated}
+                  members={project.members}
+                />
+              )}
+              {canAddMembers && (
+                <AddMemberForm 
+                  projectId={projectId} 
+                  onMemberAdded={handleMemberAdded}
+                />
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
@@ -209,6 +269,9 @@ export function ProjectView({ projectId }: ProjectViewProps) {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="tasks">Tasks ({tasks.length})</TabsTrigger>
           <TabsTrigger value="members">Members ({project.members.length})</TabsTrigger>
+          {project.isLeader && (
+            <TabsTrigger value="settings">Project Settings</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -224,47 +287,39 @@ export function ProjectView({ projectId }: ProjectViewProps) {
                   <span className="font-semibold text-gray-900 dark:text-white">{tasks.length}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Completed Sub-tasks</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {tasks.reduce((acc, task) => acc + task.subTasks.filter(st => st.status === 'completed').length, 0)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
                   <span className="text-gray-600 dark:text-gray-400">Team Members</span>
                   <span className="font-semibold text-gray-900 dark:text-white">{project.members.length}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Created</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}
-                  </span>
+                  <span className="text-gray-600 dark:text-gray-400">Your Role</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{roleDisplay.label}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Permissions</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{project.userPermissions.length}</span>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Recent Activity */}
+            {/* Your Permissions */}
             <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
               <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white">Recent Activity</CardTitle>
+                <CardTitle className="text-gray-900 dark:text-white">Your Permissions</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {tasks.slice(0, 3).map((task) => (
-                    <div key={task.id} className="flex items-center gap-3">
-                      <FileText className="h-4 w-4 text-[#008080]" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                          {task.title}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Created {formatDistanceToNow(new Date(task.createdAt), { addSuffix: true })}
-                        </p>
+                <div className="space-y-2">
+                  {project.userPermissions.length > 0 ? (
+                    project.userPermissions.map((permission) => (
+                      <div key={permission} className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
+                          {permission.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                        </span>
                       </div>
-                    </div>
-                  ))}
-                  {tasks.length === 0 && (
-                    <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                      No activity yet
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      No specific permissions assigned
                     </p>
                   )}
                 </div>
@@ -273,9 +328,10 @@ export function ProjectView({ projectId }: ProjectViewProps) {
           </div>
         </TabsContent>
 
+        {/* Tasks Tab */}
         <TabsContent value="tasks" className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Tasks</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Project Tasks</h2>
             {canCreateTasks && (
               <CreateTaskForm 
                 projectId={projectId} 
@@ -284,107 +340,165 @@ export function ProjectView({ projectId }: ProjectViewProps) {
               />
             )}
           </div>
-
-          {tasks.length > 0 ? (
-            <div className="space-y-4">
-              {tasks.map((task) => (
-                <TaskCard key={task.id} task={task} />
-              ))}
-            </div>
-          ) : (
+          
+          {tasks.length === 0 ? (
             <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
               <CardContent className="text-center py-12">
-                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <CheckSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No tasks yet</h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  Get started by creating your first task.
+                  {canCreateTasks 
+                    ? "Get started by creating your first task."
+                    : "Tasks will appear here once they're created."
+                  }
                 </p>
                 {canCreateTasks && (
                   <CreateTaskForm 
                     projectId={projectId} 
                     onTaskCreated={handleTaskCreated}
                     members={project.members}
-                    trigger={
-                      <Button className="bg-[#008080] hover:bg-[#006666] text-white">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create First Task
-                      </Button>
-                    }
                   />
                 )}
               </CardContent>
             </Card>
+          ) : (
+            <div className="grid gap-4">
+              {tasks.map((task) => (
+                <TaskCard key={task.id} task={task} />
+              ))}
+            </div>
           )}
         </TabsContent>
 
+        {/* Members Tab */}
         <TabsContent value="members" className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Team Members</h2>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Members List */}
-            <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white">Current Members</CardTitle>
-                <CardDescription className="text-gray-600 dark:text-gray-400">
-                  All project team members and their roles
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {project.members.map((member) => (
-                    <div key={member.id} className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={member.userImage || ''} alt={member.userName} />
-                        <AvatarFallback className="bg-[#008080] text-white text-sm">
-                          {formatInitials(member.userName)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                            {member.userName}
-                          </p>
-                          <Badge 
-                            variant={member.role === 'leader' ? "default" : "secondary"}
-                            className={member.role === 'leader'
-                              ? "bg-[#008080] hover:bg-[#006666] text-white text-xs" 
-                              : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs"
-                            }
-                          >
-                            {member.role === 'leader' ? (
-                              <>
-                                <Crown className="h-2 w-2 mr-1" />
-                                Leader
-                              </>
-                            ) : (
-                              'Member'
-                            )}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                          {member.userEmail}
-                        </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500">
-                          Joined {formatDistanceToNow(new Date(member.joinedAt), { addSuffix: true })}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Add Member Form */}
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Team Members</h2>
             {canAddMembers && (
               <AddMemberForm 
                 projectId={projectId} 
-                onMemberAdded={handleMemberAdded} 
+                onMemberAdded={handleMemberAdded}
               />
             )}
           </div>
+          
+          <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-gray-900 dark:text-white">Project Team</CardTitle>
+              <CardDescription>
+                {project.members.length} member{project.members.length !== 1 ? 's' : ''} in this project
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {project.members.map((member) => (
+                  <div key={member.id} className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={member.userImage || ''} alt={member.userName} />
+                      <AvatarFallback className="bg-[#008080] text-white text-sm">
+                        {formatInitials(member.userName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                          {member.userName}
+                          {member.userId === project.currentUserId && (
+                            <span className="text-xs text-gray-500 ml-1">(You)</span>
+                          )}
+                        </p>
+                        <Badge 
+                          variant={member.role === 'leader' ? "default" : "secondary"}
+                          className={member.role === 'leader'
+                            ? "bg-[#008080] hover:bg-[#006666] text-white text-xs" 
+                            : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs"
+                          }
+                        >
+                          {member.role === 'leader' ? (
+                            <>
+                              <Crown className="h-2 w-2 mr-1" />
+                              Leader
+                            </>
+                          ) : (
+                            'Member'
+                          )}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {member.userEmail}
+                      </p>
+                      {member.permissions.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {member.permissions.slice(0, 3).map((permission) => (
+                            <span 
+                              key={permission}
+                              className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded"
+                            >
+                              {permission}
+                            </span>
+                          ))}
+                          {member.permissions.length > 3 && (
+                            <span className="text-xs text-gray-500">
+                              +{member.permissions.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {canManagePermissions && member.userId !== project.currentUserId && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
+
+        {/* Project Settings Tab (Leader Only) */}
+        {project.isLeader && (
+          <TabsContent value="settings" className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Project Settings</h2>
+            
+            <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-gray-900 dark:text-white">Project Management</CardTitle>
+                <CardDescription>
+                  Manage project settings and permissions. Only project leaders can access these settings.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white">Edit Project Details</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Update project name, description, and deadline</p>
+                  </div>
+                  <Button variant="outline">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                </div>
+                
+                <div className="flex items-center justify-between p-4 border border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-950/20">
+                  <div>
+                    <h4 className="font-medium text-red-900 dark:text-red-100">Delete Project</h4>
+                    <p className="text-sm text-red-600 dark:text-red-400">Permanently delete this project and all its data</p>
+                  </div>
+                  <Button variant="destructive">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
@@ -393,59 +507,112 @@ export function ProjectView({ projectId }: ProjectViewProps) {
 function TaskCard({ task }: { task: Task }) {
   const getImportanceColor = (level: string) => {
     switch (level) {
-      case 'critical': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-      case 'high': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+      case 'critical': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800';
+      case 'high': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400 border-orange-200 dark:border-orange-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800';
+      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400 border-gray-200 dark:border-gray-700';
     }
   };
 
   const completedSubTasks = task.subTasks.filter(st => st.status === 'completed').length;
   const totalSubTasks = task.subTasks.length;
+  const progress = totalSubTasks > 0 ? (completedSubTasks / totalSubTasks) * 100 : 0;
 
   return (
-    <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
-      <CardHeader className="pb-3">
+    <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 hover:shadow-lg transition-shadow duration-200">
+      <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            <div className="flex items-center gap-2 mb-3">
+              <Badge 
+                variant="outline" 
+                className={`text-xs font-medium border ${getImportanceColor(task.importanceLevel)}`}
+              >
+                {task.importanceLevel.charAt(0).toUpperCase() + task.importanceLevel.slice(1)}
+              </Badge>
+            </div>
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
               {task.title}
             </CardTitle>
             {task.description && (
-              <CardDescription className="text-gray-600 dark:text-gray-400">
+              <CardDescription className="text-gray-600 dark:text-gray-400 line-clamp-2">
                 {task.description}
               </CardDescription>
             )}
           </div>
-          <Badge className={getImportanceColor(task.importanceLevel)}>
-            {task.importanceLevel}
-          </Badge>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600 dark:text-gray-400">Progress</span>
-            <span className="font-medium text-gray-900 dark:text-white">
-              {completedSubTasks}/{totalSubTasks} sub-tasks completed
-            </span>
-          </div>
-          
+      <CardContent className="pt-0">
+        <div className="space-y-4">
+          {/* Progress Section */}
           {totalSubTasks > 0 && (
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-              <div 
-                className="bg-[#008080] h-2 rounded-full transition-all duration-300" 
-                style={{ width: `${(completedSubTasks / totalSubTasks) * 100}%` }}
-              />
+            <div>
+              <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+                <span>Progress</span>
+                <span>{Math.round(progress)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div 
+                  className="bg-[#008080] h-2 rounded-full transition-all duration-300" 
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                {completedSubTasks} of {totalSubTasks} subtasks completed
+              </p>
             </div>
           )}
 
-          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-            <span>Created by {task.creatorName}</span>
-            {task.deadline && (
-              <span>Due {formatDistanceToNow(new Date(task.deadline), { addSuffix: true })}</span>
-            )}
+          {/* Subtasks Preview */}
+          {totalSubTasks > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white">Recent Subtasks</h4>
+              <div className="space-y-2">
+                {task.subTasks.slice(0, 2).map((subtask) => (
+                  <div key={subtask.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
+                    <span className="text-sm text-gray-700 dark:text-gray-300 truncate flex-1">
+                      {subtask.title}
+                    </span>
+                    <Badge 
+                      variant="secondary" 
+                      className={`text-xs ml-2 ${
+                        subtask.status === 'completed' 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                          : subtask.status === 'in_progress'
+                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+                          : 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
+                      }`}
+                    >
+                      {subtask.status.replace('_', ' ')}
+                    </Badge>
+                  </div>
+                ))}
+                {totalSubTasks > 2 && (
+                  <p className="text-xs text-gray-500 dark:text-gray-500 text-center">
+                    +{totalSubTasks - 2} more subtasks
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Task Metadata */}
+          <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
+              <div className="flex items-center gap-2">
+                <User className="h-3 w-3" />
+                <span>Created by {task.creatorName}</span>
+              </div>
+              {task.deadline && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-3 w-3" />
+                  <span className={isAfter(new Date(), new Date(task.deadline)) ? 'text-red-500' : ''}>
+                    Due {formatDistanceToNow(new Date(task.deadline), { addSuffix: true })}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>

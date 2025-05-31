@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Task, TaskStatus } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "react-hot-toast";
 
 interface TaskStatusUpdateProps {
   task: Task;
@@ -15,6 +16,7 @@ export function TaskStatusUpdate({ task, currentUserId, onUpdate }: TaskStatusUp
   const [note, setNote] = useState(task.notes || "");
   const [status, setStatus] = useState<TaskStatus>(task.status);
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const isAssigned = Array.isArray(task.assignedTo)
     ? task.assignedTo.includes(currentUserId)
@@ -30,6 +32,7 @@ export function TaskStatusUpdate({ task, currentUserId, onUpdate }: TaskStatusUp
 
   const handleStatusChange = async (newStatus: TaskStatus) => {
     try {
+      setIsLoading(true);
       // TODO: Replace with actual API call to update task status
       // await updateTaskStatus(task.id, newStatus, note.trim());
       console.log('Updating task status:', { taskId: task.id, status: newStatus, note: note.trim() });
@@ -39,7 +42,9 @@ export function TaskStatusUpdate({ task, currentUserId, onUpdate }: TaskStatusUp
         onUpdate();
       }
     } catch (error) {
-      console.error("Error updating task status:", error);
+      toast.error('Failed to update task status');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -49,6 +54,7 @@ export function TaskStatusUpdate({ task, currentUserId, onUpdate }: TaskStatusUp
 
   const handleNoteSave = async () => {
     try {
+      setIsLoading(true);
       // TODO: Replace with actual API call to update task notes
       // await updateTaskNotes(task.id, note.trim());
       console.log('Updating task notes:', { taskId: task.id, notes: note.trim() });
@@ -58,7 +64,9 @@ export function TaskStatusUpdate({ task, currentUserId, onUpdate }: TaskStatusUp
         onUpdate();
       }
     } catch (error) {
-      console.error("Error updating task note:", error);
+      toast.error('Failed to update task status');
+    } finally {
+      setIsLoading(false);
     }
   };
 

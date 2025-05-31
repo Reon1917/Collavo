@@ -42,22 +42,21 @@ export default function SignupPage() {
     try {
       setIsLoading(true);
       
-      const result = await authClient.signUp.email({
+      const res = await authClient.signUp.email({
         name,
         email,
         password,
       });
 
-      if (result.data) {
+      if (res.error) {
+        toast.error(res.error.message || 'Registration failed');
+      } else {
         toast.success('Account created successfully!');
         await refetch();
         router.push('/dashboard');
-      } else if (result.error) {
-        toast.error(result.error.message || 'Failed to create account');
       }
     } catch (error) {
-      console.error('Signup error:', error);
-      toast.error('An error occurred during signup');
+      toast.error('An error occurred during registration');
     } finally {
       setIsLoading(false);
     }
@@ -71,7 +70,6 @@ export default function SignupPage() {
          callbackURL: '/dashboard',
        });
     } catch (error) {
-      console.error('Google signup error:', error);
       toast.error('An error occurred during Google signup');
     } finally {
       setIsLoading(false);

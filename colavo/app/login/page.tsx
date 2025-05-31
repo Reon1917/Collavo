@@ -26,29 +26,19 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const result = await authClient.signIn.email({
+      const res = await authClient.signIn.email({
         email,
         password,
       });
 
-      if (result.error) {
-        toast.error(result.error.message || 'Invalid credentials');
-        return;
+      if (res.error) {
+        toast.error(res.error.message || 'Login failed');
+      } else {
+        toast.success('Login successful!');
+        router.push('/dashboard');
       }
-
-      toast.success('Login successful!');
-      
-      // Trigger auth state refresh
-      await refetch();
-      
-      // Small delay for state synchronization
-      setTimeout(() => {
-        router.push(callbackUrl);
-      }, 100);
-      
     } catch (error) {
-      toast.error('Something went wrong. Please try again.');
-      console.error('Login error:', error);
+      toast.error('An error occurred during login');
     } finally {
       setIsLoading(false);
     }

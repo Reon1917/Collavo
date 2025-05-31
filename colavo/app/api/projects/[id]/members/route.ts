@@ -4,46 +4,7 @@ import { db } from '@/db';
 import { projects, members, permissions, user } from '@/db/schema';
 import { createId } from '@paralleldrive/cuid2';
 import { eq, and } from 'drizzle-orm';
-
-// Helper function to check if user has permission
-async function checkPermission(userId: string, projectId: string, permission: string): Promise<boolean> {
-  // Check if user is project leader
-  const project = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
-  if (project[0]?.leaderId === userId) return true;
-
-  // Check member permissions
-  const memberPermission = await db
-    .select()
-    .from(members)
-    .innerJoin(permissions, eq(permissions.memberId, members.id))
-    .where(and(
-      eq(members.userId, userId),
-      eq(members.projectId, projectId),
-      eq(permissions.permission, permission),
-      eq(permissions.granted, true)
-    )).limit(1);
-
-  return memberPermission.length > 0;
-}
-
-// Helper function to check project access
-async function checkProjectAccess(projectId: string, userId: string) {
-  const project = await db
-    .select({
-      id: projects.id,
-      leaderId: projects.leaderId,
-      memberUserId: members.userId
-    })
-    .from(projects)
-    .leftJoin(members, eq(members.projectId, projects.id))
-    .where(eq(projects.id, projectId))
-    .limit(1);
-
-  if (!project.length) return false;
-
-  const projectData = project[0];
-  return projectData.leaderId === userId || projectData.memberUserId === userId;
-}
+import { requireProjectAccess, hasPermission } from '@/lib/auth-helpers';
 
 // GET /api/projects/[id]/members - List project members
 export async function GET(
@@ -63,14 +24,9 @@ export async function GET(
     }
 
     const { id: projectId } = await params;
-    const hasAccess = await checkProjectAccess(projectId, session.user.id);
-
-    if (!hasAccess) {
-      return NextResponse.json(
-        { error: 'Project not found or access denied' },
-        { status: 404 }
-      );
-    }
+    
+    // Use centralized access control
+    await requireProjectAccess(session.user.id, projectId);
 
     // Get project members with user details and permissions
     const projectMembers = await db
@@ -112,7 +68,16 @@ export async function GET(
     return NextResponse.json(membersWithPermissions);
 
   } catch (error) {
-    console.error('Error fetching project members:', error);
+    if (error instanceof Error) {
+      if (error.message.includes('not found') || error.message.includes('access denied')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 404 }
+        );
+      }
+    }
+    
+    console.error('Members GET error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -140,8 +105,8 @@ export async function POST(
     const { id: projectId } = await params;
 
     // Check if user has addMember permission
-    const hasPermission = await checkPermission(session.user.id, projectId, 'addMember');
-    if (!hasPermission) {
+    const canAddMembers = await hasPermission(session.user.id, projectId, 'addMember');
+    if (!canAddMembers) {
       return NextResponse.json(
         { error: 'Insufficient permissions to add members' },
         { status: 403 }
@@ -167,7 +132,7 @@ export async function POST(
     }
 
     // Find user by identifier
-    let targetUser;
+    let targetUser: any[] = [];
     switch (identifierType) {
       case 'id':
         targetUser = await db.select().from(user).where(eq(user.id, identifier)).limit(1);
@@ -189,6 +154,12 @@ export async function POST(
     }
 
     const foundUser = targetUser[0];
+    if (!foundUser) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
 
     // Check if user is trying to add themselves (already handled by leader check, but good to be explicit)
     if (foundUser.id === session.user.id) {
@@ -221,6 +192,13 @@ export async function POST(
       joinedAt: new Date()
     }).returning();
 
+    if (!newMember.length || !newMember[0]) {
+      return NextResponse.json(
+        { error: 'Failed to create member record' },
+        { status: 500 }
+      );
+    }
+
     // Grant default permissions (handleFile and viewFiles as specified in the plan)
     const defaultPermissions = [
       { permission: 'handleFile', granted: true },
@@ -229,8 +207,8 @@ export async function POST(
 
     const permissionInserts = defaultPermissions.map(perm => ({
       id: createId(),
-      memberId: newMember[0].id,
-      permission: perm.permission as any,
+      memberId: newMember[0]!.id,
+      permission: perm.permission as 'handleFile' | 'viewFiles',
       granted: perm.granted,
       grantedAt: new Date(),
       grantedBy: session.user.id
@@ -240,10 +218,10 @@ export async function POST(
 
     // Return member with user details
     return NextResponse.json({
-      id: newMember[0].id,
+      id: newMember[0]!.id,
       userId: foundUser.id,
-      role: newMember[0].role,
-      joinedAt: newMember[0].joinedAt,
+      role: newMember[0]!.role,
+      joinedAt: newMember[0]!.joinedAt,
       userName: foundUser.name,
       userEmail: foundUser.email,
       userImage: foundUser.image,
@@ -251,7 +229,22 @@ export async function POST(
     }, { status: 201 });
 
   } catch (error) {
-    console.error('Error adding project member:', error);
+    if (error instanceof Error) {
+      if (error.message.includes('not found') || error.message.includes('access denied')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 404 }
+        );
+      }
+      if (error.message.includes('Insufficient permissions')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 403 }
+        );
+      }
+    }
+    
+    console.error('Members POST error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

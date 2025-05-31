@@ -6,7 +6,6 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChatButton } from '@/components/project/chat-button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { authClient } from '@/lib/auth-client';
 
 interface Project {
   id: string;
@@ -34,7 +33,7 @@ function ProjectHeader({ projectId }: { projectId: string }) {
           setProject(projectData);
         }
       } catch (error) {
-        console.error('Error fetching project:', error);
+        // Error fetching project data
       } finally {
         setIsLoading(false);
       }

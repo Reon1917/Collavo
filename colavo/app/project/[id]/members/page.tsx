@@ -52,7 +52,6 @@ export default function MembersPage({ params }: MembersPageProps) {
       const membersData = await response.json();
       setMembers(membersData);
     } catch (error) {
-      console.error('Error fetching members:', error);
       toast.error('Failed to load project members');
     } finally {
       setIsLoading(false);
@@ -61,7 +60,7 @@ export default function MembersPage({ params }: MembersPageProps) {
 
   useEffect(() => {
     fetchMembers();
-  }, [projectId]);
+  }, [projectId, fetchMembers]);
 
   const handleMemberAdded = () => {
     // Close dialog and refresh members list

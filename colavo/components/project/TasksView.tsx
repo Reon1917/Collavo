@@ -1,40 +1,34 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { 
   Calendar, 
-  Clock, 
   User, 
-  CheckCircle, 
-  Circle, 
-  PlayCircle,
-  AlertCircle,
-  Search,
-  Filter,
-  Plus,
   FileText,
+  Search,
   Loader2,
+  AlertCircle,
   MoreVertical,
   Edit,
   Trash2,
-  Eye
+  Eye,
+  Plus
 } from 'lucide-react';
 import { CreateTaskForm } from '@/components/project/CreateTaskForm';
 import { CreateSubTaskForm } from '@/components/project/CreateSubTaskForm';
 import { SubTaskDetailsDialog } from '@/components/project/SubTaskDetailsDialog';
 import { EditTaskDialog } from '@/components/project/EditTaskDialog';
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { toast } from 'sonner';
 import { formatDistanceToNow, format, isAfter } from 'date-fns';
 import { formatInitials } from '@/utils/format';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface TasksViewProps {
   projectId: string;
@@ -77,7 +71,8 @@ interface Project {
   members: Member[];
   userPermissions: string[];
   isLeader: boolean;
-  currentUserId?: string;
+  userRole: 'leader' | 'member' | null;
+  currentUserId: string;
 }
 
 interface Member {
@@ -89,6 +84,23 @@ interface Member {
   userImage: string | null;
 }
 
+// Request cache to prevent duplicate API calls
+const requestCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 30000; // 30 seconds
+
+function getCachedRequest<T>(key: string): T | null {
+  const cached = requestCache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+  requestCache.delete(key);
+  return null;
+}
+
+function setCachedRequest<T>(key: string, data: T): void {
+  requestCache.set(key, { data, timestamp: Date.now() });
+}
+
 export function TasksView({ projectId }: TasksViewProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [project, setProject] = useState<Project | null>(null);
@@ -97,62 +109,186 @@ export function TasksView({ projectId }: TasksViewProps) {
   const [filterImportance, setFilterImportance] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('created');
+  
+  // Track ongoing requests to prevent duplicates
+  const ongoingRequests = useRef(new Set<string>());
 
-  useEffect(() => {
-    fetchData();
-  }, [projectId]);
+  const fetchProjectData = useCallback(async (): Promise<Project | null> => {
+    const cacheKey = `project-${projectId}`;
+    const cached = getCachedRequest<Project>(cacheKey);
+    if (cached) return cached;
 
-  const fetchData = async () => {
-    setIsLoading(true);
+    if (ongoingRequests.current.has(cacheKey)) {
+      // Wait for ongoing request
+      return new Promise((resolve) => {
+        const checkCache = () => {
+          const result = getCachedRequest<Project>(cacheKey);
+          if (result || !ongoingRequests.current.has(cacheKey)) {
+            resolve(result);
+          } else {
+            setTimeout(checkCache, 100);
+          }
+        };
+        checkCache();
+      });
+    }
+
+    ongoingRequests.current.add(cacheKey);
     
     try {
-      // Fetch project details
-      const projectResponse = await fetch(`/api/projects/${projectId}`);
-      if (!projectResponse.ok) {
-        throw new Error('Failed to fetch project details');
+      const response = await fetch(`/api/projects/${projectId}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Project not found or access denied');
+        }
+        throw new Error('Failed to fetch project data');
       }
-      const projectData = await projectResponse.json();
-      setProject(projectData);
+      
+      const projectData = await response.json();
+      setCachedRequest(cacheKey, projectData);
+      return projectData;
+    } finally {
+      ongoingRequests.current.delete(cacheKey);
+    }
+  }, [projectId]);
 
-      // Fetch tasks
-      const tasksResponse = await fetch(`/api/projects/${projectId}/tasks`);
-      if (!tasksResponse.ok) {
+  const fetchTasksData = useCallback(async (): Promise<Task[]> => {
+    const cacheKey = `tasks-${projectId}`;
+    const cached = getCachedRequest<Task[]>(cacheKey);
+    if (cached) return cached;
+
+    if (ongoingRequests.current.has(cacheKey)) {
+      // Wait for ongoing request
+      return new Promise((resolve) => {
+        const checkCache = () => {
+          const result = getCachedRequest<Task[]>(cacheKey);
+          if (result || !ongoingRequests.current.has(cacheKey)) {
+            resolve(result || []);
+          } else {
+            setTimeout(checkCache, 100);
+          }
+        };
+        checkCache();
+      });
+    }
+
+    ongoingRequests.current.add(cacheKey);
+    
+    try {
+      const response = await fetch(`/api/projects/${projectId}/tasks`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Project not found or access denied');
+        }
         throw new Error('Failed to fetch tasks');
       }
-      const tasksData = await tasksResponse.json();
-      setTasks(tasksData);
+      
+      const tasksData = await response.json();
+      setCachedRequest(cacheKey, tasksData);
+      return tasksData;
+    } finally {
+      ongoingRequests.current.delete(cacheKey);
+    }
+  }, [projectId]);
 
+  const fetchInitialData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      
+      // Fetch project and tasks in parallel, using cache
+      const [projectData, tasksData] = await Promise.all([
+        fetchProjectData(),
+        fetchTasksData()
+      ]);
+
+      if (projectData) {
+        setProject(projectData);
+      }
+      setTasks(tasksData);
     } catch (error) {
-      console.error('Error fetching data:', error);
-      toast.error('Failed to load tasks');
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('Failed to load tasks');
+      }
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [fetchProjectData, fetchTasksData]);
 
-  const handleTaskCreated = () => {
-    fetchData(); // Refresh tasks
-  };
+  useEffect(() => {
+    fetchInitialData();
+  }, [fetchInitialData]);
 
-  const getImportanceColor = (level: string) => {
-    switch (level) {
-      case 'critical': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800';
-      case 'high': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400 border-orange-200 dark:border-orange-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400 border-gray-200 dark:border-gray-800';
-    }
-  };
+  // Optimistic task creation
+  const handleTaskCreated = useCallback((newTask: Task) => {
+    setTasks(prev => [newTask, ...prev]);
+    // Invalidate cache
+    requestCache.delete(`tasks-${projectId}`);
+  }, [projectId]);
+
+  // Optimistic task update
+  const handleTaskUpdated = useCallback((updatedTask: Partial<Task> & { id: string }) => {
+    setTasks(prev => prev.map(task => 
+      task.id === updatedTask.id 
+        ? { ...task, ...updatedTask }
+        : task
+    ));
+    // Invalidate cache
+    requestCache.delete(`tasks-${projectId}`);
+  }, [projectId]);
+
+  // Optimistic task deletion
+  const handleTaskDeleted = useCallback((taskId: string) => {
+    setTasks(prev => prev.filter(task => task.id !== taskId));
+    // Invalidate cache
+    requestCache.delete(`tasks-${projectId}`);
+  }, [projectId]);
+
+  // Optimistic subtask update
+  const handleSubTaskUpdated = useCallback((taskId: string, updatedSubTask: Partial<SubTask> & { id: string }) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId 
+        ? {
+            ...task,
+            subTasks: task.subTasks.map(subtask =>
+              subtask.id === updatedSubTask.id
+                ? { ...subtask, ...updatedSubTask }
+                : subtask
+            )
+          }
+        : task
+    ));
+    // Invalidate cache
+    requestCache.delete(`tasks-${projectId}`);
+  }, [projectId]);
+
+  // Optimistic subtask creation
+  const handleSubTaskCreated = useCallback((taskId: string, newSubTask: SubTask) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId 
+        ? { ...task, subTasks: [...task.subTasks, newSubTask] }
+        : task
+    ));
+    // Invalidate cache
+    requestCache.delete(`tasks-${projectId}`);
+  }, [projectId]);
+
+  // Optimistic subtask deletion
+  const handleSubTaskDeleted = useCallback((taskId: string, subtaskId: string) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId 
+        ? { ...task, subTasks: task.subTasks.filter(subtask => subtask.id !== subtaskId) }
+        : task
+    ));
+    // Invalidate cache
+    requestCache.delete(`tasks-${projectId}`);
+  }, [projectId]);
 
   const getTaskProgress = (task: Task) => {
-    if (task.subTasks.length === 0) return 0;
-    const completed = task.subTasks.filter(st => st.status === 'completed').length;
-    return (completed / task.subTasks.length) * 100;
-  };
-
-  const isOverdue = (deadline: string | null) => {
-    if (!deadline) return false;
-    return isAfter(new Date(), new Date(deadline));
+    if (!task.subTasks || task.subTasks.length === 0) return 0;
+    const completedSubTasks = task.subTasks.filter(st => st.status === 'completed').length;
+    return Math.round((completedSubTasks / task.subTasks.length) * 100);
   };
 
   const filteredAndSortedTasks = tasks
@@ -201,21 +337,60 @@ export function TasksView({ projectId }: TasksViewProps) {
     return (
       <div className="text-center py-12">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Project not found</h2>
-        <p className="text-gray-600 dark:text-gray-400">Unable to load project details.</p>
+        <p className="text-gray-600 dark:text-gray-400">Unable to load project details or you don't have access to this project.</p>
       </div>
     );
   }
 
-  const canCreateTasks = project.userPermissions.includes('createTask') || project.isLeader;
+  // Role-based permission checks
+  const canCreateTasks = project.userPermissions.includes('createTask');
+  const canViewAllTasks = project.isLeader || project.userPermissions.includes('viewFiles');
+  const canUpdateTasks = project.isLeader || project.userPermissions.includes('updateTask');
+
+  // Get user's role display
+  const getUserRoleInfo = () => {
+    if (project.isLeader) {
+      return {
+        label: 'Project Leader',
+        description: 'You can see and manage all tasks in this project'
+      };
+    } else if (canViewAllTasks) {
+      return {
+        label: 'Team Member (Full Access)',
+        description: 'You can see all tasks in this project'
+      };
+    } else {
+      return {
+        label: 'Team Member',
+        description: 'You can only see tasks where you are assigned'
+      };
+    }
+  };
+
+  const roleInfo = getUserRoleInfo();
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Tasks</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Tasks</h1>
+            <Badge 
+              variant={project.isLeader ? "default" : "secondary"}
+              className={project.isLeader 
+                ? "bg-[#008080] hover:bg-[#006666] text-white" 
+                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+              }
+            >
+              {roleInfo.label}
+            </Badge>
+          </div>
           <p className="text-gray-600 dark:text-gray-400">
-            Manage and track project tasks and sub-tasks
+            {roleInfo.description}
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+            Project: {project.name}
           </p>
         </div>
         {canCreateTasks && (
@@ -223,90 +398,92 @@ export function TasksView({ projectId }: TasksViewProps) {
             projectId={projectId} 
             onTaskCreated={handleTaskCreated}
             members={project.members}
+            projectData={project} // Pass project data to avoid duplicate fetch
           />
         )}
       </div>
 
-      {/* Filters and Search */}
-      <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search tasks..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-              />
+      {/* Access Level Info */}
+      {!canViewAllTasks && (
+        <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-blue-900 dark:text-blue-100">Limited Task View</h3>
+                <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                  You can only see tasks where you are assigned to subtasks. Contact the project leader for broader access.
+                </p>
+              </div>
             </div>
+          </CardContent>
+        </Card>
+      )}
 
-            {/* Importance Filter */}
-            <Select value={filterImportance} onValueChange={setFilterImportance}>
-              <SelectTrigger className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                <SelectValue placeholder="Importance" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Importance</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Status Filter */}
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Sort */}
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="created">Date Created</SelectItem>
-                <SelectItem value="deadline">Deadline</SelectItem>
-                <SelectItem value="importance">Importance</SelectItem>
-                <SelectItem value="progress">Progress</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Tasks Grid */}
-      {filteredAndSortedTasks.length > 0 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {filteredAndSortedTasks.map((task) => (
-            <TaskCard 
-              key={task.id} 
-              task={task} 
-              project={project}
-              onUpdate={handleTaskCreated}
-            />
-          ))}
+      {/* Filters and Search */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Search tasks..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
         </div>
-      ) : (
-        <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+        
+        <Select value={filterImportance} onValueChange={setFilterImportance}>
+          <SelectTrigger>
+            <SelectValue placeholder="Filter by importance" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Importance</SelectItem>
+            <SelectItem value="critical">Critical</SelectItem>
+            <SelectItem value="high">High</SelectItem>
+            <SelectItem value="medium">Medium</SelectItem>
+            <SelectItem value="low">Low</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger>
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="in_progress">In Progress</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger>
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="created">Created Date</SelectItem>
+            <SelectItem value="deadline">Deadline</SelectItem>
+            <SelectItem value="importance">Importance</SelectItem>
+            <SelectItem value="progress">Progress</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Tasks List */}
+      {filteredAndSortedTasks.length === 0 ? (
+        <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
           <CardContent className="text-center py-12">
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              {tasks.length === 0 ? 'No tasks yet' : 'No tasks match your filters'}
+              {tasks.length === 0 ? 'No tasks found' : 'No tasks match your filters'}
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               {tasks.length === 0 
-                ? 'Get started by creating your first task.'
+                ? (canViewAllTasks 
+                    ? 'No tasks have been created for this project yet.'
+                    : 'You are not assigned to any tasks in this project yet.'
+                  )
                 : 'Try adjusting your search or filter criteria.'
               }
             </p>
@@ -315,39 +492,63 @@ export function TasksView({ projectId }: TasksViewProps) {
                 projectId={projectId} 
                 onTaskCreated={handleTaskCreated}
                 members={project.members}
+                projectData={project}
               />
             )}
           </CardContent>
         </Card>
+      ) : (
+        <div className="space-y-4">
+          {filteredAndSortedTasks.map((task) => (
+            <TaskCard 
+              key={task.id} 
+              task={task} 
+              project={project}
+              onTaskUpdated={handleTaskUpdated}
+              onTaskDeleted={handleTaskDeleted}
+              onSubTaskUpdated={handleSubTaskUpdated}
+              onSubTaskCreated={handleSubTaskCreated}
+              onSubTaskDeleted={handleSubTaskDeleted}
+            />
+          ))}
+        </div>
       )}
     </div>
   );
 }
 
-function TaskCard({ task, project, onUpdate }: { 
+function TaskCard({ 
+  task, 
+  project, 
+  onTaskUpdated,
+  onTaskDeleted,
+  onSubTaskUpdated,
+  onSubTaskCreated,
+  onSubTaskDeleted
+}: { 
   task: Task; 
   project: Project;
-  onUpdate: () => void;
+  onTaskUpdated: (updatedTask: Partial<Task> & { id: string }) => void;
+  onTaskDeleted: (taskId: string) => void;
+  onSubTaskUpdated: (taskId: string, updatedSubTask: Partial<SubTask> & { id: string }) => void;
+  onSubTaskCreated: (taskId: string, newSubTask: SubTask) => void;
+  onSubTaskDeleted: (taskId: string, subtaskId: string) => void;
 }) {
-  const [isDeleting, setIsDeleting] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
-  const progress = task.subTasks.length > 0 
-    ? (task.subTasks.filter(st => st.status === 'completed').length / task.subTasks.length) * 100 
-    : 0;
-
-  const isOverdue = task.deadline && isAfter(new Date(), new Date(task.deadline));
-  
-  const getImportanceColor = (level: string) => {
-    switch (level) {
-      case 'critical': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800';
-      case 'high': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400 border-orange-200 dark:border-orange-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400 border-gray-200 dark:border-gray-800';
+  // Filter subtasks based on user permissions
+  const visibleSubTasks = task.subTasks.filter(subtask => {
+    // Leaders and users with viewFiles permission can see all subtasks
+    if (project.isLeader || project.userPermissions.includes('viewFiles')) {
+      return true;
     }
-  };
+    // Regular members can only see subtasks assigned to them
+    return subtask.assignedId === project.currentUserId;
+  });
+
+  const totalSubTasks = visibleSubTasks.length;
+  const completedSubTasks = visibleSubTasks.filter(st => st.status === 'completed').length;
+  const progress = totalSubTasks > 0 ? (completedSubTasks / totalSubTasks) * 100 : 0;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -370,31 +571,39 @@ function TaskCard({ task, project, onUpdate }: {
   };
 
   const handleDeleteTask = async () => {
-    setIsDeleting(true);
+    if (!window.confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
+      return;
+    }
 
     try {
       const response = await fetch(`/api/projects/${project.id}/tasks/${task.id}`, {
         method: 'DELETE',
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to delete task');
+      if (response.ok) {
+        toast.success('Task deleted successfully');
+        onTaskDeleted(task.id);
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to delete task');
       }
-
-      toast.success('Task deleted successfully!');
-      setShowDeleteDialog(false);
-      onUpdate();
-    } catch (error) {
-      console.error('Error deleting task:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to delete task');
-    } finally {
-      setIsDeleting(false);
+    } catch {
+      toast.error('Failed to delete task');
     }
   };
 
-  // Check if user can edit/delete tasks
+  const handleTaskUpdatedCallback = (updatedTask: Partial<Task> & { id: string }) => {
+    onTaskUpdated(updatedTask);
+  };
+
+  const handleSubTaskCreatedCallback = (newSubTask: SubTask) => {
+    onSubTaskCreated(task.id, newSubTask);
+  };
+
+  // Permission checks
   const canModifyTask = project.isLeader || project.userPermissions.includes('updateTask') || task.createdBy === project.currentUserId;
+  const canCreateSubtasks = project.isLeader || project.userPermissions.includes('createTask');
+  const canViewAllTasks = project.isLeader || project.userPermissions.includes('viewFiles');
 
   return (
     <>
@@ -405,14 +614,13 @@ function TaskCard({ task, project, onUpdate }: {
               <div className="flex items-center gap-2 mb-2">
                 <Badge 
                   variant="outline" 
-                  className={`text-xs font-medium border ${getImportanceColor(task.importanceLevel)}`}
+                  className={`text-xs font-medium border ${task.importanceLevel === 'critical' ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800' : task.importanceLevel === 'high' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400 border-orange-200 dark:border-orange-800' : task.importanceLevel === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800' : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800'}`}
                 >
                   {task.importanceLevel.charAt(0).toUpperCase() + task.importanceLevel.slice(1)}
                 </Badge>
-                {isOverdue && (
-                  <Badge variant="destructive" className="text-xs">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    Overdue
+                {!canViewAllTasks && (
+                  <Badge variant="secondary" className="text-xs">
+                    Your Tasks Only
                   </Badge>
                 )}
               </div>
@@ -425,185 +633,248 @@ function TaskCard({ task, project, onUpdate }: {
                 </CardDescription>
               )}
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger 
-                className="h-8 w-8 p-0 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center"
-                disabled={isDeleting}
-              >
-                {isDeleting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
+            {(canModifyTask || canCreateSubtasks) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger 
+                  className="h-8 w-8 p-0 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center"
+                >
                   <MoreVertical className="h-4 w-4" />
-                )}
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {canModifyTask && (
-                  <DropdownMenuItem onClick={handleEditTask}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Task
-                  </DropdownMenuItem>
-                )}
-                {canModifyTask && (
-                  <DropdownMenuItem 
-                    onClick={() => setShowDeleteDialog(true)}
-                    className="text-red-600 focus:text-red-600"
-                    disabled={isDeleting}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete Task
-                  </DropdownMenuItem>
-                )}
-                {!canModifyTask && (
-                  <DropdownMenuItem disabled>
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Only
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {canCreateSubtasks && (
+                    <DropdownMenuItem>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Subtask
+                    </DropdownMenuItem>
+                  )}
+                  {canModifyTask && (
+                    <DropdownMenuItem onClick={handleEditTask}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Task
+                    </DropdownMenuItem>
+                  )}
+                  {canModifyTask && (
+                    <DropdownMenuItem 
+                      onClick={handleDeleteTask}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Task
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </CardHeader>
 
         <CardContent className="pt-0">
           {/* Progress */}
-          {task.subTasks.length > 0 && (
+          {visibleSubTasks.length > 0 && (
             <div className="mb-4">
               <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-                <span>Progress</span>
+                <span>Progress {!canViewAllTasks && '(Your Tasks)'}</span>
                 <span>{Math.round(progress)}%</span>
               </div>
               <Progress value={progress} className="h-2" />
               <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                {task.subTasks.filter(st => st.status === 'completed').length} of {task.subTasks.length} subtasks completed
+                {completedSubTasks} of {totalSubTasks} subtasks completed
+                {!canViewAllTasks && ' (assigned to you)'}
               </p>
             </div>
           )}
 
           {/* Sub-tasks preview */}
-          {task.subTasks.length > 0 ? (
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-medium text-gray-900 dark:text-white">
-                  Sub-tasks ({task.subTasks.length})
-                </h4>
-                <CreateSubTaskForm 
-                  projectId={project.id}
-                  mainTaskId={task.id}
-                  mainTaskDeadline={task.deadline}
-                  projectDeadline={project.deadline}
-                  onSubTaskCreated={onUpdate}
-                  members={project.members}
-                />
-              </div>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {task.subTasks.slice(0, 3).map((subTask) => (
-                  <SubTaskDetailsDialog
-                    key={subTask.id}
-                    subTask={subTask}
-                    currentUserId={project.currentUserId || ''}
-                    isProjectLeader={project.isLeader}
-                    projectId={project.id}
-                    mainTaskId={task.id}
-                    mainTaskDeadline={task.deadline}
-                    projectDeadline={project.deadline}
-                    members={project.members}
-                    onSubTaskUpdated={onUpdate}
-                    trigger={
-                      <div className="flex items-center justify-between gap-2 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-2 -m-2 rounded">
-                        <div className="flex items-center gap-2 flex-1">
-                          <span className={`flex-1 ${subTask.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-700 dark:text-gray-300'}`}>
-                            {subTask.title}
-                          </span>
-                          {subTask.assignedUserName && (
-                            <Avatar className="h-5 w-5">
-                              <AvatarFallback className="bg-[#008080] text-white text-xs">
-                                {formatInitials(subTask.assignedUserName)}
-                              </AvatarFallback>
-                            </Avatar>
-                          )}
-                        </div>
-                        <Badge 
-                          variant="outline" 
-                          className={`text-xs ${getStatusColor(subTask.status)}`}
-                        >
-                          {getStatusLabel(subTask.status)}
-                        </Badge>
-                      </div>
-                    }
+          {visibleSubTasks.length > 0 ? (
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                Subtasks {!canViewAllTasks && '(Assigned to You)'}
+              </h4>
+              <div className="space-y-3 max-h-48 overflow-y-auto">
+                {visibleSubTasks.slice(0, 4).map((subtask) => (
+                  <SubTaskItem 
+                    key={subtask.id} 
+                    subtask={subtask} 
+                    task={task}
+                    project={project}
+                    onSubTaskUpdated={(updatedSubTask) => onSubTaskUpdated(task.id, updatedSubTask)}
+                    onSubTaskDeleted={(subtaskId) => onSubTaskDeleted(task.id, subtaskId)}
                   />
                 ))}
-                {task.subTasks.length > 3 && (
-                  <p className="text-xs text-gray-500 dark:text-gray-500">
-                    +{task.subTasks.length - 3} more subtasks
-                  </p>
+                {visibleSubTasks.length > 4 && (
+                  <div className="text-center py-2 border-t border-gray-200 dark:border-gray-700">
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                      +{visibleSubTasks.length - 4} more subtasks
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
           ) : (
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-medium text-gray-900 dark:text-white">
-                  Sub-tasks (0)
-                </h4>
+            <div className="text-center py-4">
+              <p className="text-sm text-gray-500 dark:text-gray-500">
+                {!canViewAllTasks 
+                  ? 'No subtasks assigned to you in this task'
+                  : 'No subtasks created yet'
+                }
+              </p>
+              {canCreateSubtasks && (
                 <CreateSubTaskForm 
                   projectId={project.id}
                   mainTaskId={task.id}
                   mainTaskDeadline={task.deadline}
                   projectDeadline={project.deadline}
-                  onSubTaskCreated={onUpdate}
+                  onSubTaskCreated={handleSubTaskCreatedCallback}
                   members={project.members}
                 />
-              </div>
-              <p className="text-xs text-gray-500 dark:text-gray-500">
-                No subtasks yet. Add the first one to get started.
-              </p>
+              )}
             </div>
           )}
 
-          {/* Footer */}
-          <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-500">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1">
+          {/* Task metadata */}
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
+              <div className="flex items-center gap-2">
                 <User className="h-3 w-3" />
-                <span>{task.creatorName}</span>
+                <span>Created by {task.creatorName}</span>
               </div>
               {task.deadline && (
-                <div className={`flex items-center gap-1 ${isOverdue ? 'text-red-600' : ''}`}>
+                <div className="flex items-center gap-2">
                   <Calendar className="h-3 w-3" />
-                  <span>{format(new Date(task.deadline), 'MMM dd')}</span>
+                  <span className={isAfter(new Date(), new Date(task.deadline)) ? 'text-red-500' : ''}>
+                    Due {formatDistanceToNow(new Date(task.deadline), { addSuffix: true })}
+                  </span>
                 </div>
               )}
-            </div>
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              <span>{formatDistanceToNow(new Date(task.createdAt), { addSuffix: true })}</span>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Edit Task Dialog */}
-      <EditTaskDialog
-        isOpen={showEditDialog}
-        onOpenChange={setShowEditDialog}
-        task={task}
-        projectId={project.id}
-        projectDeadline={project.deadline}
-        onTaskUpdated={onUpdate}
-      />
+      {showEditDialog && canModifyTask && (
+        <EditTaskDialog
+          task={task}
+          projectId={project.id}
+          projectDeadline={project.deadline}
+          isOpen={showEditDialog}
+          onOpenChange={(open) => setShowEditDialog(open)}
+          onTaskUpdated={handleTaskUpdatedCallback}
+        />
+      )}
+    </>
+  );
+}
 
-      {/* Delete Confirmation Dialog */}
-      <ConfirmationDialog
-        isOpen={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        title="Delete Task"
-        description="Are you sure you want to delete this task? This action cannot be undone and will also delete all subtasks."
-        confirmText="Delete"
-        cancelText="Cancel"
-        onConfirm={handleDeleteTask}
-        isLoading={isDeleting}
-        variant="destructive"
+function SubTaskItem({ 
+  subtask, 
+  task,
+  project, 
+  onSubTaskUpdated,
+  onSubTaskDeleted
+}: { 
+  subtask: SubTask; 
+  task: Task;
+  project: Project;
+  onSubTaskUpdated: (updatedSubTask: Partial<SubTask> & { id: string }) => void;
+  onSubTaskDeleted: (subtaskId: string) => void;
+}) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  // Check if user can update this subtask
+  const canUpdateSubtask = subtask.assignedId === project.currentUserId || 
+                          project.isLeader || 
+                          project.userPermissions.includes('updateTask');
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
+      case 'in_progress': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+    }
+  };
+
+  const handleSubTaskUpdatedCallback = (updatedSubTask: Partial<SubTask> & { id: string }) => {
+    onSubTaskUpdated(updatedSubTask);
+  };
+
+  const handleOpenDialog = () => {
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+  };
+
+  return (
+    <>
+      <div 
+        className="flex items-start justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors duration-200 min-h-[80px]"
+        onClick={handleOpenDialog}
+      >
+        <div className="flex-1 min-w-0 space-y-2">
+          <div className="flex items-start justify-between">
+            <p className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 pr-2">
+              {subtask.title}
+            </p>
+            <Badge 
+              variant="secondary" 
+              className={`text-xs flex-shrink-0 ${getStatusColor(subtask.status)}`}
+            >
+              {subtask.status.replace('_', ' ')}
+            </Badge>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {subtask.assignedUserName && (
+                <div className="flex items-center gap-1">
+                  <User className="h-3 w-3 text-gray-400" />
+                  <span className="text-xs text-gray-500 dark:text-gray-500">
+                    {subtask.assignedUserName === project.currentUserId ? 'You' : subtask.assignedUserName}
+                  </span>
+                </div>
+              )}
+              {subtask.deadline && (
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3 text-gray-400" />
+                  <span className="text-xs text-gray-500 dark:text-gray-500">
+                    Due {formatDistanceToNow(new Date(subtask.deadline), { addSuffix: true })}
+                  </span>
+                </div>
+              )}
+            </div>
+            
+            {canUpdateSubtask && (
+              <Badge variant="outline" className="text-xs">
+                Can Edit
+              </Badge>
+            )}
+          </div>
+          
+          {subtask.description && (
+            <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+              {subtask.description}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Subtask Details Dialog - Always rendered, controlled by isOpen prop */}
+      <SubTaskDetailsDialog
+        subTask={subtask}
+        currentUserId={project.currentUserId}
+        isProjectLeader={project.isLeader}
+        projectId={project.id}
+        mainTaskId={task.id}
+        mainTaskDeadline={task.deadline}
+        projectDeadline={project.deadline}
+        members={project.members}
+        onSubTaskUpdated={handleSubTaskUpdatedCallback}
+        onSubTaskDeleted={onSubTaskDeleted}
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
       />
     </>
   );
-} 
+}
