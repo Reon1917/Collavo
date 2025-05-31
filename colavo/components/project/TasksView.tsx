@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -84,6 +84,23 @@ interface Member {
   userImage: string | null;
 }
 
+// Request cache to prevent duplicate API calls
+const requestCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 30000; // 30 seconds
+
+function getCachedRequest<T>(key: string): T | null {
+  const cached = requestCache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+  requestCache.delete(key);
+  return null;
+}
+
+function setCachedRequest<T>(key: string, data: T): void {
+  requestCache.set(key, { data, timestamp: Date.now() });
+}
+
 export function TasksView({ projectId }: TasksViewProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [project, setProject] = useState<Project | null>(null);
@@ -92,37 +109,101 @@ export function TasksView({ projectId }: TasksViewProps) {
   const [filterImportance, setFilterImportance] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('created');
+  
+  // Track ongoing requests to prevent duplicates
+  const ongoingRequests = useRef(new Set<string>());
 
-  const fetchData = useCallback(async () => {
+  const fetchProjectData = useCallback(async (): Promise<Project | null> => {
+    const cacheKey = `project-${projectId}`;
+    const cached = getCachedRequest<Project>(cacheKey);
+    if (cached) return cached;
+
+    if (ongoingRequests.current.has(cacheKey)) {
+      // Wait for ongoing request
+      return new Promise((resolve) => {
+        const checkCache = () => {
+          const result = getCachedRequest<Project>(cacheKey);
+          if (result || !ongoingRequests.current.has(cacheKey)) {
+            resolve(result);
+          } else {
+            setTimeout(checkCache, 100);
+          }
+        };
+        checkCache();
+      });
+    }
+
+    ongoingRequests.current.add(cacheKey);
+    
     try {
-      setIsLoading(true);
-      
-      // Fetch project details and tasks in parallel
-      const [projectResponse, tasksResponse] = await Promise.all([
-        fetch(`/api/projects/${projectId}`),
-        fetch(`/api/projects/${projectId}/tasks`)
-      ]);
-
-      if (!projectResponse.ok) {
-        if (projectResponse.status === 404) {
+      const response = await fetch(`/api/projects/${projectId}`);
+      if (!response.ok) {
+        if (response.status === 404) {
           throw new Error('Project not found or access denied');
         }
         throw new Error('Failed to fetch project data');
       }
+      
+      const projectData = await response.json();
+      setCachedRequest(cacheKey, projectData);
+      return projectData;
+    } finally {
+      ongoingRequests.current.delete(cacheKey);
+    }
+  }, [projectId]);
 
-      if (!tasksResponse.ok) {
-        if (tasksResponse.status === 404) {
+  const fetchTasksData = useCallback(async (): Promise<Task[]> => {
+    const cacheKey = `tasks-${projectId}`;
+    const cached = getCachedRequest<Task[]>(cacheKey);
+    if (cached) return cached;
+
+    if (ongoingRequests.current.has(cacheKey)) {
+      // Wait for ongoing request
+      return new Promise((resolve) => {
+        const checkCache = () => {
+          const result = getCachedRequest<Task[]>(cacheKey);
+          if (result || !ongoingRequests.current.has(cacheKey)) {
+            resolve(result || []);
+          } else {
+            setTimeout(checkCache, 100);
+          }
+        };
+        checkCache();
+      });
+    }
+
+    ongoingRequests.current.add(cacheKey);
+    
+    try {
+      const response = await fetch(`/api/projects/${projectId}/tasks`);
+      if (!response.ok) {
+        if (response.status === 404) {
           throw new Error('Project not found or access denied');
         }
         throw new Error('Failed to fetch tasks');
       }
+      
+      const tasksData = await response.json();
+      setCachedRequest(cacheKey, tasksData);
+      return tasksData;
+    } finally {
+      ongoingRequests.current.delete(cacheKey);
+    }
+  }, [projectId]);
 
+  const fetchInitialData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      
+      // Fetch project and tasks in parallel, using cache
       const [projectData, tasksData] = await Promise.all([
-        projectResponse.json(),
-        tasksResponse.json()
+        fetchProjectData(),
+        fetchTasksData()
       ]);
 
-      setProject(projectData);
+      if (projectData) {
+        setProject(projectData);
+      }
       setTasks(tasksData);
     } catch (error) {
       if (error instanceof Error) {
@@ -133,15 +214,76 @@ export function TasksView({ projectId }: TasksViewProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [projectId]);
+  }, [fetchProjectData, fetchTasksData]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchInitialData();
+  }, [fetchInitialData]);
 
-  const handleTaskCreated = () => {
-    fetchData();
-  };
+  // Optimistic task creation
+  const handleTaskCreated = useCallback((newTask: Task) => {
+    setTasks(prev => [newTask, ...prev]);
+    // Invalidate cache
+    requestCache.delete(`tasks-${projectId}`);
+  }, [projectId]);
+
+  // Optimistic task update
+  const handleTaskUpdated = useCallback((updatedTask: Partial<Task> & { id: string }) => {
+    setTasks(prev => prev.map(task => 
+      task.id === updatedTask.id 
+        ? { ...task, ...updatedTask }
+        : task
+    ));
+    // Invalidate cache
+    requestCache.delete(`tasks-${projectId}`);
+  }, [projectId]);
+
+  // Optimistic task deletion
+  const handleTaskDeleted = useCallback((taskId: string) => {
+    setTasks(prev => prev.filter(task => task.id !== taskId));
+    // Invalidate cache
+    requestCache.delete(`tasks-${projectId}`);
+  }, [projectId]);
+
+  // Optimistic subtask update
+  const handleSubTaskUpdated = useCallback((taskId: string, updatedSubTask: Partial<SubTask> & { id: string }) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId 
+        ? {
+            ...task,
+            subTasks: task.subTasks.map(subtask =>
+              subtask.id === updatedSubTask.id
+                ? { ...subtask, ...updatedSubTask }
+                : subtask
+            )
+          }
+        : task
+    ));
+    // Invalidate cache
+    requestCache.delete(`tasks-${projectId}`);
+  }, [projectId]);
+
+  // Optimistic subtask creation
+  const handleSubTaskCreated = useCallback((taskId: string, newSubTask: SubTask) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId 
+        ? { ...task, subTasks: [...task.subTasks, newSubTask] }
+        : task
+    ));
+    // Invalidate cache
+    requestCache.delete(`tasks-${projectId}`);
+  }, [projectId]);
+
+  // Optimistic subtask deletion
+  const handleSubTaskDeleted = useCallback((taskId: string, subtaskId: string) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId 
+        ? { ...task, subTasks: task.subTasks.filter(subtask => subtask.id !== subtaskId) }
+        : task
+    ));
+    // Invalidate cache
+    requestCache.delete(`tasks-${projectId}`);
+  }, [projectId]);
 
   const getTaskProgress = (task: Task) => {
     if (!task.subTasks || task.subTasks.length === 0) return 0;
@@ -256,6 +398,7 @@ export function TasksView({ projectId }: TasksViewProps) {
             projectId={projectId} 
             onTaskCreated={handleTaskCreated}
             members={project.members}
+            projectData={project} // Pass project data to avoid duplicate fetch
           />
         )}
       </div>
@@ -349,6 +492,7 @@ export function TasksView({ projectId }: TasksViewProps) {
                 projectId={projectId} 
                 onTaskCreated={handleTaskCreated}
                 members={project.members}
+                projectData={project}
               />
             )}
           </CardContent>
@@ -360,7 +504,11 @@ export function TasksView({ projectId }: TasksViewProps) {
               key={task.id} 
               task={task} 
               project={project}
-              onUpdate={handleTaskCreated}
+              onTaskUpdated={handleTaskUpdated}
+              onTaskDeleted={handleTaskDeleted}
+              onSubTaskUpdated={handleSubTaskUpdated}
+              onSubTaskCreated={handleSubTaskCreated}
+              onSubTaskDeleted={handleSubTaskDeleted}
             />
           ))}
         </div>
@@ -369,10 +517,22 @@ export function TasksView({ projectId }: TasksViewProps) {
   );
 }
 
-function TaskCard({ task, project, onUpdate }: { 
+function TaskCard({ 
+  task, 
+  project, 
+  onTaskUpdated,
+  onTaskDeleted,
+  onSubTaskUpdated,
+  onSubTaskCreated,
+  onSubTaskDeleted
+}: { 
   task: Task; 
   project: Project;
-  onUpdate: () => void;
+  onTaskUpdated: (updatedTask: Partial<Task> & { id: string }) => void;
+  onTaskDeleted: (taskId: string) => void;
+  onSubTaskUpdated: (taskId: string, updatedSubTask: Partial<SubTask> & { id: string }) => void;
+  onSubTaskCreated: (taskId: string, newSubTask: SubTask) => void;
+  onSubTaskDeleted: (taskId: string, subtaskId: string) => void;
 }) {
   const [showEditDialog, setShowEditDialog] = useState(false);
   
@@ -422,7 +582,7 @@ function TaskCard({ task, project, onUpdate }: {
 
       if (response.ok) {
         toast.success('Task deleted successfully');
-        onUpdate();
+        onTaskDeleted(task.id);
       } else {
         const errorData = await response.json();
         toast.error(errorData.error || 'Failed to delete task');
@@ -430,6 +590,14 @@ function TaskCard({ task, project, onUpdate }: {
     } catch {
       toast.error('Failed to delete task');
     }
+  };
+
+  const handleTaskUpdatedCallback = (updatedTask: Partial<Task> & { id: string }) => {
+    onTaskUpdated(updatedTask);
+  };
+
+  const handleSubTaskCreatedCallback = (newSubTask: SubTask) => {
+    onSubTaskCreated(task.id, newSubTask);
   };
 
   // Permission checks
@@ -529,7 +697,8 @@ function TaskCard({ task, project, onUpdate }: {
                     subtask={subtask} 
                     task={task}
                     project={project}
-                    onUpdate={onUpdate}
+                    onSubTaskUpdated={(updatedSubTask) => onSubTaskUpdated(task.id, updatedSubTask)}
+                    onSubTaskDeleted={(subtaskId) => onSubTaskDeleted(task.id, subtaskId)}
                   />
                 ))}
                 {visibleSubTasks.length > 4 && (
@@ -555,7 +724,7 @@ function TaskCard({ task, project, onUpdate }: {
                   mainTaskId={task.id}
                   mainTaskDeadline={task.deadline}
                   projectDeadline={project.deadline}
-                  onSubTaskCreated={onUpdate}
+                  onSubTaskCreated={handleSubTaskCreatedCallback}
                   members={project.members}
                 />
               )}
@@ -590,7 +759,7 @@ function TaskCard({ task, project, onUpdate }: {
           projectDeadline={project.deadline}
           isOpen={showEditDialog}
           onOpenChange={(open) => setShowEditDialog(open)}
-          onTaskUpdated={onUpdate}
+          onTaskUpdated={handleTaskUpdatedCallback}
         />
       )}
     </>
@@ -601,12 +770,14 @@ function SubTaskItem({
   subtask, 
   task,
   project, 
-  onUpdate 
+  onSubTaskUpdated,
+  onSubTaskDeleted
 }: { 
   subtask: SubTask; 
   task: Task;
   project: Project;
-  onUpdate: () => void;
+  onSubTaskUpdated: (updatedSubTask: Partial<SubTask> & { id: string }) => void;
+  onSubTaskDeleted: (subtaskId: string) => void;
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
@@ -623,8 +794,8 @@ function SubTaskItem({
     }
   };
 
-  const handleSubTaskUpdated = () => {
-    onUpdate(); // Call parent update
+  const handleSubTaskUpdatedCallback = (updatedSubTask: Partial<SubTask> & { id: string }) => {
+    onSubTaskUpdated(updatedSubTask);
   };
 
   const handleOpenDialog = () => {
@@ -699,7 +870,8 @@ function SubTaskItem({
         mainTaskDeadline={task.deadline}
         projectDeadline={project.deadline}
         members={project.members}
-        onSubTaskUpdated={handleSubTaskUpdated}
+        onSubTaskUpdated={handleSubTaskUpdatedCallback}
+        onSubTaskDeleted={onSubTaskDeleted}
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
       />

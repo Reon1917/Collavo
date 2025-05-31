@@ -17,9 +17,12 @@ import { cn } from '@/lib/utils';
 
 interface CreateTaskFormProps {
   projectId: string;
-  onTaskCreated?: () => void;
+  onTaskCreated?: (newTask: any) => void;
   members: Member[];
   trigger?: React.ReactNode;
+  projectData?: {
+    deadline: string | null;
+  };
 }
 
 interface Member {
@@ -45,12 +48,12 @@ interface SubTaskFormData {
   deadline: Date | undefined;
 }
 
-export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: CreateTaskFormProps) {
+export function CreateTaskForm({ projectId, onTaskCreated, members, trigger, projectData }: CreateTaskFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState<'main' | 'sub'>('main');
   const [createdMainTaskId, setCreatedMainTaskId] = useState<string | null>(null);
-  const [projectDeadline, setProjectDeadline] = useState<Date | null>(null);
+  const [createdMainTask, setCreatedMainTask] = useState<any>(null);
   
   const [mainTaskData, setMainTaskData] = useState<MainTaskFormData>({
     title: '',
@@ -66,26 +69,8 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
     deadline: undefined
   }]);
 
-  // Fetch project deadline when component mounts
-  useEffect(() => {
-    const fetchProjectDetails = async () => {
-      try {
-        const response = await fetch(`/api/projects/${projectId}`);
-        if (response.ok) {
-          const project = await response.json();
-          if (project.deadline) {
-            setProjectDeadline(new Date(project.deadline));
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching project details:', error);
-      }
-    };
-
-    if (isOpen) {
-      fetchProjectDetails();
-    }
-  }, [isOpen, projectId]);
+  // Get project deadline from props instead of fetching
+  const projectDeadline = projectData?.deadline ? new Date(projectData.deadline) : null;
 
   const handleMainTaskSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,6 +115,7 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
       if (response.ok) {
         const task = await response.json();
         setCreatedMainTaskId(task.id);
+        setCreatedMainTask(task);
         toast.success('Main task created successfully!');
         
         // Move to sub-task creation step
@@ -244,8 +230,20 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
         throw new Error(`Failed to create ${failedRequests.length} sub-task(s)`);
       }
 
+      // Get all created subtasks
+      const createdSubTasks = await Promise.all(
+        responses.map(response => response.json())
+      );
+
       toast.success(`Created ${validSubTasks.length} sub-task(s) successfully!`);
-      handleFinish();
+      
+      // Create complete task object with subtasks for optimistic update
+      const completeTask = {
+        ...createdMainTask,
+        subTasks: createdSubTasks
+      };
+      
+      handleFinish(completeTask);
     } catch (error) {
       toast.error('Failed to create sub-tasks');
     } finally {
@@ -253,7 +251,7 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
     }
   };
 
-  const handleFinish = () => {
+  const handleFinish = (taskWithSubTasks?: any) => {
     // Reset form
     setMainTaskData({
       title: '',
@@ -269,11 +267,16 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
     }]);
     setStep('main');
     setCreatedMainTaskId(null);
-    setProjectDeadline(null);
+    setCreatedMainTask(null);
     setIsOpen(false);
     
-    // Trigger refresh
-    onTaskCreated?.();
+    // Trigger optimistic update with complete task data
+    if (taskWithSubTasks) {
+      onTaskCreated?.(taskWithSubTasks);
+    } else if (createdMainTask) {
+      // If no subtasks were created, just use the main task
+      onTaskCreated?.({ ...createdMainTask, subTasks: [] });
+    }
   };
 
   const defaultTrigger = (
@@ -288,10 +291,9 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
   };
 
   const getSubTaskMaxDate = () => {
-    if (mainTaskData.deadline && projectDeadline) {
-      return mainTaskData.deadline < projectDeadline ? mainTaskData.deadline : projectDeadline;
-    }
-    return mainTaskData.deadline || projectDeadline || undefined;
+    const dates = [mainTaskData.deadline, projectDeadline].filter(Boolean);
+    if (dates.length === 0) return undefined;
+    return new Date(Math.min(...dates.map(d => d!.getTime())));
   };
 
   return (

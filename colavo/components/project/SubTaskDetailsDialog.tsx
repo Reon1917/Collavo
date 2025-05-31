@@ -25,7 +25,8 @@ interface SubTaskDetailsDialogProps {
   mainTaskDeadline: string | null;
   projectDeadline: string | null;
   members: Member[];
-  onSubTaskUpdated?: () => void;
+  onSubTaskUpdated?: (updatedSubTask: Partial<SubTask> & { id: string }) => void;
+  onSubTaskDeleted?: (subtaskId: string) => void;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -64,6 +65,7 @@ export function SubTaskDetailsDialog({
   projectDeadline,
   members,
   onSubTaskUpdated,
+  onSubTaskDeleted,
   isOpen,
   onOpenChange
 }: SubTaskDetailsDialogProps) {
@@ -176,7 +178,7 @@ export function SubTaskDetailsDialog({
 
       toast.success('Subtask updated successfully!');
       setEditMode('view');
-      onSubTaskUpdated?.();
+      onSubTaskUpdated?.({ id: subTask.id, status: statusFormData.status, note: statusFormData.note.trim() || null });
     } catch (error) {
       toast.error('Failed to update subtask');
     } finally {
@@ -241,7 +243,7 @@ export function SubTaskDetailsDialog({
 
       toast.success('Subtask details updated successfully!');
       setEditMode('view');
-      onSubTaskUpdated?.();
+      onSubTaskUpdated?.({ id: subTask.id, title: detailsFormData.title.trim(), description: detailsFormData.description.trim() || null, assignedId: detailsFormData.assignedId, deadline: detailsFormData.deadline.toISOString() });
     } catch (error) {
       toast.error('Failed to update subtask details');
     } finally {
@@ -283,7 +285,7 @@ export function SubTaskDetailsDialog({
       toast.success('Subtask deleted successfully!');
       setShowDeleteDialog(false);
       handleDialogClose(false);
-      onSubTaskUpdated?.();
+      onSubTaskDeleted?.(subTask.id);
     } catch (error) {
       toast.error('Failed to delete subtask');
     } finally {
