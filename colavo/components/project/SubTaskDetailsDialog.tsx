@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,7 +26,8 @@ interface SubTaskDetailsDialogProps {
   projectDeadline: string | null;
   members: Member[];
   onSubTaskUpdated?: () => void;
-  trigger?: React.ReactNode;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 interface Member {
@@ -63,9 +64,9 @@ export function SubTaskDetailsDialog({
   projectDeadline,
   members,
   onSubTaskUpdated,
-  trigger
+  isOpen,
+  onOpenChange
 }: SubTaskDetailsDialogProps) {
-  const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -89,11 +90,37 @@ export function SubTaskDetailsDialog({
   // Check if current user can edit details (project leader only)
   const canEditDetails = isProjectLeader;
 
+  // Reset form data when subtask changes or dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      setStatusFormData({
+        status: subTask.status,
+        note: subTask.note || ''
+      });
+      setDetailsFormData({
+        title: subTask.title,
+        description: subTask.description || '',
+        assignedId: subTask.assignedId || '',
+        deadline: subTask.deadline ? new Date(subTask.deadline) : undefined
+      });
+      setEditMode('view');
+    }
+  }, [subTask, isOpen]);
+
+  // Handle dialog close and reset state
+  const handleDialogClose = (open: boolean) => {
+    onOpenChange(open);
+    if (!open) {
+      setEditMode('view');
+      setShowDeleteDialog(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      case 'in_progress': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+      case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800';
+      case 'in_progress': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400 border-gray-200 dark:border-gray-700';
     }
   };
 
@@ -255,7 +282,7 @@ export function SubTaskDetailsDialog({
 
       toast.success('Subtask deleted successfully!');
       setShowDeleteDialog(false);
-      setIsOpen(false);
+      handleDialogClose(false);
       onSubTaskUpdated?.();
     } catch (error) {
       toast.error('Failed to delete subtask');
@@ -264,60 +291,58 @@ export function SubTaskDetailsDialog({
     }
   };
 
-  const defaultTrigger = (
-    <div className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-2 -m-2 rounded">
-      <span className="flex-1 text-gray-700 dark:text-gray-300">
-        {subTask.title}
-      </span>
-      <Badge 
-        variant="outline" 
-        className={`text-xs ${getStatusColor(subTask.status)}`}
-      >
-        {getStatusLabel(subTask.status)}
-      </Badge>
-    </div>
-  );
-
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogTrigger className="w-full text-left">
-          {trigger || defaultTrigger}
-        </DialogTrigger>
-        <DialogContent className="max-w-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-          <DialogHeader>
-            <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-2">
-              {editMode === 'status' ? (
-                <>
-                  <Edit3 className="h-5 w-5 text-[#008080]" />
-                  Update Status & Notes
-                </>
-              ) : editMode === 'details' ? (
-                <>
-                  <Settings className="h-5 w-5 text-[#008080]" />
-                  Edit Subtask Details
-                </>
-              ) : (
-                <>
-                  <Eye className="h-5 w-5 text-[#008080]" />
-                  Subtask Details
-                </>
+      <Dialog open={isOpen} onOpenChange={handleDialogClose}>
+        <DialogContent className="max-w-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  {editMode === 'status' ? (
+                    <>
+                      <Edit3 className="h-5 w-5 text-[#008080]" />
+                      Update Status & Notes
+                    </>
+                  ) : editMode === 'details' ? (
+                    <>
+                      <Settings className="h-5 w-5 text-[#008080]" />
+                      Edit Subtask Details
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="h-5 w-5 text-[#008080]" />
+                      Subtask Details
+                    </>
+                  )}
+                </DialogTitle>
+                <DialogDescription className="text-gray-600 dark:text-gray-400 mt-1">
+                  {editMode === 'status' 
+                    ? 'Update the status and add notes about your progress.'
+                    : editMode === 'details'
+                    ? 'Edit subtask details including title, deadline, and assignment.'
+                    : 'View and manage subtask details and progress.'
+                  }
+                </DialogDescription>
+              </div>
+              
+              {editMode === 'view' && (
+                <div className="flex items-center gap-2">
+                  <Badge 
+                    variant="outline" 
+                    className={`${getStatusColor(subTask.status)} border`}
+                  >
+                    {getStatusLabel(subTask.status)}
+                  </Badge>
+                </div>
               )}
-            </DialogTitle>
-            <DialogDescription className="text-gray-600 dark:text-gray-400">
-              {editMode === 'status' 
-                ? 'Update the status and add notes about your progress.'
-                : editMode === 'details'
-                ? 'Edit subtask details including title, deadline, and assignment.'
-                : 'View subtask details and current status.'
-              }
-            </DialogDescription>
+            </div>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <div className="space-y-6 py-4">
             {editMode === 'details' ? (
               /* Details Edit Form */
-              <form onSubmit={handleDetailsSubmit} className="space-y-4">
+              <form onSubmit={handleDetailsSubmit} className="space-y-6">
                 {(mainTaskDeadline || projectDeadline) && (
                   <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                     <CalendarIcon className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -333,34 +358,21 @@ export function SubTaskDetailsDialog({
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="edit-title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Title *
-                  </Label>
-                  <Input
-                    id="edit-title"
-                    value={detailsFormData.title}
-                    onChange={(e) => setDetailsFormData(prev => ({ ...prev, title: e.target.value }))}
-                    className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700"
-                    disabled={isLoading}
-                    required
-                  />
-                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Title *
+                    </Label>
+                    <Input
+                      id="edit-title"
+                      value={detailsFormData.title}
+                      onChange={(e) => setDetailsFormData(prev => ({ ...prev, title: e.target.value }))}
+                      className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700"
+                      disabled={isLoading}
+                      required
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="edit-description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Description
-                  </Label>
-                  <Textarea
-                    id="edit-description"
-                    value={detailsFormData.description}
-                    onChange={(e) => setDetailsFormData(prev => ({ ...prev, description: e.target.value }))}
-                    className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 min-h-[80px] resize-none"
-                    disabled={isLoading}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Assign to *
@@ -386,46 +398,60 @@ export function SubTaskDetailsDialog({
                       </SelectContent>
                     </Select>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Deadline *
-                    </Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700",
-                            !detailsFormData.deadline && "text-gray-500 dark:text-gray-400",
-                            isLoading && "opacity-50 cursor-not-allowed"
-                          )}
-                          disabled={isLoading}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {detailsFormData.deadline ? format(detailsFormData.deadline, "PPP") : "Select deadline *"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-                        <Calendar
-                          mode="single"
-                          selected={detailsFormData.deadline}
-                          onSelect={(date) => setDetailsFormData(prev => ({ ...prev, deadline: date }))}
-                          disabled={(date) => {
-                            const today = new Date();
-                            const maxDate = getMaxDate();
-                            if (date < today) return true;
-                            if (maxDate && date > maxDate) return true;
-                            return false;
-                          }}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
                 </div>
 
-                <div className="flex gap-3 pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Description
+                  </Label>
+                  <Textarea
+                    id="edit-description"
+                    value={detailsFormData.description}
+                    onChange={(e) => setDetailsFormData(prev => ({ ...prev, description: e.target.value }))}
+                    className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 min-h-[100px] resize-none"
+                    disabled={isLoading}
+                    placeholder="Describe the subtask requirements and objectives..."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Deadline *
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700",
+                          !detailsFormData.deadline && "text-gray-500 dark:text-gray-400",
+                          isLoading && "opacity-50 cursor-not-allowed"
+                        )}
+                        disabled={isLoading}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {detailsFormData.deadline ? format(detailsFormData.deadline, "PPP") : "Select deadline *"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                      <Calendar
+                        mode="single"
+                        selected={detailsFormData.deadline}
+                        onSelect={(date) => setDetailsFormData(prev => ({ ...prev, deadline: date }))}
+                        disabled={(date) => {
+                          const today = new Date();
+                          const maxDate = getMaxDate();
+                          if (date < today) return true;
+                          if (maxDate && date > maxDate) return true;
+                          return false;
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                   <Button
                     type="button"
                     variant="outline"
@@ -454,27 +480,30 @@ export function SubTaskDetailsDialog({
             ) : (
               /* View/Status Update Mode */
               <>
-                {/* Subtask Info */}
-                <div className="space-y-4">
+                {/* Subtask Info Card */}
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 space-y-4">
                   <div>
                     <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Title</Label>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">{subTask.title}</p>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-1">{subTask.title}</h3>
                   </div>
 
                   {subTask.description && (
                     <div>
                       <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Description</Label>
-                      <p className="text-gray-600 dark:text-gray-400 mt-1">{subTask.description}</p>
+                      <p className="text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">{subTask.description}</p>
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                     <div>
                       <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Assigned to</Label>
                       <div className="flex items-center gap-2 mt-1">
                         <User className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-900 dark:text-white">
+                        <span className="text-gray-900 dark:text-white font-medium">
                           {subTask.assignedUserName || 'Unassigned'}
+                          {subTask.assignedUserName === currentUserId && (
+                            <span className="text-[#008080] ml-1">(You)</span>
+                          )}
                         </span>
                       </div>
                     </div>
@@ -484,7 +513,7 @@ export function SubTaskDetailsDialog({
                         <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Deadline</Label>
                         <div className="flex items-center gap-2 mt-1">
                           <CalendarIcon2 className="h-4 w-4 text-gray-400" />
-                          <span className="text-gray-900 dark:text-white">
+                          <span className="text-gray-900 dark:text-white font-medium">
                             {format(new Date(subTask.deadline), 'PPP')}
                           </span>
                         </div>
@@ -495,7 +524,7 @@ export function SubTaskDetailsDialog({
                       <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Created</Label>
                       <div className="flex items-center gap-2 mt-1">
                         <Clock className="h-4 w-4 text-gray-400" />
-                        <span className="text-gray-900 dark:text-white">
+                        <span className="text-gray-900 dark:text-white font-medium">
                           {format(new Date(subTask.createdAt), 'PPP')}
                         </span>
                       </div>
@@ -504,66 +533,70 @@ export function SubTaskDetailsDialog({
                 </div>
 
                 {/* Status and Note Form */}
-                <form onSubmit={handleStatusSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Status</Label>
-                    {editMode === 'status' ? (
-                      <Select
-                        value={statusFormData.status}
-                        onValueChange={(value) => 
-                          setStatusFormData(prev => ({ ...prev, status: value as 'pending' | 'in_progress' | 'completed' }))
-                        }
-                      >
-                        <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="in_progress">In Progress</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <Badge 
-                        variant="outline" 
-                        className={`w-fit ${getStatusColor(subTask.status)}`}
-                      >
-                        {getStatusLabel(subTask.status)}
-                      </Badge>
-                    )}
-                  </div>
+                <form onSubmit={handleStatusSubmit} className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Status</Label>
+                      {editMode === 'status' ? (
+                        <Select
+                          value={statusFormData.status}
+                          onValueChange={(value) => 
+                            setStatusFormData(prev => ({ ...prev, status: value as 'pending' | 'in_progress' | 'completed' }))
+                          }
+                        >
+                          <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="in_progress">In Progress</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Badge 
+                            variant="outline" 
+                            className={`${getStatusColor(subTask.status)} border text-sm px-3 py-1`}
+                          >
+                            {getStatusLabel(subTask.status)}
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Notes {editMode === 'status' && <span className="text-gray-500">(Optional)</span>}
-                    </Label>
-                    {editMode === 'status' ? (
-                      <Textarea
-                        placeholder="Add notes about your progress, challenges, or updates..."
-                        value={statusFormData.note}
-                        onChange={(e) => setStatusFormData(prev => ({ ...prev, note: e.target.value }))}
-                        className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] min-h-[100px] resize-none"
-                        disabled={isLoading}
-                      />
-                    ) : (
-                      <div className="min-h-[100px] p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md">
-                        {subTask.note ? (
-                          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{subTask.note}</p>
-                        ) : (
-                          <p className="text-gray-500 dark:text-gray-500 italic">No notes added yet.</p>
-                        )}
-                      </div>
-                    )}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Progress Notes {editMode === 'status' && <span className="text-gray-500">(Optional)</span>}
+                      </Label>
+                      {editMode === 'status' ? (
+                        <Textarea
+                          placeholder="Add notes about your progress, challenges, or updates..."
+                          value={statusFormData.note}
+                          onChange={(e) => setStatusFormData(prev => ({ ...prev, note: e.target.value }))}
+                          className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] min-h-[120px] resize-none"
+                          disabled={isLoading}
+                        />
+                      ) : (
+                        <div className="min-h-[120px] p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md">
+                          {subTask.note ? (
+                            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{subTask.note}</p>
+                          ) : (
+                            <p className="text-gray-500 dark:text-gray-500 italic">No progress notes added yet.</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex gap-3 pt-4">
+                  <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                     {editMode === 'view' ? (
                       <>
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={() => setIsOpen(false)}
+                          onClick={() => handleDialogClose(false)}
                           className="flex-1"
                           disabled={isDeleting}
                         >
@@ -578,7 +611,7 @@ export function SubTaskDetailsDialog({
                               disabled={isDeleting}
                             >
                               <Edit3 className="h-4 w-4 mr-2" />
-                              Update
+                              Update Status
                             </Button>
                           )}
                           {canEditDetails && (

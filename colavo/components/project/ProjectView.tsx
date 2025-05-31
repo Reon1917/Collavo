@@ -23,7 +23,7 @@ import {
 import { AddMemberForm } from '@/components/project/AddMemberForm';
 import { CreateTaskForm } from '@/components/project/CreateTaskForm';
 import { toast } from 'sonner';
-import { formatDistanceToNow, format } from 'date-fns';
+import { formatDistanceToNow, format, isAfter } from 'date-fns';
 import { formatInitials } from '@/utils/format';
 
 interface ProjectViewProps {
@@ -507,59 +507,112 @@ export function ProjectView({ projectId }: ProjectViewProps) {
 function TaskCard({ task }: { task: Task }) {
   const getImportanceColor = (level: string) => {
     switch (level) {
-      case 'critical': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-      case 'high': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+      case 'critical': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800';
+      case 'high': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400 border-orange-200 dark:border-orange-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800';
+      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400 border-gray-200 dark:border-gray-700';
     }
   };
 
   const completedSubTasks = task.subTasks.filter(st => st.status === 'completed').length;
   const totalSubTasks = task.subTasks.length;
+  const progress = totalSubTasks > 0 ? (completedSubTasks / totalSubTasks) * 100 : 0;
 
   return (
-    <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
-      <CardHeader className="pb-3">
+    <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 hover:shadow-lg transition-shadow duration-200">
+      <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            <div className="flex items-center gap-2 mb-3">
+              <Badge 
+                variant="outline" 
+                className={`text-xs font-medium border ${getImportanceColor(task.importanceLevel)}`}
+              >
+                {task.importanceLevel.charAt(0).toUpperCase() + task.importanceLevel.slice(1)}
+              </Badge>
+            </div>
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
               {task.title}
             </CardTitle>
             {task.description && (
-              <CardDescription className="text-gray-600 dark:text-gray-400">
+              <CardDescription className="text-gray-600 dark:text-gray-400 line-clamp-2">
                 {task.description}
               </CardDescription>
             )}
           </div>
-          <Badge className={getImportanceColor(task.importanceLevel)}>
-            {task.importanceLevel}
-          </Badge>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600 dark:text-gray-400">Progress</span>
-            <span className="font-medium text-gray-900 dark:text-white">
-              {completedSubTasks}/{totalSubTasks} sub-tasks completed
-            </span>
-          </div>
-          
+      <CardContent className="pt-0">
+        <div className="space-y-4">
+          {/* Progress Section */}
           {totalSubTasks > 0 && (
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-              <div 
-                className="bg-[#008080] h-2 rounded-full transition-all duration-300" 
-                style={{ width: `${(completedSubTasks / totalSubTasks) * 100}%` }}
-              />
+            <div>
+              <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+                <span>Progress</span>
+                <span>{Math.round(progress)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div 
+                  className="bg-[#008080] h-2 rounded-full transition-all duration-300" 
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                {completedSubTasks} of {totalSubTasks} subtasks completed
+              </p>
             </div>
           )}
 
-          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-            <span>Created by {task.creatorName}</span>
-            {task.deadline && (
-              <span>Due {formatDistanceToNow(new Date(task.deadline), { addSuffix: true })}</span>
-            )}
+          {/* Subtasks Preview */}
+          {totalSubTasks > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white">Recent Subtasks</h4>
+              <div className="space-y-2">
+                {task.subTasks.slice(0, 2).map((subtask) => (
+                  <div key={subtask.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
+                    <span className="text-sm text-gray-700 dark:text-gray-300 truncate flex-1">
+                      {subtask.title}
+                    </span>
+                    <Badge 
+                      variant="secondary" 
+                      className={`text-xs ml-2 ${
+                        subtask.status === 'completed' 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                          : subtask.status === 'in_progress'
+                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+                          : 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
+                      }`}
+                    >
+                      {subtask.status.replace('_', ' ')}
+                    </Badge>
+                  </div>
+                ))}
+                {totalSubTasks > 2 && (
+                  <p className="text-xs text-gray-500 dark:text-gray-500 text-center">
+                    +{totalSubTasks - 2} more subtasks
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Task Metadata */}
+          <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
+              <div className="flex items-center gap-2">
+                <User className="h-3 w-3" />
+                <span>Created by {task.creatorName}</span>
+              </div>
+              {task.deadline && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-3 w-3" />
+                  <span className={isAfter(new Date(), new Date(task.deadline)) ? 'text-red-500' : ''}>
+                    Due {formatDistanceToNow(new Date(task.deadline), { addSuffix: true })}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>

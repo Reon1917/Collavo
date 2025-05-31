@@ -518,12 +518,12 @@ function TaskCard({ task, project, onUpdate }: {
 
           {/* Sub-tasks preview */}
           {visibleSubTasks.length > 0 ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h4 className="text-sm font-medium text-gray-900 dark:text-white">
                 Subtasks {!canViewAllTasks && '(Assigned to You)'}
               </h4>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {visibleSubTasks.slice(0, 3).map((subtask) => (
+              <div className="space-y-3 max-h-48 overflow-y-auto">
+                {visibleSubTasks.slice(0, 4).map((subtask) => (
                   <SubTaskItem 
                     key={subtask.id} 
                     subtask={subtask} 
@@ -532,10 +532,12 @@ function TaskCard({ task, project, onUpdate }: {
                     onUpdate={onUpdate}
                   />
                 ))}
-                {visibleSubTasks.length > 3 && (
-                  <p className="text-xs text-gray-500 dark:text-gray-500 text-center py-1">
-                    +{visibleSubTasks.length - 3} more subtasks
-                  </p>
+                {visibleSubTasks.length > 4 && (
+                  <div className="text-center py-2 border-t border-gray-200 dark:border-gray-700">
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                      +{visibleSubTasks.length - 4} more subtasks
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
@@ -606,7 +608,7 @@ function SubTaskItem({
   project: Project;
   onUpdate: () => void;
 }) {
-  const [showDetails, setShowDetails] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   // Check if user can update this subtask
   const canUpdateSubtask = subtask.assignedId === project.currentUserId || 
@@ -621,54 +623,86 @@ function SubTaskItem({
     }
   };
 
+  const handleSubTaskUpdated = () => {
+    onUpdate(); // Call parent update
+  };
+
+  const handleOpenDialog = () => {
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+  };
+
   return (
     <>
       <div 
-        className="flex items-center justify-between p-2 rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-        onClick={() => setShowDetails(true)}
+        className="flex items-start justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors duration-200 min-h-[80px]"
+        onClick={handleOpenDialog}
       >
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-            {subtask.title}
-          </p>
-          <div className="flex items-center gap-2 mt-1">
+        <div className="flex-1 min-w-0 space-y-2">
+          <div className="flex items-start justify-between">
+            <p className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 pr-2">
+              {subtask.title}
+            </p>
             <Badge 
               variant="secondary" 
-              className={`text-xs ${getStatusColor(subtask.status)}`}
+              className={`text-xs flex-shrink-0 ${getStatusColor(subtask.status)}`}
             >
               {subtask.status.replace('_', ' ')}
             </Badge>
-            {subtask.assignedUserName && (
-              <span className="text-xs text-gray-500 dark:text-gray-500">
-                Assigned to {subtask.assignedUserName === project.currentUserId ? 'You' : subtask.assignedUserName}
-              </span>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {subtask.assignedUserName && (
+                <div className="flex items-center gap-1">
+                  <User className="h-3 w-3 text-gray-400" />
+                  <span className="text-xs text-gray-500 dark:text-gray-500">
+                    {subtask.assignedUserName === project.currentUserId ? 'You' : subtask.assignedUserName}
+                  </span>
+                </div>
+              )}
+              {subtask.deadline && (
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3 text-gray-400" />
+                  <span className="text-xs text-gray-500 dark:text-gray-500">
+                    Due {formatDistanceToNow(new Date(subtask.deadline), { addSuffix: true })}
+                  </span>
+                </div>
+              )}
+            </div>
+            
+            {canUpdateSubtask && (
+              <Badge variant="outline" className="text-xs">
+                Can Edit
+              </Badge>
             )}
           </div>
+          
+          {subtask.description && (
+            <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+              {subtask.description}
+            </p>
+          )}
         </div>
-        {canUpdateSubtask && (
-          <div className="ml-2">
-            <Badge variant="outline" className="text-xs">
-              Can Edit
-            </Badge>
-          </div>
-        )}
       </div>
 
-      {/* Subtask Details Dialog */}
-      {showDetails && (
-        <SubTaskDetailsDialog
-          subTask={subtask}
-          currentUserId={project.currentUserId}
-          isProjectLeader={project.isLeader}
-          projectId={project.id}
-          mainTaskId={task.id}
-          mainTaskDeadline={task.deadline}
-          projectDeadline={project.deadline}
-          members={project.members}
-          onSubTaskUpdated={onUpdate}
-          trigger={null}
-        />
-      )}
+      {/* Subtask Details Dialog - Always rendered, controlled by isOpen prop */}
+      <SubTaskDetailsDialog
+        subTask={subtask}
+        currentUserId={project.currentUserId}
+        isProjectLeader={project.isLeader}
+        projectId={project.id}
+        mainTaskId={task.id}
+        mainTaskDeadline={task.deadline}
+        projectDeadline={project.deadline}
+        members={project.members}
+        onSubTaskUpdated={handleSubTaskUpdated}
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+      />
     </>
   );
-} 
+}
