@@ -110,7 +110,7 @@ export async function GET(
 
     return NextResponse.json(taskSubTasks);
 
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -243,7 +243,7 @@ export async function POST(
       assignedUserImage: assignedUser?.image || null
     }, { status: 201 });
 
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

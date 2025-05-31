@@ -16,7 +16,7 @@ export function TaskStatusUpdate({ task, currentUserId, onUpdate }: TaskStatusUp
   const [note, setNote] = useState(task.notes || "");
   const [status, setStatus] = useState<TaskStatus>(task.status);
   const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [_isLoading, setIsLoading] = useState(false);
 
   const isAssigned = Array.isArray(task.assignedTo)
     ? task.assignedTo.includes(currentUserId)
@@ -35,13 +35,13 @@ export function TaskStatusUpdate({ task, currentUserId, onUpdate }: TaskStatusUp
       setIsLoading(true);
       // TODO: Replace with actual API call to update task status
       // await updateTaskStatus(task.id, newStatus, note.trim());
-      console.log('Updating task status:', { taskId: task.id, status: newStatus, note: note.trim() });
+      //console.log('Updating task status:', { taskId: task.id, status: newStatus, note: note.trim() });
       
       setStatus(newStatus);
       if (onUpdate) {
         onUpdate();
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to update task status');
     } finally {
       setIsLoading(false);
@@ -57,13 +57,13 @@ export function TaskStatusUpdate({ task, currentUserId, onUpdate }: TaskStatusUp
       setIsLoading(true);
       // TODO: Replace with actual API call to update task notes
       // await updateTaskNotes(task.id, note.trim());
-      console.log('Updating task notes:', { taskId: task.id, notes: note.trim() });
+      //console.log('Updating task notes:', { taskId: task.id, notes: note.trim() });
       
       setIsEditing(false);
       if (onUpdate) {
         onUpdate();
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to update task status');
     } finally {
       setIsLoading(false);

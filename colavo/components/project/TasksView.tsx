@@ -3,32 +3,28 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Progress } from '@/components/ui/progress';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Calendar, 
   User, 
-  FileText,
-  Search,
-  Loader2,
+  Plus, 
+  Search, 
+  FileText, 
   AlertCircle,
   MoreVertical,
   Edit,
   Trash2,
-  Eye,
-  Plus
+  Loader2
 } from 'lucide-react';
-import { CreateTaskForm } from '@/components/project/CreateTaskForm';
-import { CreateSubTaskForm } from '@/components/project/CreateSubTaskForm';
-import { SubTaskDetailsDialog } from '@/components/project/SubTaskDetailsDialog';
-import { EditTaskDialog } from '@/components/project/EditTaskDialog';
+import { formatDistanceToNow, isAfter } from 'date-fns';
+import { CreateTaskForm } from './CreateTaskForm';
+import { CreateSubTaskForm } from './CreateSubTaskForm';
+import { EditTaskDialog } from './EditTaskDialog';
+import { SubTaskDetailsDialog } from './SubTaskDetailsDialog';
 import { toast } from 'sonner';
-import { formatDistanceToNow, format, isAfter } from 'date-fns';
-import { formatInitials } from '@/utils/format';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
 
 interface TasksViewProps {
   projectId: string;
@@ -337,7 +333,7 @@ export function TasksView({ projectId }: TasksViewProps) {
     return (
       <div className="text-center py-12">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Project not found</h2>
-        <p className="text-gray-600 dark:text-gray-400">Unable to load project details or you don't have access to this project.</p>
+        <p className="text-gray-600 dark:text-gray-400">Unable to load project details or you don&apos;t have access to this project.</p>
       </div>
     );
   }
@@ -345,7 +341,8 @@ export function TasksView({ projectId }: TasksViewProps) {
   // Role-based permission checks
   const canCreateTasks = project.userPermissions.includes('createTask');
   const canViewAllTasks = project.isLeader || project.userPermissions.includes('viewFiles');
-  const canUpdateTasks = project.isLeader || project.userPermissions.includes('updateTask');
+  //const _canUpdateTasks = project.isLeader || project.userPermissions.includes('updateTask');
+  //const _canDeleteTasks = project.isLeader || project.userPermissions.includes('deleteTask');
 
   // Get user's role display
   const getUserRoleInfo = () => {
@@ -549,7 +546,7 @@ function TaskCard({
   const totalSubTasks = visibleSubTasks.length;
   const completedSubTasks = visibleSubTasks.filter(st => st.status === 'completed').length;
   const progress = totalSubTasks > 0 ? (completedSubTasks / totalSubTasks) * 100 : 0;
-
+/*
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
@@ -565,7 +562,7 @@ function TaskCard({
       default: return 'Pending';
     }
   };
-
+*/
   const handleEditTask = () => {
     setShowEditDialog(true);
   };
@@ -595,11 +592,11 @@ function TaskCard({
   const handleTaskUpdatedCallback = (updatedTask: Partial<Task> & { id: string }) => {
     onTaskUpdated(updatedTask);
   };
-
+/*
   const handleSubTaskCreatedCallback = (newSubTask: SubTask) => {
     onSubTaskCreated(task.id, newSubTask);
   };
-
+*/
   // Permission checks
   const canModifyTask = project.isLeader || project.userPermissions.includes('updateTask') || task.createdBy === project.currentUserId;
   const canCreateSubtasks = project.isLeader || project.userPermissions.includes('createTask');
@@ -724,7 +721,11 @@ function TaskCard({
                   mainTaskId={task.id}
                   mainTaskDeadline={task.deadline}
                   projectDeadline={project.deadline}
-                  onSubTaskCreated={handleSubTaskCreatedCallback}
+                  onSubTaskCreated={() => {
+                    // The CreateSubTaskForm doesn't provide the created subtask data
+                    // So we need to refresh the entire task list
+                    window.location.reload();
+                  }}
                   members={project.members}
                 />
               )}
@@ -801,11 +802,11 @@ function SubTaskItem({
   const handleOpenDialog = () => {
     setIsDialogOpen(true);
   };
-
+/*
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
   };
-
+*/  
   return (
     <>
       <div 

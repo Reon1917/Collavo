@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { projects, members, permissions, mainTasks, subTasks, user } from '@/db/schema';
+import { mainTasks, subTasks, user } from '@/db/schema';
 import { createId } from '@paralleldrive/cuid2';
-import { eq, and, or } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { requireProjectAccess, hasPermission } from '@/lib/auth-helpers';
 
 // GET /api/projects/[id]/tasks - List project main tasks
@@ -146,7 +146,6 @@ export async function GET(
       }
     }
     
-    console.error('Tasks GET error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -265,7 +264,6 @@ export async function POST(
       }
     }
     
-    console.error('Tasks POST error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

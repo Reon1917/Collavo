@@ -55,8 +55,8 @@ export default function SignupPage() {
         await refetch();
         router.push('/dashboard');
       }
-    } catch (error) {
-      toast.error('An error occurred during registration');
+    } catch {
+      toast.error('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -69,8 +69,8 @@ export default function SignupPage() {
          provider: 'google',
          callbackURL: '/dashboard',
        });
-    } catch (error) {
-      toast.error('An error occurred during Google signup');
+    } catch {
+      toast.error('Google sign-up failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

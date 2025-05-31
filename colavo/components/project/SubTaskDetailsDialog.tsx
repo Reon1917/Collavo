@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -179,7 +179,7 @@ export function SubTaskDetailsDialog({
       toast.success('Subtask updated successfully!');
       setEditMode('view');
       onSubTaskUpdated?.({ id: subTask.id, status: statusFormData.status, note: statusFormData.note.trim() || null });
-    } catch (error) {
+    } catch {
       toast.error('Failed to update subtask');
     } finally {
       setIsLoading(false);
@@ -244,7 +244,7 @@ export function SubTaskDetailsDialog({
       toast.success('Subtask details updated successfully!');
       setEditMode('view');
       onSubTaskUpdated?.({ id: subTask.id, title: detailsFormData.title.trim(), description: detailsFormData.description.trim() || null, assignedId: detailsFormData.assignedId, deadline: detailsFormData.deadline.toISOString() });
-    } catch (error) {
+    } catch {
       toast.error('Failed to update subtask details');
     } finally {
       setIsLoading(false);
@@ -286,7 +286,7 @@ export function SubTaskDetailsDialog({
       setShowDeleteDialog(false);
       handleDialogClose(false);
       onSubTaskDeleted?.(subTask.id);
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete subtask');
     } finally {
       setIsDeleting(false);

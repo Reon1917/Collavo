@@ -10,12 +10,12 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { toast } from 'sonner';
-import { useAuth } from '@/providers/auth-provider';
+//import { useAuth } from '@/providers/auth-provider';
 
 export default function LoginPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { refetch } = useAuth();
+  //const { refetch: _refetch } = useAuth();
   const callbackUrl = searchParams?.get('callbackUrl') || '/dashboard';
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -32,13 +32,13 @@ export default function LoginPage() {
       });
 
       if (res.error) {
-        toast.error(res.error.message || 'Login failed');
+        toast.error('Invalid credentials. Please try again.');
       } else {
         toast.success('Login successful!');
         router.push('/dashboard');
       }
-    } catch (error) {
-      toast.error('An error occurred during login');
+    } catch {
+      toast.error('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -50,9 +50,8 @@ export default function LoginPage() {
         provider: 'google',
         callbackURL: callbackUrl,
       });
-    } catch (error) {
+    } catch {
       toast.error('Google sign-in failed. Please try again.');
-      console.error('Google sign-in error:', error);
     }
   };
 

@@ -6,6 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChatButton } from '@/components/project/chat-button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { notFound } from 'next/navigation';
 
 interface Project {
   id: string;
@@ -32,10 +33,10 @@ function ProjectHeader({ projectId }: { projectId: string }) {
           const projectData = await response.json();
           setProject(projectData);
         }
-      } catch (error) {
-        // Error fetching project data
-      } finally {
+      } catch {
         setIsLoading(false);
+        // User doesn't have access to this project
+        notFound();
       }
     };
 

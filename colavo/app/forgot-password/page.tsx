@@ -40,9 +40,9 @@ export default function ForgotPasswordPage() {
       } else {
         toast.error(data.error || 'An error occurred');
       }
-    } catch (error) {
+    } catch {
       setIsLoading(false);
-      toast.error('An error occurred. Please try again.');
+      toast.error('Failed to send reset email. Please try again.');
     }
   };
 

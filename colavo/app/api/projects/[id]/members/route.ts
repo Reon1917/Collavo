@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { projects, members, permissions, user } from '@/db/schema';
+import { members, permissions, user } from '@/db/schema';
 import { createId } from '@paralleldrive/cuid2';
 import { eq, and } from 'drizzle-orm';
 import { requireProjectAccess, hasPermission } from '@/lib/auth-helpers';
@@ -77,7 +77,6 @@ export async function GET(
       }
     }
     
-    console.error('Members GET error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -244,7 +243,6 @@ export async function POST(
       }
     }
     
-    console.error('Members POST error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

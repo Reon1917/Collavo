@@ -252,8 +252,6 @@ export function ProjectView({ projectId }: ProjectViewProps) {
   // Role-based permission checks
   const canAddMembers = project.userPermissions.includes('addMember');
   const canCreateTasks = project.userPermissions.includes('createTask');
-  const canEditProject = project.isLeader; // Only leaders can edit project details
-  const canDeleteProject = project.isLeader; // Only leaders can delete projects
   const canManagePermissions = project.isLeader; // Only leaders can manage member permissions
 
   // Get current user's role display
@@ -733,7 +731,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
               Delete Project
             </DialogTitle>
             <DialogDescription className="text-gray-600 dark:text-gray-400">
-              Are you sure you want to delete "{project?.name}"? This action cannot be undone and will permanently delete all project data, tasks, and member associations.
+              Are you sure you want to delete &quot;{project?.name}&quot;? This action cannot be undone and will permanently delete all project data, tasks, and member associations.
             </DialogDescription>
           </DialogHeader>
 

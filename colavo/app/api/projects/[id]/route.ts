@@ -108,7 +108,7 @@ export async function GET(
       }
     }
     
-    console.error('Project GET error:', error);
+    //console.error('Project GET error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -205,7 +205,7 @@ export async function PUT(
       }
     }
     
-    console.error('Project PUT error:', error);
+    //console.error('Project PUT error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -302,7 +302,7 @@ export async function PATCH(
       }
     }
     
-    console.error('Project PATCH error:', error);
+    //console.error('Project PATCH error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -353,7 +353,7 @@ export async function DELETE(
       }
     }
     
-    console.error('Project DELETE error:', error);
+    //console.error('Project DELETE error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

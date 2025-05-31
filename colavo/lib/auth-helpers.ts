@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { projects, members, permissions, user } from '@/db/schema';
+import { projects, members, permissions} from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 export interface ProjectAccess {
@@ -130,8 +130,8 @@ export async function checkProjectAccess(projectId: string, userId: string): Pro
       project: projectData
     };
 
-  } catch (error) {
-    console.error('Error checking project access:', error);
+  } catch {
+    //console.error('Error checking project access:', error);
     return {
       hasAccess: false,
       isLeader: false,

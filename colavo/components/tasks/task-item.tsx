@@ -48,7 +48,8 @@ interface TaskItemProps {
 }
 
 export function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
-  const getStatusColor = (status: string) => {
+  /*
+  const _getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
         return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
@@ -60,7 +61,7 @@ export function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
         return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
     }
   };
-
+*/
   const getImportanceColor = (importance: string) => {
     switch (importance) {
       case "critical":
@@ -74,7 +75,7 @@ export function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
     }
-  };
+  };  
 
   const getTaskProgress = () => {
     if (!task.subTasks || task.subTasks.length === 0) return 0;

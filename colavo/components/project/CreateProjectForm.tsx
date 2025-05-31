@@ -53,14 +53,13 @@ export function CreateProjectForm() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create project');
+        throw new Error('Failed to create project');
       }
 
       const project = await response.json();
       toast.success('Project created successfully!');
       router.push(`/project/${project.id}`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to create project');
     } finally {
       setIsLoading(false);

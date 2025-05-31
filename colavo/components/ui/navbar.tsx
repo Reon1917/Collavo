@@ -30,8 +30,8 @@ export function Navbar() {
       await refetch();
       router.push('/');
       toast.success('Logged out successfully');
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch {
+      //console.error('Logout error:', error);
       toast.error('Error logging out');
     }
   };

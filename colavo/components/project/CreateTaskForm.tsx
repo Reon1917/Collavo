@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -124,7 +124,7 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger, pro
         const errorData = await response.json();
         toast.error(errorData.error || 'Failed to create task');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to create task');
     } finally {
       setIsLoading(false);
@@ -244,7 +244,7 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger, pro
       };
       
       handleFinish(completeTask);
-    } catch (error) {
+    } catch  {
       toast.error('Failed to create sub-tasks');
     } finally {
       setIsLoading(false);
@@ -278,13 +278,6 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger, pro
       onTaskCreated?.({ ...createdMainTask, subTasks: [] });
     }
   };
-
-  const defaultTrigger = (
-    <>
-      <Plus className="h-4 w-4 mr-2" />
-      Create Task
-    </>
-  );
 
   const getMaxDate = () => {
     return projectDeadline || undefined;

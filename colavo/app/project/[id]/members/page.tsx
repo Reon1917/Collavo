@@ -57,7 +57,7 @@ export default function MembersPage({ params }: MembersPageProps) {
 
       const membersData = await response.json();
       setMembers(membersData);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load project members');
     } finally {
       setIsLoading(false);
@@ -81,8 +81,7 @@ export default function MembersPage({ params }: MembersPageProps) {
         userPermissions: projectData.userPermissions || [],
         isLeader: projectData.isLeader || false
       });
-    } catch (error) {
-      console.error('Failed to load project permissions:', error);
+    } catch {
       // Don't show error toast for permissions, just fail silently
     }
   }, [projectId]);

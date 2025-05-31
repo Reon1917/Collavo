@@ -135,7 +135,7 @@ export function EditTaskDialog({
         importanceLevel: formData.importanceLevel,
         deadline: formData.deadline?.toISOString()
       });
-    } catch (error) {
+    } catch  {
       toast.error('Failed to update task');
     } finally {
       setIsLoading(false);

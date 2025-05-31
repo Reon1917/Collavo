@@ -112,7 +112,7 @@ export function CreateSubTaskForm({
 
       toast.success('Subtask created successfully!');
       handleFinish();
-    } catch (error) {
+    } catch {
       toast.error('Failed to create subtask');
     } finally {
       setIsLoading(false);

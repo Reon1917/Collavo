@@ -51,8 +51,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to add member');
+        throw new Error('Failed to add member');
       }
 
       const member = await response.json();
@@ -66,7 +65,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
 
       // Trigger refresh callback
       onMemberAdded?.();
-    } catch (error) {
+    } catch {
       toast.error('Failed to add member');
     } finally {
       setIsLoading(false);

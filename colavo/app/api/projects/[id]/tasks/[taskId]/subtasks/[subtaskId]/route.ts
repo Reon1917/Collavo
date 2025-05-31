@@ -1,30 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { projects, members, permissions, mainTasks, subTasks, user } from '@/db/schema';
+import { projects, mainTasks, subTasks, user } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { requireProjectAccess, hasPermission } from '@/lib/auth-helpers';
-
-// Helper function to check if user has permission
-async function checkPermission(userId: string, projectId: string, permission: string): Promise<boolean> {
-  // Check if user is project leader
-  const project = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
-  if (project[0]?.leaderId === userId) return true;
-
-  // Check member permissions
-  const memberPermission = await db
-    .select()
-    .from(members)
-    .innerJoin(permissions, eq(permissions.memberId, members.id))
-    .where(and(
-      eq(members.userId, userId),
-      eq(members.projectId, projectId),
-      eq(permissions.permission, permission as any),
-      eq(permissions.granted, true)
-    )).limit(1);
-
-  return memberPermission.length > 0;
-}
+import { requireProjectAccess } from '@/lib/auth-helpers';
 
 // PATCH /api/projects/[id]/tasks/[taskId]/subtasks/[subtaskId] - Update subtask
 export async function PATCH(
@@ -202,7 +181,6 @@ export async function PATCH(
       }
     }
     
-    console.error('Subtask PATCH error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -282,7 +260,7 @@ export async function DELETE(
       subtaskId: subtaskId 
     });
 
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

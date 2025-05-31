@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
       total
     });
 
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -200,14 +200,15 @@ export async function POST(request: NextRequest) {
         if (createdProject) {
           await db.delete(projects).where(eq(projects.id, projectId));
         }
-      } catch (cleanupError) {
-        // Log cleanup error but don't throw
-      }
+              } catch (_cleanupError) {
+                // Log cleanup error but don't throw
+                throw _cleanupError;
+              }
 
       throw error; // Re-throw original error
     }
 
-  } catch (error) {
+  } catch  {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

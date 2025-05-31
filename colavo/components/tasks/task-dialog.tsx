@@ -73,7 +73,7 @@ export function TaskDialog({ projectId, open = false, onOpenChange, onSubmit }: 
         const errorData = await response.json();
         toast.error(errorData.error || 'Failed to create task');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to create task');
     } finally {
       setIsLoading(false);

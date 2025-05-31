@@ -192,7 +192,7 @@ export async function PATCH(
 
     return NextResponse.json(updatedTaskWithCreator[0]);
 
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -273,7 +273,7 @@ export async function DELETE(
       taskId: taskId 
     });
 
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
