@@ -23,10 +23,12 @@ import {
   Loader2,
   MoreVertical,
   Edit,
-  Trash2
+  Trash2,
+  Eye
 } from 'lucide-react';
 import { CreateTaskForm } from '@/components/project/CreateTaskForm';
 import { CreateSubTaskForm } from '@/components/project/CreateSubTaskForm';
+import { SubTaskDetailsDialog } from '@/components/project/SubTaskDetailsDialog';
 import { toast } from 'sonner';
 import { formatDistanceToNow, format, isAfter } from 'date-fns';
 import { formatInitials } from '@/utils/format';
@@ -73,6 +75,7 @@ interface Project {
   members: Member[];
   userPermissions: string[];
   isLeader: boolean;
+  currentUserId?: string;
 }
 
 interface Member {
@@ -136,14 +139,6 @@ export function TasksView({ projectId }: TasksViewProps) {
       case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800';
       case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400 border-gray-200 dark:border-gray-800';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed': return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'in_progress': return <PlayCircle className="h-4 w-4 text-blue-600" />;
-      default: return <Circle className="h-4 w-4 text-gray-400" />;
     }
   };
 
@@ -332,6 +327,8 @@ function TaskCard({ task, project, onUpdate }: {
   project: Project;
   onUpdate: () => void;
 }) {
+  const [isDeleting, setIsDeleting] = useState(false);
+  
   const progress = task.subTasks.length > 0 
     ? (task.subTasks.filter(st => st.status === 'completed').length / task.subTasks.length) * 100 
     : 0;
@@ -348,13 +345,56 @@ function TaskCard({ task, project, onUpdate }: {
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'in_progress': return <PlayCircle className="h-4 w-4 text-blue-600" />;
-      default: return <Circle className="h-4 w-4 text-gray-400" />;
+      case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
+      case 'in_progress': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
     }
   };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'completed': return 'Completed';
+      case 'in_progress': return 'In Progress';
+      default: return 'Pending';
+    }
+  };
+
+  const handleEditTask = () => {
+    // TODO: Implement task editing functionality
+    toast.info('Task editing functionality coming soon!');
+  };
+
+  const handleDeleteTask = async () => {
+    if (!window.confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      const response = await fetch(`/api/projects/${project.id}/tasks/${task.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete task');
+      }
+
+      toast.success('Task deleted successfully!');
+      onUpdate();
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to delete task');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Check if user can edit/delete tasks
+  const canModifyTask = project.isLeader || project.userPermissions.includes('updateTask') || task.createdBy === project.currentUserId;
 
   return (
     <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow duration-200">
@@ -385,18 +425,39 @@ function TaskCard({ task, project, onUpdate }: {
             )}
           </div>
           <DropdownMenu>
-            <DropdownMenuTrigger className="h-8 w-8 p-0 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center">
-              <MoreVertical className="h-4 w-4" />
+            <DropdownMenuTrigger 
+              className="h-8 w-8 p-0 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center"
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <MoreVertical className="h-4 w-4" />
+              )}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Task
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600">
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Task
-              </DropdownMenuItem>
+              {canModifyTask && (
+                <DropdownMenuItem onClick={handleEditTask}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Task
+                </DropdownMenuItem>
+              )}
+              {canModifyTask && (
+                <DropdownMenuItem 
+                  onClick={handleDeleteTask}
+                  className="text-red-600 focus:text-red-600"
+                  disabled={isDeleting}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Task
+                </DropdownMenuItem>
+              )}
+              {!canModifyTask && (
+                <DropdownMenuItem disabled>
+                  <Eye className="h-4 w-4 mr-2" />
+                  View Only
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -435,19 +496,40 @@ function TaskCard({ task, project, onUpdate }: {
             </div>
             <div className="space-y-2 max-h-32 overflow-y-auto">
               {task.subTasks.slice(0, 3).map((subTask) => (
-                <div key={subTask.id} className="flex items-center gap-2 text-sm">
-                  {getStatusIcon(subTask.status)}
-                  <span className={`flex-1 ${subTask.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-700 dark:text-gray-300'}`}>
-                    {subTask.title}
-                  </span>
-                  {subTask.assignedUserName && (
-                    <Avatar className="h-5 w-5">
-                      <AvatarFallback className="bg-[#008080] text-white text-xs">
-                        {formatInitials(subTask.assignedUserName)}
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                </div>
+                <SubTaskDetailsDialog
+                  key={subTask.id}
+                  subTask={subTask}
+                  currentUserId={project.currentUserId || ''}
+                  isProjectLeader={project.isLeader}
+                  projectId={project.id}
+                  mainTaskId={task.id}
+                  mainTaskDeadline={task.deadline}
+                  projectDeadline={project.deadline}
+                  members={project.members}
+                  onSubTaskUpdated={onUpdate}
+                  trigger={
+                    <div className="flex items-center justify-between gap-2 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-2 -m-2 rounded">
+                      <div className="flex items-center gap-2 flex-1">
+                        <span className={`flex-1 ${subTask.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-700 dark:text-gray-300'}`}>
+                          {subTask.title}
+                        </span>
+                        {subTask.assignedUserName && (
+                          <Avatar className="h-5 w-5">
+                            <AvatarFallback className="bg-[#008080] text-white text-xs">
+                              {formatInitials(subTask.assignedUserName)}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                      </div>
+                      <Badge 
+                        variant="outline" 
+                        className={`text-xs ${getStatusColor(subTask.status)}`}
+                      >
+                        {getStatusLabel(subTask.status)}
+                      </Badge>
+                    </div>
+                  }
+                />
               ))}
               {task.subTasks.length > 3 && (
                 <p className="text-xs text-gray-500 dark:text-gray-500">

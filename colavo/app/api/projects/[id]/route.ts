@@ -119,7 +119,8 @@ export async function GET(
       ...projectDetails[0],
       members: projectMembers,
       userPermissions,
-      isLeader: projectDetails[0].leaderId === session.user.id
+      isLeader: projectDetails[0].leaderId === session.user.id,
+      currentUserId: session.user.id
     });
 
   } catch (error) {

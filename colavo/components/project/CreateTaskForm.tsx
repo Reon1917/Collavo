@@ -23,12 +23,12 @@ interface CreateTaskFormProps {
 }
 
 interface Member {
+  id: string;
   userId: string;
+  role: 'leader' | 'member';
   userName: string;
   userEmail: string;
-  role: string;
-  joinedAt: string;
-  permissions: string[];
+  userImage: string | null;
 }
 
 interface MainTaskFormData {
