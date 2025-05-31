@@ -26,6 +26,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { CreateTaskForm } from '@/components/project/CreateTaskForm';
+import { CreateSubTaskForm } from '@/components/project/CreateSubTaskForm';
 import { toast } from 'sonner';
 import { formatDistanceToNow, format, isAfter } from 'date-fns';
 import { formatInitials } from '@/utils/format';
@@ -68,6 +69,7 @@ interface Project {
   id: string;
   name: string;
   description: string | null;
+  deadline: string | null;
   members: Member[];
   userPermissions: string[];
   isLeader: boolean;
@@ -416,11 +418,21 @@ function TaskCard({ task, project, onUpdate }: {
         )}
 
         {/* Sub-tasks preview */}
-        {task.subTasks.length > 0 && (
+        {task.subTasks.length > 0 ? (
           <div className="mb-4">
-            <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
-              Sub-tasks ({task.subTasks.length})
-            </h4>
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                Sub-tasks ({task.subTasks.length})
+              </h4>
+              <CreateSubTaskForm 
+                projectId={project.id}
+                mainTaskId={task.id}
+                mainTaskDeadline={task.deadline}
+                projectDeadline={project.deadline}
+                onSubTaskCreated={onUpdate}
+                members={project.members}
+              />
+            </div>
             <div className="space-y-2 max-h-32 overflow-y-auto">
               {task.subTasks.slice(0, 3).map((subTask) => (
                 <div key={subTask.id} className="flex items-center gap-2 text-sm">
@@ -443,6 +455,25 @@ function TaskCard({ task, project, onUpdate }: {
                 </p>
               )}
             </div>
+          </div>
+        ) : (
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                Sub-tasks (0)
+              </h4>
+              <CreateSubTaskForm 
+                projectId={project.id}
+                mainTaskId={task.id}
+                mainTaskDeadline={task.deadline}
+                projectDeadline={project.deadline}
+                onSubTaskCreated={onUpdate}
+                members={project.members}
+              />
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-500">
+              No subtasks yet. Add the first one to get started.
+            </p>
           </div>
         )}
 
