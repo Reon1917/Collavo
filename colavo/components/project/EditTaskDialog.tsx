@@ -78,6 +78,11 @@ export function EditTaskDialog({
       return;
     }
 
+    if (!formData.importanceLevel) {
+      toast.error('Please select an importance level');
+      return;
+    }
+
     if (!formData.deadline) {
       toast.error('Deadline is required for all tasks');
       return;
@@ -219,7 +224,7 @@ export function EditTaskDialog({
                   isLoading && "opacity-50 cursor-not-allowed"
                 )}
               >
-                <SelectValue />
+                <SelectValue placeholder="Select importance level" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="low">Low</SelectItem>
@@ -280,7 +285,7 @@ export function EditTaskDialog({
             </Button>
             <Button
               type="submit"
-              disabled={isLoading || !formData.title.trim() || !formData.deadline}
+              disabled={isLoading || !formData.title.trim() || !formData.importanceLevel || !formData.deadline}
               className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
             >
               {isLoading ? (

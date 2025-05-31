@@ -55,7 +55,7 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
   const [mainTaskData, setMainTaskData] = useState<MainTaskFormData>({
     title: '',
     description: '',
-    importanceLevel: 'medium',
+    importanceLevel: '' as any,
     deadline: undefined
   });
 
@@ -92,6 +92,11 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
     
     if (!mainTaskData.title.trim()) {
       toast.error('Task title is required');
+      return;
+    }
+
+    if (!mainTaskData.importanceLevel) {
+      toast.error('Please select an importance level');
       return;
     }
 
@@ -255,7 +260,7 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
     setMainTaskData({
       title: '',
       description: '',
-      importanceLevel: 'medium',
+      importanceLevel: '' as any,
       deadline: undefined
     });
     setSubTasks([{
@@ -371,7 +376,7 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
                     isLoading && "opacity-50 cursor-not-allowed"
                   )}
                 >
-                  <SelectValue />
+                  <SelectValue placeholder="Select importance level *" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Low</SelectItem>
@@ -432,7 +437,7 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
               </Button>
               <Button
                 type="submit"
-                disabled={isLoading || !mainTaskData.title.trim() || !mainTaskData.deadline}
+                disabled={isLoading || !mainTaskData.title.trim() || !mainTaskData.importanceLevel || !mainTaskData.deadline}
                 className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
               >
                 {isLoading ? (
