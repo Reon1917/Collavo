@@ -213,6 +213,103 @@ export async function PUT(
   }
 }
 
+// PATCH /api/projects/[id] - Update project (partial update)
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth.api.getSession({
+      headers: request.headers
+    });
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const { id: projectId } = await params;
+    
+    // Only project leaders can update project details
+    await requireLeaderRole(session.user.id, projectId);
+
+    const body = await request.json();
+    const { name, description, deadline } = body;
+
+    // Validate fields
+    if (name !== undefined) {
+      if (!name || typeof name !== 'string' || name.trim().length === 0) {
+        return NextResponse.json(
+          { error: 'Project name is required' },
+          { status: 400 }
+        );
+      }
+      if (name.length > 255) {
+        return NextResponse.json(
+          { error: 'Project name must be less than 255 characters' },
+          { status: 400 }
+        );
+      }
+    }
+
+    let deadlineDate = undefined;
+    if (deadline !== undefined) {
+      if (deadline === null) {
+        deadlineDate = null;
+      } else {
+        deadlineDate = new Date(deadline);
+        if (isNaN(deadlineDate.getTime())) {
+          return NextResponse.json(
+            { error: 'Invalid deadline format' },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
+    // Update project
+    const updateData: any = {
+      updatedAt: new Date()
+    };
+
+    if (name !== undefined) updateData.name = name.trim();
+    if (description !== undefined) updateData.description = description?.trim() || null;
+    if (deadline !== undefined) updateData.deadline = deadlineDate;
+
+    const updatedProject = await db
+      .update(projects)
+      .set(updateData)
+      .where(eq(projects.id, projectId))
+      .returning();
+
+    return NextResponse.json(updatedProject[0]);
+
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes('not found') || error.message.includes('access denied')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 404 }
+        );
+      }
+      if (error.message.includes('Leader role required')) {
+        return NextResponse.json(
+          { error: 'Only project leader can update project details' },
+          { status: 403 }
+        );
+      }
+    }
+    
+    console.error('Project PATCH error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
 // DELETE /api/projects/[id] - Delete project
 export async function DELETE(
   request: NextRequest,

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -24,6 +24,11 @@ interface Member {
   permissions: string[];
 }
 
+interface ProjectPermissions {
+  userPermissions: string[];
+  isLeader: boolean;
+}
+
 interface MembersPageProps {
   params: Promise<{ id: string }>;
 }
@@ -33,10 +38,11 @@ export default function MembersPage({ params }: MembersPageProps) {
   const { id: projectId } = use(params);
 
   const [members, setMembers] = useState<Member[]>([]);
+  const [permissions, setPermissions] = useState<ProjectPermissions>({ userPermissions: [], isLeader: false });
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch(`/api/projects/${projectId}/members`);
@@ -56,11 +62,34 @@ export default function MembersPage({ params }: MembersPageProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [projectId]);
+
+  const fetchProjectPermissions = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          toast.error('Project not found or access denied');
+          return;
+        }
+        throw new Error('Failed to fetch project permissions');
+      }
+
+      const projectData = await response.json();
+      setPermissions({
+        userPermissions: projectData.userPermissions || [],
+        isLeader: projectData.isLeader || false
+      });
+    } catch (error) {
+      console.error('Failed to load project permissions:', error);
+      // Don't show error toast for permissions, just fail silently
+    }
+  }, [projectId]);
 
   useEffect(() => {
-    fetchMembers();
-  }, [projectId, fetchMembers]);
+    Promise.all([fetchMembers(), fetchProjectPermissions()]);
+  }, [fetchMembers, fetchProjectPermissions]);
 
   const handleMemberAdded = () => {
     // Close dialog and refresh members list
@@ -76,6 +105,9 @@ export default function MembersPage({ params }: MembersPageProps) {
       .toUpperCase()
       .slice(0, 2);
   };
+
+  // Check if user can add members
+  const canAddMembers = permissions.isLeader || permissions.userPermissions.includes('addMember');
 
   if (isLoading) {
     return (
@@ -108,24 +140,26 @@ export default function MembersPage({ params }: MembersPageProps) {
             Manage team members and their roles in this project
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger className={cn(buttonVariants(), "flex items-center gap-2")}>
-            <UserPlus className="h-4 w-4" />
-            Invite Member
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Invite Team Member</DialogTitle>
-              <DialogDescription>
-                Add a new member to this project.
-              </DialogDescription>
-            </DialogHeader>
-            <AddMemberForm 
-              projectId={projectId} 
-              onMemberAdded={handleMemberAdded}
-            />
-          </DialogContent>
-        </Dialog>
+        {canAddMembers && (
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger className={cn(buttonVariants(), "flex items-center gap-2")}>
+              <UserPlus className="h-4 w-4" />
+              Invite Member
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Invite Team Member</DialogTitle>
+                <DialogDescription>
+                  Add a new member to this project.
+                </DialogDescription>
+              </DialogHeader>
+              <AddMemberForm 
+                projectId={projectId} 
+                onMemberAdded={handleMemberAdded}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       {members.length === 0 ? (
@@ -133,28 +167,33 @@ export default function MembersPage({ params }: MembersPageProps) {
           <CardHeader>
             <CardTitle>No members yet</CardTitle>
             <CardDescription>
-              Invite team members to collaborate on this project.
+              {canAddMembers 
+                ? "Invite team members to collaborate on this project."
+                : "This project doesn't have any members yet."
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger className={cn(buttonVariants(), "flex items-center gap-2")}>
-                <UserPlus className="h-4 w-4" />
-                Invite First Member
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Invite Team Member</DialogTitle>
-                  <DialogDescription>
-                    Add a new member to this project.
-                  </DialogDescription>
-                </DialogHeader>
-                <AddMemberForm 
-                  projectId={projectId} 
-                  onMemberAdded={handleMemberAdded}
-                />
-              </DialogContent>
-            </Dialog>
+            {canAddMembers && (
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger className={cn(buttonVariants(), "flex items-center gap-2")}>
+                  <UserPlus className="h-4 w-4" />
+                  Invite First Member
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Invite Team Member</DialogTitle>
+                    <DialogDescription>
+                      Add a new member to this project.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <AddMemberForm 
+                    projectId={projectId} 
+                    onMemberAdded={handleMemberAdded}
+                  />
+                </DialogContent>
+              </Dialog>
+            )}
           </CardContent>
         </Card>
       ) : (
