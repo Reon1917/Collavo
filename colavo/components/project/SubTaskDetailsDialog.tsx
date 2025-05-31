@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon, Loader2, User, Calendar as CalendarIcon2, Clock, Edit3, Eye, Settings, Trash2 } from 'lucide-react';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -67,6 +68,7 @@ export function SubTaskDetailsDialog({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editMode, setEditMode] = useState<'view' | 'status' | 'details'>('view');
   
   const [statusFormData, setStatusFormData] = useState({
@@ -241,10 +243,6 @@ export function SubTaskDetailsDialog({
   };
 
   const handleDeleteSubtask = async () => {
-    if (!window.confirm('Are you sure you want to delete this subtask? This action cannot be undone.')) {
-      return;
-    }
-
     setIsDeleting(true);
 
     try {
@@ -258,6 +256,7 @@ export function SubTaskDetailsDialog({
       }
 
       toast.success('Subtask deleted successfully!');
+      setShowDeleteDialog(false);
       setIsOpen(false);
       onSubTaskUpdated?.();
     } catch (error) {
@@ -283,369 +282,384 @@ export function SubTaskDetailsDialog({
   );
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger className="w-full text-left">
-        {trigger || defaultTrigger}
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-        <DialogHeader>
-          <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-2">
-            {editMode === 'status' ? (
-              <>
-                <Edit3 className="h-5 w-5 text-[#008080]" />
-                Update Status & Notes
-              </>
-            ) : editMode === 'details' ? (
-              <>
-                <Settings className="h-5 w-5 text-[#008080]" />
-                Edit Subtask Details
-              </>
-            ) : (
-              <>
-                <Eye className="h-5 w-5 text-[#008080]" />
-                Subtask Details
-              </>
-            )}
-          </DialogTitle>
-          <DialogDescription className="text-gray-600 dark:text-gray-400">
-            {editMode === 'status' 
-              ? 'Update the status and add notes about your progress.'
-              : editMode === 'details'
-              ? 'Edit subtask details including title, deadline, and assignment.'
-              : 'View subtask details and current status.'
-            }
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-6">
-          {editMode === 'details' ? (
-            /* Details Edit Form */
-            <form onSubmit={handleDetailsSubmit} className="space-y-4">
-              {(mainTaskDeadline || projectDeadline) && (
-                <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                  <CalendarIcon className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm text-blue-800 dark:text-blue-200">
-                    {mainTaskDeadline && (
-                      <p>Main task deadline: {format(new Date(mainTaskDeadline), "PPP")}</p>
-                    )}
-                    {projectDeadline && (
-                      <p>Project deadline: {format(new Date(projectDeadline), "PPP")}</p>
-                    )}
-                    <p className="font-medium">Subtask deadline cannot exceed either deadline.</p>
-                  </div>
-                </div>
+    <>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger className="w-full text-left">
+          {trigger || defaultTrigger}
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-2">
+              {editMode === 'status' ? (
+                <>
+                  <Edit3 className="h-5 w-5 text-[#008080]" />
+                  Update Status & Notes
+                </>
+              ) : editMode === 'details' ? (
+                <>
+                  <Settings className="h-5 w-5 text-[#008080]" />
+                  Edit Subtask Details
+                </>
+              ) : (
+                <>
+                  <Eye className="h-5 w-5 text-[#008080]" />
+                  Subtask Details
+                </>
               )}
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-400">
+              {editMode === 'status' 
+                ? 'Update the status and add notes about your progress.'
+                : editMode === 'details'
+                ? 'Edit subtask details including title, deadline, and assignment.'
+                : 'View subtask details and current status.'
+              }
+            </DialogDescription>
+          </DialogHeader>
 
-              <div className="space-y-2">
-                <Label htmlFor="edit-title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Title *
-                </Label>
-                <Input
-                  id="edit-title"
-                  value={detailsFormData.title}
-                  onChange={(e) => setDetailsFormData(prev => ({ ...prev, title: e.target.value }))}
-                  className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700"
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="edit-description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Description
-                </Label>
-                <Textarea
-                  id="edit-description"
-                  value={detailsFormData.description}
-                  onChange={(e) => setDetailsFormData(prev => ({ ...prev, description: e.target.value }))}
-                  className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 min-h-[80px] resize-none"
-                  disabled={isLoading}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Assign to *
-                  </Label>
-                  <Select
-                    value={detailsFormData.assignedId}
-                    onValueChange={(value) => setDetailsFormData(prev => ({ ...prev, assignedId: value }))}
-                  >
-                    <SelectTrigger 
-                      className={cn(
-                        "bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700",
-                        isLoading && "opacity-50 cursor-not-allowed"
+          <div className="space-y-6">
+            {editMode === 'details' ? (
+              /* Details Edit Form */
+              <form onSubmit={handleDetailsSubmit} className="space-y-4">
+                {(mainTaskDeadline || projectDeadline) && (
+                  <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <CalendarIcon className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-blue-800 dark:text-blue-200">
+                      {mainTaskDeadline && (
+                        <p>Main task deadline: {format(new Date(mainTaskDeadline), "PPP")}</p>
                       )}
-                    >
-                      <SelectValue placeholder="Select member *" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {members.map((member) => (
-                        <SelectItem key={member.userId} value={member.userId}>
-                          {member.userName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Deadline *
-                  </Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700",
-                          !detailsFormData.deadline && "text-gray-500 dark:text-gray-400",
-                          isLoading && "opacity-50 cursor-not-allowed"
-                        )}
-                        disabled={isLoading}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {detailsFormData.deadline ? format(detailsFormData.deadline, "PPP") : "Select deadline *"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-                      <Calendar
-                        mode="single"
-                        selected={detailsFormData.deadline}
-                        onSelect={(date) => setDetailsFormData(prev => ({ ...prev, deadline: date }))}
-                        disabled={(date) => {
-                          const today = new Date();
-                          const maxDate = getMaxDate();
-                          if (date < today) return true;
-                          if (maxDate && date > maxDate) return true;
-                          return false;
-                        }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleDetailsCancel}
-                  disabled={isLoading}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    'Save Changes'
-                  )}
-                </Button>
-              </div>
-            </form>
-          ) : (
-            /* View/Status Update Mode */
-            <>
-              {/* Subtask Info */}
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Title</Label>
-                  <p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">{subTask.title}</p>
-                </div>
-
-                {subTask.description && (
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Description</Label>
-                    <p className="text-gray-600 dark:text-gray-400 mt-1">{subTask.description}</p>
+                      {projectDeadline && (
+                        <p>Project deadline: {format(new Date(projectDeadline), "PPP")}</p>
+                      )}
+                      <p className="font-medium">Subtask deadline cannot exceed either deadline.</p>
+                    </div>
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Assigned to</Label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <User className="h-4 w-4 text-gray-400" />
-                      <span className="text-gray-900 dark:text-white">
-                        {subTask.assignedUserName || 'Unassigned'}
-                      </span>
-                    </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Title *
+                  </Label>
+                  <Input
+                    id="edit-title"
+                    value={detailsFormData.title}
+                    onChange={(e) => setDetailsFormData(prev => ({ ...prev, title: e.target.value }))}
+                    className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700"
+                    disabled={isLoading}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Description
+                  </Label>
+                  <Textarea
+                    id="edit-description"
+                    value={detailsFormData.description}
+                    onChange={(e) => setDetailsFormData(prev => ({ ...prev, description: e.target.value }))}
+                    className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 min-h-[80px] resize-none"
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Assign to *
+                    </Label>
+                    <Select
+                      value={detailsFormData.assignedId}
+                      onValueChange={(value) => setDetailsFormData(prev => ({ ...prev, assignedId: value }))}
+                    >
+                      <SelectTrigger 
+                        className={cn(
+                          "bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700",
+                          isLoading && "opacity-50 cursor-not-allowed"
+                        )}
+                      >
+                        <SelectValue placeholder="Select member *" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {members.map((member) => (
+                          <SelectItem key={member.userId} value={member.userId}>
+                            {member.userName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  {subTask.deadline && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Deadline *
+                    </Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700",
+                            !detailsFormData.deadline && "text-gray-500 dark:text-gray-400",
+                            isLoading && "opacity-50 cursor-not-allowed"
+                          )}
+                          disabled={isLoading}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {detailsFormData.deadline ? format(detailsFormData.deadline, "PPP") : "Select deadline *"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                        <Calendar
+                          mode="single"
+                          selected={detailsFormData.deadline}
+                          onSelect={(date) => setDetailsFormData(prev => ({ ...prev, deadline: date }))}
+                          disabled={(date) => {
+                            const today = new Date();
+                            const maxDate = getMaxDate();
+                            if (date < today) return true;
+                            if (maxDate && date > maxDate) return true;
+                            return false;
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleDetailsCancel}
+                    disabled={isLoading}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Changes'
+                    )}
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              /* View/Status Update Mode */
+              <>
+                {/* Subtask Info */}
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Title</Label>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white mt-1">{subTask.title}</p>
+                  </div>
+
+                  {subTask.description && (
                     <div>
-                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Deadline</Label>
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Description</Label>
+                      <p className="text-gray-600 dark:text-gray-400 mt-1">{subTask.description}</p>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Assigned to</Label>
                       <div className="flex items-center gap-2 mt-1">
-                        <CalendarIcon2 className="h-4 w-4 text-gray-400" />
+                        <User className="h-4 w-4 text-gray-400" />
                         <span className="text-gray-900 dark:text-white">
-                          {format(new Date(subTask.deadline), 'PPP')}
+                          {subTask.assignedUserName || 'Unassigned'}
                         </span>
                       </div>
                     </div>
-                  )}
 
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Created</Label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Clock className="h-4 w-4 text-gray-400" />
-                      <span className="text-gray-900 dark:text-white">
-                        {format(new Date(subTask.createdAt), 'PPP')}
-                      </span>
+                    {subTask.deadline && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Deadline</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <CalendarIcon2 className="h-4 w-4 text-gray-400" />
+                          <span className="text-gray-900 dark:text-white">
+                            {format(new Date(subTask.deadline), 'PPP')}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Created</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Clock className="h-4 w-4 text-gray-400" />
+                        <span className="text-gray-900 dark:text-white">
+                          {format(new Date(subTask.createdAt), 'PPP')}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Status and Note Form */}
-              <form onSubmit={handleStatusSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Status</Label>
-                  {editMode === 'status' ? (
-                    <Select
-                      value={statusFormData.status}
-                      onValueChange={(value) => 
-                        setStatusFormData(prev => ({ ...prev, status: value as 'pending' | 'in_progress' | 'completed' }))
-                      }
-                    >
-                      <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="in_progress">In Progress</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Badge 
-                      variant="outline" 
-                      className={`w-fit ${getStatusColor(subTask.status)}`}
-                    >
-                      {getStatusLabel(subTask.status)}
-                    </Badge>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Notes {editMode === 'status' && <span className="text-gray-500">(Optional)</span>}
-                  </Label>
-                  {editMode === 'status' ? (
-                    <Textarea
-                      placeholder="Add notes about your progress, challenges, or updates..."
-                      value={statusFormData.note}
-                      onChange={(e) => setStatusFormData(prev => ({ ...prev, note: e.target.value }))}
-                      className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] min-h-[100px] resize-none"
-                      disabled={isLoading}
-                    />
-                  ) : (
-                    <div className="min-h-[100px] p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md">
-                      {subTask.note ? (
-                        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{subTask.note}</p>
-                      ) : (
-                        <p className="text-gray-500 dark:text-gray-500 italic">No notes added yet.</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-3 pt-4">
-                  {editMode === 'view' ? (
-                    <>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsOpen(false)}
-                        className="flex-1"
-                        disabled={isDeleting}
+                {/* Status and Note Form */}
+                <form onSubmit={handleStatusSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Status</Label>
+                    {editMode === 'status' ? (
+                      <Select
+                        value={statusFormData.status}
+                        onValueChange={(value) => 
+                          setStatusFormData(prev => ({ ...prev, status: value as 'pending' | 'in_progress' | 'completed' }))
+                        }
                       >
-                        Close
-                      </Button>
-                      <div className="flex gap-2 flex-1">
-                        {canUpdateStatus && (
-                          <Button
-                            type="button"
-                            onClick={() => setEditMode('status')}
-                            className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
-                            disabled={isDeleting}
-                          >
-                            <Edit3 className="h-4 w-4 mr-2" />
-                            Update
-                          </Button>
-                        )}
-                        {canEditDetails && (
-                          <Button
-                            type="button"
-                            onClick={() => setEditMode('details')}
-                            variant="outline"
-                            className="flex-1"
-                            disabled={isDeleting}
-                          >
-                            <Settings className="h-4 w-4 mr-2" />
-                            Edit Details
-                          </Button>
-                        )}
-                        {canEditDetails && (
-                          <Button
-                            type="button"
-                            onClick={handleDeleteSubtask}
-                            variant="outline"
-                            className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
-                            disabled={isDeleting}
-                          >
-                            {isDeleting ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="h-4 w-4" />
-                            )}
-                          </Button>
+                        <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="in_progress">In Progress</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Badge 
+                        variant="outline" 
+                        className={`w-fit ${getStatusColor(subTask.status)}`}
+                      >
+                        {getStatusLabel(subTask.status)}
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Notes {editMode === 'status' && <span className="text-gray-500">(Optional)</span>}
+                    </Label>
+                    {editMode === 'status' ? (
+                      <Textarea
+                        placeholder="Add notes about your progress, challenges, or updates..."
+                        value={statusFormData.note}
+                        onChange={(e) => setStatusFormData(prev => ({ ...prev, note: e.target.value }))}
+                        className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] min-h-[100px] resize-none"
+                        disabled={isLoading}
+                      />
+                    ) : (
+                      <div className="min-h-[100px] p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md">
+                        {subTask.note ? (
+                          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{subTask.note}</p>
+                        ) : (
+                          <p className="text-gray-500 dark:text-gray-500 italic">No notes added yet.</p>
                         )}
                       </div>
-                    </>
-                  ) : (
-                    <>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleStatusCancel}
-                        disabled={isLoading}
-                        className="flex-1"
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="submit"
-                        disabled={isLoading}
-                        className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Updating...
-                          </>
-                        ) : (
-                          'Save Update'
-                        )}
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </form>
-            </>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 pt-4">
+                    {editMode === 'view' ? (
+                      <>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsOpen(false)}
+                          className="flex-1"
+                          disabled={isDeleting}
+                        >
+                          Close
+                        </Button>
+                        <div className="flex gap-2 flex-1">
+                          {canUpdateStatus && (
+                            <Button
+                              type="button"
+                              onClick={() => setEditMode('status')}
+                              className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+                              disabled={isDeleting}
+                            >
+                              <Edit3 className="h-4 w-4 mr-2" />
+                              Update
+                            </Button>
+                          )}
+                          {canEditDetails && (
+                            <Button
+                              type="button"
+                              onClick={() => setEditMode('details')}
+                              variant="outline"
+                              className="flex-1"
+                              disabled={isDeleting}
+                            >
+                              <Settings className="h-4 w-4 mr-2" />
+                              Edit Details
+                            </Button>
+                          )}
+                          {canEditDetails && (
+                            <Button
+                              type="button"
+                              onClick={() => setShowDeleteDialog(true)}
+                              variant="outline"
+                              className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+                              disabled={isDeleting}
+                            >
+                              {isDeleting ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleStatusCancel}
+                          disabled={isLoading}
+                          className="flex-1"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={isLoading}
+                          className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+                        >
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Updating...
+                            </>
+                          ) : (
+                            'Save Update'
+                          )}
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </form>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title="Delete Subtask"
+        description="Are you sure you want to delete this subtask? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleDeleteSubtask}
+        isLoading={isDeleting}
+        variant="destructive"
+      />
+    </>
   );
 } 

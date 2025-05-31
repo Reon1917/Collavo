@@ -29,6 +29,8 @@ import {
 import { CreateTaskForm } from '@/components/project/CreateTaskForm';
 import { CreateSubTaskForm } from '@/components/project/CreateSubTaskForm';
 import { SubTaskDetailsDialog } from '@/components/project/SubTaskDetailsDialog';
+import { EditTaskDialog } from '@/components/project/EditTaskDialog';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { toast } from 'sonner';
 import { formatDistanceToNow, format, isAfter } from 'date-fns';
 import { formatInitials } from '@/utils/format';
@@ -328,6 +330,8 @@ function TaskCard({ task, project, onUpdate }: {
   onUpdate: () => void;
 }) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
   const progress = task.subTasks.length > 0 
     ? (task.subTasks.filter(st => st.status === 'completed').length / task.subTasks.length) * 100 
@@ -362,15 +366,10 @@ function TaskCard({ task, project, onUpdate }: {
   };
 
   const handleEditTask = () => {
-    // TODO: Implement task editing functionality
-    toast.info('Task editing functionality coming soon!');
+    setShowEditDialog(true);
   };
 
   const handleDeleteTask = async () => {
-    if (!window.confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
-      return;
-    }
-
     setIsDeleting(true);
 
     try {
@@ -384,6 +383,7 @@ function TaskCard({ task, project, onUpdate }: {
       }
 
       toast.success('Task deleted successfully!');
+      setShowDeleteDialog(false);
       onUpdate();
     } catch (error) {
       console.error('Error deleting task:', error);
@@ -397,188 +397,213 @@ function TaskCard({ task, project, onUpdate }: {
   const canModifyTask = project.isLeader || project.userPermissions.includes('updateTask') || task.createdBy === project.currentUserId;
 
   return (
-    <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow duration-200">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <Badge 
-                variant="outline" 
-                className={`text-xs font-medium border ${getImportanceColor(task.importanceLevel)}`}
-              >
-                {task.importanceLevel.charAt(0).toUpperCase() + task.importanceLevel.slice(1)}
-              </Badge>
-              {isOverdue && (
-                <Badge variant="destructive" className="text-xs">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  Overdue
-                </Badge>
-              )}
-            </div>
-            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
-              {task.title}
-            </CardTitle>
-            {task.description && (
-              <CardDescription className="text-gray-600 dark:text-gray-400 line-clamp-2 mt-1">
-                {task.description}
-              </CardDescription>
-            )}
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger 
-              className="h-8 w-8 p-0 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center"
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <MoreVertical className="h-4 w-4" />
-              )}
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {canModifyTask && (
-                <DropdownMenuItem onClick={handleEditTask}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Task
-                </DropdownMenuItem>
-              )}
-              {canModifyTask && (
-                <DropdownMenuItem 
-                  onClick={handleDeleteTask}
-                  className="text-red-600 focus:text-red-600"
-                  disabled={isDeleting}
+    <>
+      <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow duration-200">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <Badge 
+                  variant="outline" 
+                  className={`text-xs font-medium border ${getImportanceColor(task.importanceLevel)}`}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Task
-                </DropdownMenuItem>
+                  {task.importanceLevel.charAt(0).toUpperCase() + task.importanceLevel.slice(1)}
+                </Badge>
+                {isOverdue && (
+                  <Badge variant="destructive" className="text-xs">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    Overdue
+                  </Badge>
+                )}
+              </div>
+              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
+                {task.title}
+              </CardTitle>
+              {task.description && (
+                <CardDescription className="text-gray-600 dark:text-gray-400 line-clamp-2 mt-1">
+                  {task.description}
+                </CardDescription>
               )}
-              {!canModifyTask && (
-                <DropdownMenuItem disabled>
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Only
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </CardHeader>
-
-      <CardContent className="pt-0">
-        {/* Progress */}
-        {task.subTasks.length > 0 && (
-          <div className="mb-4">
-            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-              <span>Progress</span>
-              <span>{Math.round(progress)}%</span>
             </div>
-            <Progress value={progress} className="h-2" />
-            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-              {task.subTasks.filter(st => st.status === 'completed').length} of {task.subTasks.length} subtasks completed
-            </p>
+            <DropdownMenu>
+              <DropdownMenuTrigger 
+                className="h-8 w-8 p-0 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center"
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <MoreVertical className="h-4 w-4" />
+                )}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {canModifyTask && (
+                  <DropdownMenuItem onClick={handleEditTask}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Task
+                  </DropdownMenuItem>
+                )}
+                {canModifyTask && (
+                  <DropdownMenuItem 
+                    onClick={() => setShowDeleteDialog(true)}
+                    className="text-red-600 focus:text-red-600"
+                    disabled={isDeleting}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Task
+                  </DropdownMenuItem>
+                )}
+                {!canModifyTask && (
+                  <DropdownMenuItem disabled>
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Only
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-        )}
+        </CardHeader>
 
-        {/* Sub-tasks preview */}
-        {task.subTasks.length > 0 ? (
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-sm font-medium text-gray-900 dark:text-white">
-                Sub-tasks ({task.subTasks.length})
-              </h4>
-              <CreateSubTaskForm 
-                projectId={project.id}
-                mainTaskId={task.id}
-                mainTaskDeadline={task.deadline}
-                projectDeadline={project.deadline}
-                onSubTaskCreated={onUpdate}
-                members={project.members}
-              />
+        <CardContent className="pt-0">
+          {/* Progress */}
+          {task.subTasks.length > 0 && (
+            <div className="mb-4">
+              <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+                <span>Progress</span>
+                <span>{Math.round(progress)}%</span>
+              </div>
+              <Progress value={progress} className="h-2" />
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                {task.subTasks.filter(st => st.status === 'completed').length} of {task.subTasks.length} subtasks completed
+              </p>
             </div>
-            <div className="space-y-2 max-h-32 overflow-y-auto">
-              {task.subTasks.slice(0, 3).map((subTask) => (
-                <SubTaskDetailsDialog
-                  key={subTask.id}
-                  subTask={subTask}
-                  currentUserId={project.currentUserId || ''}
-                  isProjectLeader={project.isLeader}
+          )}
+
+          {/* Sub-tasks preview */}
+          {task.subTasks.length > 0 ? (
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                  Sub-tasks ({task.subTasks.length})
+                </h4>
+                <CreateSubTaskForm 
                   projectId={project.id}
                   mainTaskId={task.id}
                   mainTaskDeadline={task.deadline}
                   projectDeadline={project.deadline}
+                  onSubTaskCreated={onUpdate}
                   members={project.members}
-                  onSubTaskUpdated={onUpdate}
-                  trigger={
-                    <div className="flex items-center justify-between gap-2 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-2 -m-2 rounded">
-                      <div className="flex items-center gap-2 flex-1">
-                        <span className={`flex-1 ${subTask.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-700 dark:text-gray-300'}`}>
-                          {subTask.title}
-                        </span>
-                        {subTask.assignedUserName && (
-                          <Avatar className="h-5 w-5">
-                            <AvatarFallback className="bg-[#008080] text-white text-xs">
-                              {formatInitials(subTask.assignedUserName)}
-                            </AvatarFallback>
-                          </Avatar>
-                        )}
-                      </div>
-                      <Badge 
-                        variant="outline" 
-                        className={`text-xs ${getStatusColor(subTask.status)}`}
-                      >
-                        {getStatusLabel(subTask.status)}
-                      </Badge>
-                    </div>
-                  }
                 />
-              ))}
-              {task.subTasks.length > 3 && (
-                <p className="text-xs text-gray-500 dark:text-gray-500">
-                  +{task.subTasks.length - 3} more subtasks
-                </p>
+              </div>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {task.subTasks.slice(0, 3).map((subTask) => (
+                  <SubTaskDetailsDialog
+                    key={subTask.id}
+                    subTask={subTask}
+                    currentUserId={project.currentUserId || ''}
+                    isProjectLeader={project.isLeader}
+                    projectId={project.id}
+                    mainTaskId={task.id}
+                    mainTaskDeadline={task.deadline}
+                    projectDeadline={project.deadline}
+                    members={project.members}
+                    onSubTaskUpdated={onUpdate}
+                    trigger={
+                      <div className="flex items-center justify-between gap-2 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-2 -m-2 rounded">
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className={`flex-1 ${subTask.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-700 dark:text-gray-300'}`}>
+                            {subTask.title}
+                          </span>
+                          {subTask.assignedUserName && (
+                            <Avatar className="h-5 w-5">
+                              <AvatarFallback className="bg-[#008080] text-white text-xs">
+                                {formatInitials(subTask.assignedUserName)}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
+                        </div>
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs ${getStatusColor(subTask.status)}`}
+                        >
+                          {getStatusLabel(subTask.status)}
+                        </Badge>
+                      </div>
+                    }
+                  />
+                ))}
+                {task.subTasks.length > 3 && (
+                  <p className="text-xs text-gray-500 dark:text-gray-500">
+                    +{task.subTasks.length - 3} more subtasks
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                  Sub-tasks (0)
+                </h4>
+                <CreateSubTaskForm 
+                  projectId={project.id}
+                  mainTaskId={task.id}
+                  mainTaskDeadline={task.deadline}
+                  projectDeadline={project.deadline}
+                  onSubTaskCreated={onUpdate}
+                  members={project.members}
+                />
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-500">
+                No subtasks yet. Add the first one to get started.
+              </p>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-500">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1">
+                <User className="h-3 w-3" />
+                <span>{task.creatorName}</span>
+              </div>
+              {task.deadline && (
+                <div className={`flex items-center gap-1 ${isOverdue ? 'text-red-600' : ''}`}>
+                  <Calendar className="h-3 w-3" />
+                  <span>{format(new Date(task.deadline), 'MMM dd')}</span>
+                </div>
               )}
             </div>
-          </div>
-        ) : (
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-sm font-medium text-gray-900 dark:text-white">
-                Sub-tasks (0)
-              </h4>
-              <CreateSubTaskForm 
-                projectId={project.id}
-                mainTaskId={task.id}
-                mainTaskDeadline={task.deadline}
-                projectDeadline={project.deadline}
-                onSubTaskCreated={onUpdate}
-                members={project.members}
-              />
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-500">
-              No subtasks yet. Add the first one to get started.
-            </p>
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-500">
-          <div className="flex items-center gap-4">
             <div className="flex items-center gap-1">
-              <User className="h-3 w-3" />
-              <span>{task.creatorName}</span>
+              <Clock className="h-3 w-3" />
+              <span>{formatDistanceToNow(new Date(task.createdAt), { addSuffix: true })}</span>
             </div>
-            {task.deadline && (
-              <div className={`flex items-center gap-1 ${isOverdue ? 'text-red-600' : ''}`}>
-                <Calendar className="h-3 w-3" />
-                <span>{format(new Date(task.deadline), 'MMM dd')}</span>
-              </div>
-            )}
           </div>
-          <div className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            <span>{formatDistanceToNow(new Date(task.createdAt), { addSuffix: true })}</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Edit Task Dialog */}
+      <EditTaskDialog
+        isOpen={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        task={task}
+        projectId={project.id}
+        projectDeadline={project.deadline}
+        onTaskUpdated={onUpdate}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title="Delete Task"
+        description="Are you sure you want to delete this task? This action cannot be undone and will also delete all subtasks."
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleDeleteTask}
+        isLoading={isDeleting}
+        variant="destructive"
+      />
+    </>
   );
 } 
