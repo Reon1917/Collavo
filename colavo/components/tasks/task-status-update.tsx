@@ -41,7 +41,7 @@ export function TaskStatusUpdate({ task, currentUserId, onUpdate }: TaskStatusUp
       if (onUpdate) {
         onUpdate();
       }
-    } catch {
+    } catch  {
       toast.error('Failed to update task status');
     } finally {
       setIsLoading(false);
