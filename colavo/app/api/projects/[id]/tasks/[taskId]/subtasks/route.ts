@@ -5,8 +5,11 @@ import { projects, members, permissions, mainTasks, subTasks, user } from '@/db/
 import { createId } from '@paralleldrive/cuid2';
 import { eq, and } from 'drizzle-orm';
 
+// Define the permission type to match the schema enum
+type PermissionType = "createTask" | "handleTask" | "updateTask" | "handleEvent" | "handleFile" | "addMember" | "createEvent" | "viewFiles";
+
 // Helper function to check if user has permission
-async function checkPermission(userId: string, projectId: string, permission: string): Promise<boolean> {
+async function checkPermission(userId: string, projectId: string, permission: PermissionType): Promise<boolean> {
   // Check if user is project leader
   const project = await db.select().from(projects).where(eq(projects.id, projectId)).limit(1);
   if (project[0]?.leaderId === userId) return true;

@@ -16,7 +16,7 @@ export function TaskStatusUpdate({ task, currentUserId, onUpdate }: TaskStatusUp
   const [note, setNote] = useState(task.notes || "");
   const [status, setStatus] = useState<TaskStatus>(task.status);
   const [isEditing, setIsEditing] = useState(false);
-  const [_isLoading, setIsLoading] = useState(false);
+  const [, setIsLoading] = useState(false);
 
   const isAssigned = Array.isArray(task.assignedTo)
     ? task.assignedTo.includes(currentUserId)

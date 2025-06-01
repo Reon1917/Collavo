@@ -259,17 +259,6 @@ export function TasksView({ projectId }: TasksViewProps) {
     requestCache.delete(`tasks-${projectId}`);
   }, [projectId]);
 
-  // Optimistic subtask creation
-  const handleSubTaskCreated = useCallback((taskId: string, newSubTask: SubTask) => {
-    setTasks(prev => prev.map(task => 
-      task.id === taskId 
-        ? { ...task, subTasks: [...task.subTasks, newSubTask] }
-        : task
-    ));
-    // Invalidate cache
-    requestCache.delete(`tasks-${projectId}`);
-  }, [projectId]);
-
   // Optimistic subtask deletion
   const handleSubTaskDeleted = useCallback((taskId: string, subtaskId: string) => {
     setTasks(prev => prev.map(task => 
@@ -504,7 +493,6 @@ export function TasksView({ projectId }: TasksViewProps) {
               onTaskUpdated={handleTaskUpdated}
               onTaskDeleted={handleTaskDeleted}
               onSubTaskUpdated={handleSubTaskUpdated}
-              onSubTaskCreated={handleSubTaskCreated}
               onSubTaskDeleted={handleSubTaskDeleted}
             />
           ))}
@@ -520,7 +508,6 @@ function TaskCard({
   onTaskUpdated,
   onTaskDeleted,
   onSubTaskUpdated,
-  onSubTaskCreated,
   onSubTaskDeleted
 }: { 
   task: Task; 
@@ -528,7 +515,6 @@ function TaskCard({
   onTaskUpdated: (updatedTask: Partial<Task> & { id: string }) => void;
   onTaskDeleted: (taskId: string) => void;
   onSubTaskUpdated: (taskId: string, updatedSubTask: Partial<SubTask> & { id: string }) => void;
-  onSubTaskCreated: (taskId: string, newSubTask: SubTask) => void;
   onSubTaskDeleted: (taskId: string, subtaskId: string) => void;
 }) {
   const [showEditDialog, setShowEditDialog] = useState(false);
