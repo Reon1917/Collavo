@@ -259,6 +259,17 @@ export function TasksView({ projectId }: TasksViewProps) {
     requestCache.delete(`tasks-${projectId}`);
   }, [projectId]);
 
+  // Optimistic subtask creation
+  const handleSubTaskCreated = useCallback((taskId: string, newSubTask: SubTask) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId 
+        ? { ...task, subTasks: [...task.subTasks, newSubTask] }
+        : task
+    ));
+    // Invalidate cache
+    requestCache.delete(`tasks-${projectId}`);
+  }, [projectId]);
+
   // Optimistic subtask deletion
   const handleSubTaskDeleted = useCallback((taskId: string, subtaskId: string) => {
     setTasks(prev => prev.map(task => 
@@ -493,6 +504,7 @@ export function TasksView({ projectId }: TasksViewProps) {
               onTaskUpdated={handleTaskUpdated}
               onTaskDeleted={handleTaskDeleted}
               onSubTaskUpdated={handleSubTaskUpdated}
+              onSubTaskCreated={handleSubTaskCreated}
               onSubTaskDeleted={handleSubTaskDeleted}
             />
           ))}
@@ -508,6 +520,7 @@ function TaskCard({
   onTaskUpdated,
   onTaskDeleted,
   onSubTaskUpdated,
+  onSubTaskCreated,
   onSubTaskDeleted
 }: { 
   task: Task; 
@@ -515,9 +528,12 @@ function TaskCard({
   onTaskUpdated: (updatedTask: Partial<Task> & { id: string }) => void;
   onTaskDeleted: (taskId: string) => void;
   onSubTaskUpdated: (taskId: string, updatedSubTask: Partial<SubTask> & { id: string }) => void;
+  onSubTaskCreated: (taskId: string, newSubTask: SubTask) => void;
   onSubTaskDeleted: (taskId: string, subtaskId: string) => void;
 }) {
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showCreateSubTaskDialog, setShowCreateSubTaskDialog] = useState(false);
+  const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
   
   // Filter subtasks based on user permissions
   const visibleSubTasks = task.subTasks.filter(subtask => {
@@ -553,11 +569,15 @@ function TaskCard({
     setShowEditDialog(true);
   };
 
-  const handleDeleteTask = async () => {
-    if (!window.confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
-      return;
-    }
+  const handleCreateSubTask = () => {
+    setShowCreateSubTaskDialog(true);
+  };
 
+  const handleDeleteTask = async () => {
+    setShowDeleteConfirmDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
     try {
       const response = await fetch(`/api/projects/${project.id}/tasks/${task.id}`, {
         method: 'DELETE',
@@ -572,17 +592,15 @@ function TaskCard({
       }
     } catch {
       toast.error('Failed to delete task');
+    } finally {
+      setShowDeleteConfirmDialog(false);
     }
   };
 
   const handleTaskUpdatedCallback = (updatedTask: Partial<Task> & { id: string }) => {
     onTaskUpdated(updatedTask);
   };
-/*
-  const handleSubTaskCreatedCallback = (newSubTask: SubTask) => {
-    onSubTaskCreated(task.id, newSubTask);
-  };
-*/
+
   // Permission checks
   const canModifyTask = project.isLeader || project.userPermissions.includes('updateTask') || task.createdBy === project.currentUserId;
   const canCreateSubtasks = project.isLeader || project.userPermissions.includes('createTask');
@@ -625,7 +643,7 @@ function TaskCard({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {canCreateSubtasks && (
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleCreateSubTask}>
                       <Plus className="h-4 w-4 mr-2" />
                       Add Subtask
                     </DropdownMenuItem>
@@ -707,11 +725,9 @@ function TaskCard({
                   mainTaskId={task.id}
                   mainTaskDeadline={task.deadline}
                   projectDeadline={project.deadline}
-                  onSubTaskCreated={() => {
-                    // The CreateSubTaskForm doesn't provide the created subtask data
-                    // So we need to refresh the entire task list
-                    window.location.reload();
-                  }}
+                  open={showCreateSubTaskDialog}
+                  onOpenChange={setShowCreateSubTaskDialog}
+                  onSubTaskCreated={(newSubTask) => onSubTaskCreated(task.id, newSubTask)}
                   members={project.members}
                 />
               )}
@@ -748,6 +764,59 @@ function TaskCard({
           onOpenChange={(open) => setShowEditDialog(open)}
           onTaskUpdated={handleTaskUpdatedCallback}
         />
+      )}
+
+      {/* Create SubTask Dialog (for dropdown) */}
+      <CreateSubTaskForm 
+        projectId={project.id}
+        mainTaskId={task.id}
+        mainTaskDeadline={task.deadline}
+        projectDeadline={project.deadline}
+        open={showCreateSubTaskDialog}
+        onOpenChange={setShowCreateSubTaskDialog}
+        onSubTaskCreated={(newSubTask) => onSubTaskCreated(task.id, newSubTask)}
+        members={project.members}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirmDialog && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-lg max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+                    <span className="text-red-600 dark:text-red-400 text-lg">⚠</span>
+                  </div>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Delete Task</h2>
+                </div>
+                <button
+                  onClick={() => setShowDeleteConfirmDialog(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Are you sure you want to delete this task? This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowDeleteConfirmDialog(false)}
+                  className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

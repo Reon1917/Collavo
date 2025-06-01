@@ -179,6 +179,11 @@ export function SubTaskDetailsDialog({
       toast.success('Subtask updated successfully!');
       setEditMode('view');
       onSubTaskUpdated?.({ id: subTask.id, status: statusFormData.status, note: statusFormData.note.trim() || null });
+      
+      // Auto-close dialog after successful update
+      setTimeout(() => {
+        handleDialogClose(false);
+      }, 500);
     } catch {
       toast.error('Failed to update subtask');
     } finally {
@@ -244,6 +249,11 @@ export function SubTaskDetailsDialog({
       toast.success('Subtask details updated successfully!');
       setEditMode('view');
       onSubTaskUpdated?.({ id: subTask.id, title: detailsFormData.title.trim(), description: detailsFormData.description.trim() || null, assignedId: detailsFormData.assignedId, deadline: detailsFormData.deadline.toISOString() });
+      
+      // Auto-close dialog after successful update
+      setTimeout(() => {
+        handleDialogClose(false);
+      }, 500);
     } catch {
       toast.error('Failed to update subtask details');
     } finally {

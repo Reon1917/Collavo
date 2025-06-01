@@ -19,9 +19,11 @@ interface CreateSubTaskFormProps {
   mainTaskId: string;
   mainTaskDeadline: string | null;
   projectDeadline: string | null;
-  onSubTaskCreated?: () => void;
+  onSubTaskCreated?: (newSubTask: SubTask) => void;
   members: Member[];
   trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 interface Member {
@@ -31,6 +33,21 @@ interface Member {
   userName: string;
   userEmail: string;
   userImage: string | null;
+}
+
+interface SubTask {
+  id: string;
+  title: string;
+  description: string | null;
+  status: 'pending' | 'in_progress' | 'completed';
+  note: string | null;
+  deadline: string | null;
+  assignedId: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  assignedUserName: string | null;
+  assignedUserEmail: string | null;
 }
 
 interface SubTaskFormData {
@@ -47,10 +64,16 @@ export function CreateSubTaskForm({
   projectDeadline, 
   onSubTaskCreated, 
   members, 
-  trigger 
+  trigger, 
+  open, 
+  onOpenChange 
 }: CreateSubTaskFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Use external open state if provided, otherwise use internal state
+  const dialogOpen = open !== undefined ? open : isOpen;
+  const setDialogOpen = onOpenChange || setIsOpen;
   
   const [formData, setFormData] = useState<SubTaskFormData>({
     title: '',
@@ -110,27 +133,25 @@ export function CreateSubTaskForm({
         throw new Error(error.error || 'Failed to create subtask');
       }
 
+      const newSubTask = await response.json();
       toast.success('Subtask created successfully!');
-      handleFinish();
+      
+      // Reset form
+      setFormData({
+        title: '',
+        description: '',
+        assignedId: '',
+        deadline: undefined
+      });
+      setDialogOpen(false);
+      
+      // Pass the created subtask to the callback
+      onSubTaskCreated?.(newSubTask);
     } catch {
       toast.error('Failed to create subtask');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleFinish = () => {
-    // Reset form
-    setFormData({
-      title: '',
-      description: '',
-      assignedId: '',
-      deadline: undefined
-    });
-    setIsOpen(false);
-    
-    // Trigger refresh
-    onSubTaskCreated?.();
   };
 
   const getMaxDate = () => {
@@ -147,7 +168,7 @@ export function CreateSubTaskForm({
   );
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm text-[#008080] border border-[#008080] hover:bg-[#008080] hover:text-white rounded-md font-medium transition-colors">
         {trigger || defaultTrigger}
       </DialogTrigger>
@@ -283,7 +304,7 @@ export function CreateSubTaskForm({
             <Button
               type="button"
               variant="outline"
-              onClick={() => setIsOpen(false)}
+              onClick={() => setDialogOpen(false)}
               disabled={isLoading}
               className="flex-1"
             >
