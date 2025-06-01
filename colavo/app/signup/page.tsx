@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { toast } from 'sonner';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -41,22 +42,21 @@ export default function SignupPage() {
     try {
       setIsLoading(true);
       
-      const result = await authClient.signUp.email({
+      const res = await authClient.signUp.email({
         name,
         email,
         password,
       });
 
-      if (result.data) {
+      if (res.error) {
+        toast.error(res.error.message || 'Registration failed');
+      } else {
         toast.success('Account created successfully!');
         await refetch();
         router.push('/dashboard');
-      } else if (result.error) {
-        toast.error(result.error.message || 'Failed to create account');
       }
-    } catch (error) {
-      console.error('Signup error:', error);
-      toast.error('An error occurred during signup');
+    } catch {
+      toast.error('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -69,20 +69,23 @@ export default function SignupPage() {
          provider: 'google',
          callbackURL: '/dashboard',
        });
-    } catch (error) {
-      console.error('Google signup error:', error);
-      toast.error('An error occurred during Google signup');
+    } catch {
+      toast.error('Google sign-up failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 py-12">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      
+      <Card className="w-full max-w-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Create your account</CardTitle>
-          <CardDescription className="text-center">
+          <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">Create your account</CardTitle>
+          <CardDescription className="text-center text-gray-600 dark:text-gray-400">
             Enter your details to get started with Collavo
           </CardDescription>
         </CardHeader>
@@ -90,7 +93,7 @@ export default function SignupPage() {
         <form onSubmit={handleEmailSignup}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name" className="text-gray-700 dark:text-gray-300">Full Name</Label>
               <Input
                 id="name"
                 type="text"
@@ -99,11 +102,12 @@ export default function SignupPage() {
                 onChange={(e) => setName(e.target.value)}
                 disabled={isLoading}
                 required
+                className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -112,11 +116,12 @@ export default function SignupPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
                 required
+                className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -126,11 +131,12 @@ export default function SignupPage() {
                 disabled={isLoading}
                 required
                 minLength={8}
+                className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="text-gray-700 dark:text-gray-300">Confirm Password</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -139,22 +145,23 @@ export default function SignupPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={isLoading}
                 required
+                className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
             </div>
           </CardContent>
           
           <CardFooter className="space-y-4">
             <div className="w-full space-y-3">
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800" disabled={isLoading}>
                 {isLoading ? "Creating account..." : "Create Account"}
               </Button>
               
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
+                  <span className="w-full border-t border-gray-300 dark:border-gray-600" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
+                  <span className="bg-white dark:bg-gray-800 px-2 text-gray-500 dark:text-gray-400">
                     Or continue with
                   </span>
                 </div>
@@ -163,7 +170,7 @@ export default function SignupPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full"
+                className="w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 onClick={handleGoogleSignup}
                 disabled={isLoading}
               >
@@ -188,11 +195,11 @@ export default function SignupPage() {
                 {isLoading ? "Connecting..." : "Continue with Google"}
               </Button>
               
-              <div className="text-center text-sm text-gray-600">
+              <div className="text-center text-sm text-gray-600 dark:text-gray-400">
                 Already have an account?{' '}
                 <Link 
                   href="/login" 
-                  className="text-blue-600 hover:text-blue-500 hover:underline font-medium transition-colors"
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 hover:underline font-medium transition-colors"
                 >
                   Sign in
                 </Link>

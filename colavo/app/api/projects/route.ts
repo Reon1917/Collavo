@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { projects, members, permissions } from '@/db/schema';
 import { createId } from '@paralleldrive/cuid2';
-import { eq, or, and } from 'drizzle-orm';
+import { eq, and, ne } from 'drizzle-orm';
 
 // GET /api/projects - List user's projects
 export async function GET(request: NextRequest) {
@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get projects where user is either leader or member
-    const userProjects = await db
+    // Get projects where user is the leader (directly from projects table)
+    const ledProjects = await db
       .select({
         id: projects.id,
         name: projects.name,
@@ -30,31 +30,42 @@ export async function GET(request: NextRequest) {
         createdAt: projects.createdAt,
         updatedAt: projects.updatedAt,
         leaderId: projects.leaderId,
-        role: members.role,
       })
       .from(projects)
-      .leftJoin(members, eq(members.projectId, projects.id))
+      .where(eq(projects.leaderId, session.user.id));
+
+    // Get projects where user is a member but NOT the leader
+    const memberProjectsQuery = await db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        description: projects.description,
+        deadline: projects.deadline,
+        createdAt: projects.createdAt,
+        updatedAt: projects.updatedAt,
+        leaderId: projects.leaderId,
+      })
+      .from(projects)
+      .innerJoin(members, eq(members.projectId, projects.id))
       .where(
-        or(
-          eq(projects.leaderId, session.user.id),
-          and(
-            eq(members.userId, session.user.id)
-          )
+        and(
+          eq(members.userId, session.user.id),
+          ne(projects.leaderId, session.user.id) // Exclude projects where user is leader
         )
       );
 
-    // Group projects by role
-    const ledProjects = userProjects.filter(p => p.leaderId === session.user.id);
-    const memberProjects = userProjects.filter(p => p.leaderId !== session.user.id && p.role === 'member');
+    // Extract just the project data
+    const memberProjects = memberProjectsQuery;
+
+    const total = ledProjects.length + memberProjects.length;
 
     return NextResponse.json({
       ledProjects,
       memberProjects,
-      total: userProjects.length
+      total
     });
 
-  } catch (error) {
-    console.error('Error fetching projects:', error);
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -173,7 +184,6 @@ export async function POST(request: NextRequest) {
 
     } catch (error) {
       // Cleanup on failure - delete in reverse order
-      console.error('Error in project creation, attempting cleanup:', error);
       
       try {
         // Delete permissions if member was created
@@ -185,21 +195,20 @@ export async function POST(request: NextRequest) {
         if (createdMember) {
           await db.delete(members).where(eq(members.id, memberRecordId));
         }
-        
+
         // Delete project if it was created
         if (createdProject) {
           await db.delete(projects).where(eq(projects.id, projectId));
         }
-      } catch (cleanupError) {
-        console.error('Error during cleanup:', cleanupError);
-        // Continue with original error
-      }
-      
-      throw error;
+              } catch (_cleanupError) {
+                // Log cleanup error but don't throw
+                throw _cleanupError;
+              }
+
+      throw error; // Re-throw original error
     }
 
-  } catch (error) {
-    console.error('Error creating project:', error);
+  } catch  {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

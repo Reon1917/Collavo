@@ -2,33 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { projects, members, permissions, user } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
-
-// Helper function to check if user has access to project
-async function checkProjectAccess(projectId: string, userId: string) {
-  const project = await db
-    .select({
-      id: projects.id,
-      leaderId: projects.leaderId,
-      memberUserId: members.userId,
-      memberRole: members.role
-    })
-    .from(projects)
-    .leftJoin(members, eq(members.projectId, projects.id))
-    .where(eq(projects.id, projectId))
-    .limit(1);
-
-  if (!project.length) {
-    return { hasAccess: false, isLeader: false, project: null };
-  }
-
-  const projectData = project[0];
-  const isLeader = projectData.leaderId === userId;
-  const isMember = projectData.memberUserId === userId;
-  const hasAccess = isLeader || isMember;
-
-  return { hasAccess, isLeader, project: projectData };
-}
+import { eq } from 'drizzle-orm';
+import { requireProjectAccess, requireLeaderRole } from '@/lib/auth-helpers';
 
 // GET /api/projects/[id] - Get project details
 export async function GET(
@@ -48,14 +23,9 @@ export async function GET(
     }
 
     const { id: projectId } = await params;
-    const { hasAccess } = await checkProjectAccess(projectId, session.user.id);
-
-    if (!hasAccess) {
-      return NextResponse.json(
-        { error: 'Project not found or access denied' },
-        { status: 404 }
-      );
-    }
+    
+    // Use centralized access control
+    const access = await requireProjectAccess(session.user.id, projectId);
 
     // Get detailed project information
     const projectDetails = await db
@@ -97,33 +67,48 @@ export async function GET(
       .innerJoin(user, eq(user.id, members.userId))
       .where(eq(members.projectId, projectId));
 
-    // Get current user's permissions
-    const currentUserMember = projectMembers.find(m => m.userId === session.user.id);
-    let userPermissions = [];
+    // Get permissions for each member
+    const membersWithPermissions = await Promise.all(
+      projectMembers.map(async (member) => {
+        const memberPermissions = await db
+          .select({
+            permission: permissions.permission,
+            granted: permissions.granted
+          })
+          .from(permissions)
+          .where(eq(permissions.memberId, member.id));
 
-    if (currentUserMember) {
-      const permissionRecords = await db
-        .select({
-          permission: permissions.permission,
-          granted: permissions.granted
-        })
-        .from(permissions)
-        .where(eq(permissions.memberId, currentUserMember.id));
+        const grantedPermissions = memberPermissions
+          .filter(p => p.granted)
+          .map(p => p.permission);
 
-      userPermissions = permissionRecords
-        .filter(p => p.granted)
-        .map(p => p.permission);
-    }
+        return {
+          ...member,
+          permissions: grantedPermissions
+        };
+      })
+    );
 
     return NextResponse.json({
       ...projectDetails[0],
-      members: projectMembers,
-      userPermissions,
-      isLeader: projectDetails[0].leaderId === session.user.id
+      members: membersWithPermissions,
+      userPermissions: access.permissions,
+      isLeader: access.isLeader,
+      userRole: access.role,
+      currentUserId: session.user.id
     });
 
   } catch (error) {
-    console.error('Error fetching project details:', error);
+    if (error instanceof Error) {
+      if (error.message.includes('not found') || error.message.includes('access denied')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 404 }
+        );
+      }
+    }
+    
+    //console.error('Project GET error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -149,22 +134,9 @@ export async function PUT(
     }
 
     const { id: projectId } = await params;
-    const { hasAccess, isLeader } = await checkProjectAccess(projectId, session.user.id);
-
-    if (!hasAccess) {
-      return NextResponse.json(
-        { error: 'Project not found or access denied' },
-        { status: 404 }
-      );
-    }
-
-    // Only project leader can update project details
-    if (!isLeader) {
-      return NextResponse.json(
-        { error: 'Only project leader can update project details' },
-        { status: 403 }
-      );
-    }
+    
+    // Only project leaders can update project details
+    await requireLeaderRole(session.user.id, projectId);
 
     const body = await request.json();
     const { name, description, deadline } = body;
@@ -218,7 +190,119 @@ export async function PUT(
     return NextResponse.json(updatedProject[0]);
 
   } catch (error) {
-    console.error('Error updating project:', error);
+    if (error instanceof Error) {
+      if (error.message.includes('not found') || error.message.includes('access denied')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 404 }
+        );
+      }
+      if (error.message.includes('Leader role required')) {
+        return NextResponse.json(
+          { error: 'Only project leader can update project details' },
+          { status: 403 }
+        );
+      }
+    }
+    
+    //console.error('Project PUT error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH /api/projects/[id] - Update project (partial update)
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth.api.getSession({
+      headers: request.headers
+    });
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const { id: projectId } = await params;
+    
+    // Only project leaders can update project details
+    await requireLeaderRole(session.user.id, projectId);
+
+    const body = await request.json();
+    const { name, description, deadline } = body;
+
+    // Validate fields
+    if (name !== undefined) {
+      if (!name || typeof name !== 'string' || name.trim().length === 0) {
+        return NextResponse.json(
+          { error: 'Project name is required' },
+          { status: 400 }
+        );
+      }
+      if (name.length > 255) {
+        return NextResponse.json(
+          { error: 'Project name must be less than 255 characters' },
+          { status: 400 }
+        );
+      }
+    }
+
+    let deadlineDate = undefined;
+    if (deadline !== undefined) {
+      if (deadline === null) {
+        deadlineDate = null;
+      } else {
+        deadlineDate = new Date(deadline);
+        if (isNaN(deadlineDate.getTime())) {
+          return NextResponse.json(
+            { error: 'Invalid deadline format' },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
+    // Update project
+    const updateData: any = {
+      updatedAt: new Date()
+    };
+
+    if (name !== undefined) updateData.name = name.trim();
+    if (description !== undefined) updateData.description = description?.trim() || null;
+    if (deadline !== undefined) updateData.deadline = deadlineDate;
+
+    const updatedProject = await db
+      .update(projects)
+      .set(updateData)
+      .where(eq(projects.id, projectId))
+      .returning();
+
+    return NextResponse.json(updatedProject[0]);
+
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes('not found') || error.message.includes('access denied')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 404 }
+        );
+      }
+      if (error.message.includes('Leader role required')) {
+        return NextResponse.json(
+          { error: 'Only project leader can update project details' },
+          { status: 403 }
+        );
+      }
+    }
+    
+    //console.error('Project PATCH error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -244,22 +328,9 @@ export async function DELETE(
     }
 
     const { id: projectId } = await params;
-    const { hasAccess, isLeader } = await checkProjectAccess(projectId, session.user.id);
-
-    if (!hasAccess) {
-      return NextResponse.json(
-        { error: 'Project not found or access denied' },
-        { status: 404 }
-      );
-    }
-
-    // Only project leader can delete project
-    if (!isLeader) {
-      return NextResponse.json(
-        { error: 'Only project leader can delete project' },
-        { status: 403 }
-      );
-    }
+    
+    // Only project leaders can delete projects
+    await requireLeaderRole(session.user.id, projectId);
 
     // Delete project (cascade will handle related records)
     await db.delete(projects).where(eq(projects.id, projectId));
@@ -267,7 +338,22 @@ export async function DELETE(
     return NextResponse.json({ message: 'Project deleted successfully' });
 
   } catch (error) {
-    console.error('Error deleting project:', error);
+    if (error instanceof Error) {
+      if (error.message.includes('not found') || error.message.includes('access denied')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 404 }
+        );
+      }
+      if (error.message.includes('Leader role required')) {
+        return NextResponse.json(
+          { error: 'Only project leader can delete project' },
+          { status: 403 }
+        );
+      }
+    }
+    
+    //console.error('Project DELETE error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

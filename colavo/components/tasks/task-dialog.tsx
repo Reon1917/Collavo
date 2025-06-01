@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 interface TaskDialogProps {
   projectId: string;
@@ -22,6 +23,7 @@ interface TaskDialogProps {
 }
 
 export function TaskDialog({ projectId, open = false, onOpenChange, onSubmit }: TaskDialogProps) {
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -30,70 +32,97 @@ export function TaskDialog({ projectId, open = false, onOpenChange, onSubmit }: 
     deadline: new Date().toISOString().split("T")[0],
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // TODO: Replace with actual API call to create task
-    // const taskData = { ...formData, projectId };
-    // await createTask(taskData);
-    console.log('Creating task for project:', projectId, formData);
-    
-    if (onSubmit) {
-      onSubmit();
+    if (!formData.title.trim()) {
+      toast.error('Task title is required');
+      return;
     }
+
+    setIsLoading(true);
     
-    // Reset form
-    setFormData({
-      title: "",
-      description: "",
-      importance: "normal",
-      status: "pending",
-      deadline: new Date().toISOString().split("T")[0],
-    });
-    
-    if (onOpenChange) {
-      onOpenChange(false);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/tasks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: formData.title.trim(),
+          description: formData.description.trim() || null,
+          importanceLevel: formData.importance,
+          deadline: formData.deadline ? new Date(formData.deadline).toISOString() : null,
+        }),
+      });
+
+      if (response.ok) {
+        onSubmit?.();
+        setFormData({
+          title: "",
+          description: "",
+          importance: "normal",
+          status: "pending",
+          deadline: new Date().toISOString().split("T")[0],
+        });
+        if (onOpenChange) {
+          onOpenChange(false);
+        }
+        toast.success('Task created successfully!');
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to create task');
+      }
+    } catch {
+      toast.error('Failed to create task');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange || (() => {})}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create New Task</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="Enter task title"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Enter task description"
-              rows={3}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="importance">Importance</Label>
-              <Select 
-                value={formData.importance} 
-                onValueChange={(value) => setFormData({ ...formData, importance: value })}
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="title" className="text-right">
+                Title
+              </Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                className="col-span-3"
+                required
+                disabled={isLoading}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Description
+              </Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                className="col-span-3"
+                disabled={isLoading}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="importance" className="text-right">
+                Importance
+              </Label>
+              <Select
+                value={formData.importance}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, importance: value }))}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select importance" />
+                <SelectTrigger className="col-span-3">
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Low</SelectItem>
@@ -103,41 +132,24 @@ export function TaskDialog({ projectId, open = false, onOpenChange, onSubmit }: 
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select 
-                value={formData.status} 
-                onValueChange={(value) => setFormData({ ...formData, status: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="deadline" className="text-right">
+                Deadline
+              </Label>
+              <Input
+                id="deadline"
+                type="date"
+                value={formData.deadline}
+                onChange={(e) => setFormData(prev => ({ ...prev, deadline: e.target.value }))}
+                className="col-span-3"
+                disabled={isLoading}
+              />
             </div>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="deadline">Deadline</Label>
-            <Input
-              id="deadline"
-              type="date"
-              value={formData.deadline}
-              onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-            />
-          </div>
-
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)}>
-              Cancel
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Creating...' : 'Create Task'}
             </Button>
-            <Button type="submit">Create Task</Button>
           </DialogFooter>
         </form>
       </DialogContent>

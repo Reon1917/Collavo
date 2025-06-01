@@ -1,17 +1,134 @@
 "use client"
 
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserPlus } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { UserPlus, Crown, User, Loader2 } from 'lucide-react';
+import { AddMemberForm } from '@/components/project/AddMemberForm';
+import { cn } from '@/lib/utils';
+import { buttonVariants } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { use } from 'react';
 
-export default function MembersPage() {
-  // Mock empty members for now - replace with real data later
-  const members: never[] = [];
+interface Member {
+  id: string;
+  userId: string;
+  role: string;
+  joinedAt: string;
+  userName: string;
+  userEmail: string;
+  userImage?: string;
+  permissions: string[];
+}
 
-  const handleInviteMember = () => {
-    // TODO: Implement member invitation when backend is ready
-    console.log('Invite member clicked');
+interface ProjectPermissions {
+  userPermissions: string[];
+  isLeader: boolean;
+}
+
+interface MembersPageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function MembersPage({ params }: MembersPageProps) {
+  // Use React.use() to unwrap the promise in a client component
+  const { id: projectId } = use(params);
+
+  const [members, setMembers] = useState<Member[]>([]);
+  const [permissions, setPermissions] = useState<ProjectPermissions>({ userPermissions: [], isLeader: false });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const fetchMembers = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/projects/${projectId}/members`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          toast.error('Project not found or access denied');
+          return;
+        }
+        throw new Error('Failed to fetch members');
+      }
+
+      const membersData = await response.json();
+      setMembers(membersData);
+    } catch {
+      toast.error('Failed to load project members');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [projectId]);
+
+  const fetchProjectPermissions = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          toast.error('Project not found or access denied');
+          return;
+        }
+        throw new Error('Failed to fetch project permissions');
+      }
+
+      const projectData = await response.json();
+      setPermissions({
+        userPermissions: projectData.userPermissions || [],
+        isLeader: projectData.isLeader || false
+      });
+    } catch {
+      // Don't show error toast for permissions, just fail silently
+    }
+  }, [projectId]);
+
+  useEffect(() => {
+    Promise.all([fetchMembers(), fetchProjectPermissions()]);
+  }, [fetchMembers, fetchProjectPermissions]);
+
+  const handleMemberAdded = () => {
+    // Close dialog and refresh members list
+    setIsDialogOpen(false);
+    fetchMembers();
   };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // Check if user can add members
+  const canAddMembers = permissions.isLeader || permissions.userPermissions.includes('addMember');
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">Project Members</h1>
+            <p className="text-muted-foreground">
+              Manage team members and their roles in this project
+            </p>
+          </div>
+          <Button disabled>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Invite Member
+          </Button>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -22,10 +139,26 @@ export default function MembersPage() {
             Manage team members and their roles in this project
           </p>
         </div>
-        <Button onClick={handleInviteMember}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Invite Member
-        </Button>
+        {canAddMembers && (
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger className={cn(buttonVariants(), "flex items-center gap-2")}>
+              <UserPlus className="h-4 w-4" />
+              Invite Member
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Invite Team Member</DialogTitle>
+                <DialogDescription>
+                  Add a new member to this project.
+                </DialogDescription>
+              </DialogHeader>
+              <AddMemberForm 
+                projectId={projectId} 
+                onMemberAdded={handleMemberAdded}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       {members.length === 0 ? (
@@ -33,26 +166,87 @@ export default function MembersPage() {
           <CardHeader>
             <CardTitle>No members yet</CardTitle>
             <CardDescription>
-              Invite team members to collaborate on this project.
+              {canAddMembers 
+                ? "Invite team members to collaborate on this project."
+                : "This project doesn't have any members yet."
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={handleInviteMember}>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Invite First Member
-            </Button>
+            {canAddMembers && (
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger className={cn(buttonVariants(), "flex items-center gap-2")}>
+                  <UserPlus className="h-4 w-4" />
+                  Invite First Member
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Invite Team Member</DialogTitle>
+                    <DialogDescription>
+                      Add a new member to this project.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <AddMemberForm 
+                    projectId={projectId} 
+                    onMemberAdded={handleMemberAdded}
+                  />
+                </DialogContent>
+              </Dialog>
+            )}
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4">
-          {/* Members will be displayed here when backend is implemented */}
-          <p className="text-center text-gray-500 py-8">
-            Member list will be implemented when backend is ready
-          </p>
+          {members.map((member) => (
+            <Card key={member.id} className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={member.userImage} alt={member.userName} />
+                      <AvatarFallback className="bg-[#008080] text-white">
+                        {getInitials(member.userName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                          {member.userName}
+                        </h3>
+                        {member.role === 'leader' && (
+                          <Crown className="h-4 w-4 text-yellow-500" />
+                        )}
+                        {member.role === 'member' && (
+                          <User className="h-4 w-4 text-gray-500" />
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {member.userEmail}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                        Joined {new Date(member.joinedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <Badge 
+                      variant={member.role === 'leader' ? 'default' : 'secondary'}
+                      className={member.role === 'leader' ? 'bg-[#008080] hover:bg-[#006666]' : ''}
+                    >
+                      {member.role}
+                    </Badge>
+                    {member.permissions.length > 0 && (
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {member.permissions.length} permission{member.permissions.length !== 1 ? 's' : ''}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
-
-      {/* TODO: Add invite member dialog component when needed */}
     </div>
   );
 }

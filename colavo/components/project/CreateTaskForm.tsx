@@ -7,8 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarIcon, Loader2, Plus, X, FileText } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CalendarIcon, Loader2, Plus, X, FileText, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -17,17 +17,21 @@ import { cn } from '@/lib/utils';
 
 interface CreateTaskFormProps {
   projectId: string;
-  onTaskCreated?: () => void;
+  onTaskCreated?: (newTask: any) => void;
   members: Member[];
   trigger?: React.ReactNode;
+  projectData?: {
+    deadline: string | null;
+  };
 }
 
 interface Member {
   id: string;
   userId: string;
+  role: 'leader' | 'member';
   userName: string;
   userEmail: string;
-  role: 'leader' | 'member';
+  userImage: string | null;
 }
 
 interface MainTaskFormData {
@@ -44,26 +48,51 @@ interface SubTaskFormData {
   deadline: Date | undefined;
 }
 
-export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: CreateTaskFormProps) {
+export function CreateTaskForm({ projectId, onTaskCreated, members, trigger, projectData }: CreateTaskFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState<'main' | 'sub'>('main');
   const [createdMainTaskId, setCreatedMainTaskId] = useState<string | null>(null);
+  const [createdMainTask, setCreatedMainTask] = useState<any>(null);
   
   const [mainTaskData, setMainTaskData] = useState<MainTaskFormData>({
     title: '',
     description: '',
-    importanceLevel: 'medium',
+    importanceLevel: '' as any,
     deadline: undefined
   });
 
-  const [subTasks, setSubTasks] = useState<SubTaskFormData[]>([]);
+  const [subTasks, setSubTasks] = useState<SubTaskFormData[]>([{
+    title: '',
+    description: '',
+    assignedId: '',
+    deadline: undefined
+  }]);
+
+  // Get project deadline from props instead of fetching
+  const projectDeadline = projectData?.deadline ? new Date(projectData.deadline) : null;
 
   const handleMainTaskSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!mainTaskData.title.trim()) {
       toast.error('Task title is required');
+      return;
+    }
+
+    if (!mainTaskData.importanceLevel) {
+      toast.error('Please select an importance level');
+      return;
+    }
+
+    if (!mainTaskData.deadline) {
+      toast.error('Deadline is required for all tasks');
+      return;
+    }
+
+    // Validate deadline against project deadline
+    if (projectDeadline && mainTaskData.deadline > projectDeadline) {
+      toast.error('Task deadline cannot be later than project deadline');
       return;
     }
 
@@ -79,24 +108,24 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
           title: mainTaskData.title.trim(),
           description: mainTaskData.description.trim() || null,
           importanceLevel: mainTaskData.importanceLevel,
-          deadline: mainTaskData.deadline ? mainTaskData.deadline.toISOString() : null
+          deadline: mainTaskData.deadline.toISOString()
         }),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create task');
+      if (response.ok) {
+        const task = await response.json();
+        setCreatedMainTaskId(task.id);
+        setCreatedMainTask(task);
+        toast.success('Main task created successfully!');
+        
+        // Move to sub-task creation step
+        setStep('sub');
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to create task');
       }
-
-      const task = await response.json();
-      setCreatedMainTaskId(task.id);
-      toast.success('Main task created successfully!');
-      
-      // Move to sub-task creation step
-      setStep('sub');
-    } catch (error) {
-      console.error('Error creating main task:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create task');
+    } catch {
+      toast.error('Failed to create task');
     } finally {
       setIsLoading(false);
     }
@@ -112,7 +141,11 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
   };
 
   const handleRemoveSubTask = (index: number) => {
-    setSubTasks(prev => prev.filter((_, i) => i !== index));
+    if (subTasks.length > 1) {
+      setSubTasks(prev => prev.filter((_, i) => i !== index));
+    } else {
+      toast.error('At least one subtask is required');
+    }
   };
 
   const handleSubTaskChange = (index: number, field: keyof SubTaskFormData, value: string | Date | undefined) => {
@@ -121,14 +154,55 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
     ));
   };
 
-  const handleCreateSubTasks = async () => {
+  const validateSubTasks = () => {
     const validSubTasks = subTasks.filter(st => st.title.trim());
     
     if (validSubTasks.length === 0) {
-      handleFinish();
+      toast.error('At least one subtask with a title is required');
+      return false;
+    }
+
+    // Check if all valid subtasks have assigned members
+    const unassignedSubTasks = validSubTasks.filter(st => !st.assignedId);
+    if (unassignedSubTasks.length > 0) {
+      toast.error('All subtasks must be assigned to a member');
+      return false;
+    }
+
+    // Check if all valid subtasks have deadlines
+    const missingDeadlines = validSubTasks.filter(st => !st.deadline);
+    if (missingDeadlines.length > 0) {
+      toast.error('All subtasks must have a deadline');
+      return false;
+    }
+
+    // Validate deadlines against main task deadline
+    if (mainTaskData.deadline) {
+      const invalidDeadlines = validSubTasks.filter(st => st.deadline && st.deadline > mainTaskData.deadline!);
+      if (invalidDeadlines.length > 0) {
+        toast.error('Subtask deadlines cannot be later than the main task deadline');
+        return false;
+      }
+    }
+
+    // Validate deadlines against project deadline
+    if (projectDeadline) {
+      const invalidProjectDeadlines = validSubTasks.filter(st => st.deadline && st.deadline > projectDeadline!);
+      if (invalidProjectDeadlines.length > 0) {
+        toast.error('Subtask deadlines cannot be later than the project deadline');
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const handleCreateSubTasks = async () => {
+    if (!validateSubTasks()) {
       return;
     }
 
+    const validSubTasks = subTasks.filter(st => st.title.trim());
     setIsLoading(true);
 
     try {
@@ -142,8 +216,8 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
           body: JSON.stringify({
             title: subTask.title.trim(),
             description: subTask.description.trim() || null,
-            assignedId: subTask.assignedId || null,
-            deadline: subTask.deadline ? subTask.deadline.toISOString() : null
+            assignedId: subTask.assignedId,
+            deadline: subTask.deadline!.toISOString()
           }),
         })
       );
@@ -156,61 +230,102 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
         throw new Error(`Failed to create ${failedRequests.length} sub-task(s)`);
       }
 
+      // Get all created subtasks
+      const createdSubTasks = await Promise.all(
+        responses.map(response => response.json())
+      );
+
       toast.success(`Created ${validSubTasks.length} sub-task(s) successfully!`);
-      handleFinish();
-    } catch (error) {
-      console.error('Error creating sub-tasks:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create sub-tasks');
+      
+      // Create complete task object with subtasks for optimistic update
+      const completeTask = {
+        ...createdMainTask,
+        subTasks: createdSubTasks
+      };
+      
+      handleFinish(completeTask);
+    } catch  {
+      toast.error('Failed to create sub-tasks');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleFinish = () => {
+  const handleFinish = (taskWithSubTasks?: any) => {
     // Reset form
     setMainTaskData({
       title: '',
       description: '',
-      importanceLevel: 'medium',
+      importanceLevel: '' as any,
       deadline: undefined
     });
-    setSubTasks([]);
+    setSubTasks([{
+      title: '',
+      description: '',
+      assignedId: '',
+      deadline: undefined
+    }]);
     setStep('main');
     setCreatedMainTaskId(null);
+    setCreatedMainTask(null);
     setIsOpen(false);
     
-    // Trigger refresh
-    onTaskCreated?.();
+    // Trigger optimistic update with complete task data
+    if (taskWithSubTasks) {
+      onTaskCreated?.(taskWithSubTasks);
+    } else if (createdMainTask) {
+      // If no subtasks were created, just use the main task
+      onTaskCreated?.({ ...createdMainTask, subTasks: [] });
+    }
   };
 
-  const defaultTrigger = (
-    <Button className="bg-[#008080] hover:bg-[#006666] text-white">
-      <Plus className="h-4 w-4 mr-2" />
-      Create Task
-    </Button>
-  );
+  const getMaxDate = () => {
+    return projectDeadline || undefined;
+  };
+
+  const getSubTaskMaxDate = () => {
+    const dates = [mainTaskData.deadline, projectDeadline].filter(Boolean);
+    if (dates.length === 0) return undefined;
+    return new Date(Math.min(...dates.map(d => d!.getTime())));
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {trigger || defaultTrigger}
-      </DialogTrigger>
+      {trigger ? (
+        <div onClick={() => setIsOpen(true)}>
+          {trigger}
+        </div>
+      ) : (
+        <DialogTrigger className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#008080] hover:bg-[#006666] text-white rounded-md font-medium transition-colors">
+          <Plus className="h-4 w-4 mr-2" />
+          Create Task
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-2">
             <FileText className="h-5 w-5 text-[#008080]" />
-            {step === 'main' ? 'Create New Task' : 'Add Sub-tasks (Optional)'}
+            {step === 'main' ? 'Create New Task' : 'Add Sub-tasks (Required)'}
           </DialogTitle>
           <DialogDescription className="text-gray-600 dark:text-gray-400">
             {step === 'main' 
-              ? 'Create a main task to organize your project work.'
-              : 'Break down your main task into smaller, assignable sub-tasks.'
+              ? 'Create a main task to organize your project work. Deadline is required.'
+              : 'Break down your main task into smaller, assignable sub-tasks. At least one subtask with an assigned member is required.'
             }
           </DialogDescription>
         </DialogHeader>
 
         {step === 'main' ? (
           <form onSubmit={handleMainTaskSubmit} className="space-y-6">
+            {projectDeadline && (
+              <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  Project deadline: {format(projectDeadline, "PPP")}. Task deadline cannot be later than this date.
+                </p>
+              </div>
+            )}
+
             {/* Task Title */}
             <div className="space-y-2">
               <Label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -251,15 +366,19 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
               </Label>
               <Select
                 value={mainTaskData.importanceLevel}
-                onValueChange={(value: 'low' | 'medium' | 'high' | 'critical') => 
-                  setMainTaskData(prev => ({ ...prev, importanceLevel: value }))
+                onValueChange={(value) => 
+                  setMainTaskData(prev => ({ ...prev, importanceLevel: value as 'low' | 'medium' | 'high' | 'critical' }))
                 }
-                disabled={isLoading}
               >
-                <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
-                  <SelectValue />
+                <SelectTrigger 
+                  className={cn(
+                    "bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]",
+                    isLoading && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  <SelectValue placeholder="Select importance level *" />
                 </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                <SelectContent>
                   <SelectItem value="low">Low</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
                   <SelectItem value="high">High</SelectItem>
@@ -268,10 +387,10 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
               </Select>
             </div>
 
-            {/* Deadline */}
+            {/* Deadline - Now Required */}
             <div className="space-y-2">
               <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Deadline (Optional)
+                Deadline *
               </Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -284,7 +403,7 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
                     disabled={isLoading}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {mainTaskData.deadline ? format(mainTaskData.deadline, "PPP") : "Select deadline"}
+                    {mainTaskData.deadline ? format(mainTaskData.deadline, "PPP") : "Select deadline *"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
@@ -292,7 +411,13 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
                     mode="single"
                     selected={mainTaskData.deadline}
                     onSelect={(date) => setMainTaskData(prev => ({ ...prev, deadline: date }))}
-                    disabled={(date) => date < new Date()}
+                    disabled={(date) => {
+                      const today = new Date();
+                      const maxDate = getMaxDate();
+                      if (date < today) return true;
+                      if (maxDate && date > maxDate) return true;
+                      return false;
+                    }}
                     initialFocus
                   />
                 </PopoverContent>
@@ -312,7 +437,7 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
               </Button>
               <Button
                 type="submit"
-                disabled={isLoading || !mainTaskData.title.trim()}
+                disabled={isLoading || !mainTaskData.title.trim() || !mainTaskData.importanceLevel || !mainTaskData.deadline}
                 className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
               >
                 {isLoading ? (
@@ -328,6 +453,13 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
           </form>
         ) : (
           <div className="space-y-6">
+            <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-amber-800 dark:text-amber-200">
+                At least one subtask must be created and assigned to a team member. All subtasks require deadlines and cannot exceed the main task deadline ({mainTaskData.deadline ? format(mainTaskData.deadline, "PPP") : 'N/A'}).
+              </p>
+            </div>
+
             {/* Sub-tasks */}
             <div className="space-y-4">
               {subTasks.map((subTask, index) => (
@@ -335,27 +467,30 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm font-medium text-gray-900 dark:text-white">
-                        Sub-task {index + 1}
+                        Sub-task {index + 1} *
                       </CardTitle>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveSubTask(index)}
-                        className="h-6 w-6 p-0 text-gray-500 hover:text-red-600"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+                      {subTasks.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveSubTask(index)}
+                          className="h-6 w-6 p-0 text-gray-500 hover:text-red-600"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {/* Sub-task Title */}
                     <Input
-                      placeholder="Sub-task title..."
+                      placeholder="Sub-task title... *"
                       value={subTask.title}
                       onChange={(e) => handleSubTaskChange(index, 'title', e.target.value)}
                       className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600"
                       maxLength={500}
+                      required
                     />
 
                     {/* Sub-task Description */}
@@ -367,20 +502,19 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
                     />
 
                     <div className="grid grid-cols-2 gap-3">
-                      {/* Assigned Member */}
+                      {/* Assigned Member - Now Required */}
                       <div className="space-y-1">
                         <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                          Assign to
+                          Assign to *
                         </Label>
                         <Select
                           value={subTask.assignedId}
                           onValueChange={(value) => handleSubTaskChange(index, 'assignedId', value)}
                         >
                           <SelectTrigger className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600">
-                            <SelectValue placeholder="Select member" />
+                            <SelectValue placeholder="Select member *" />
                           </SelectTrigger>
-                          <SelectContent className="bg-white dark:bg-gray-900">
-                            <SelectItem value="">Unassigned</SelectItem>
+                          <SelectContent>
                             {members.map((member) => (
                               <SelectItem key={member.userId} value={member.userId}>
                                 {member.userName}
@@ -390,10 +524,10 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
                         </Select>
                       </div>
 
-                      {/* Deadline */}
+                      {/* Deadline - Now Required */}
                       <div className="space-y-1">
                         <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                          Deadline
+                          Deadline *
                         </Label>
                         <Popover>
                           <PopoverTrigger asChild>
@@ -405,7 +539,7 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
                               )}
                             >
                               <CalendarIcon className="mr-1 h-3 w-3" />
-                              {subTask.deadline ? format(subTask.deadline, "MMM dd") : "Set date"}
+                              {subTask.deadline ? format(subTask.deadline, "MMM dd") : "Set date *"}
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900">
@@ -413,7 +547,13 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
                               mode="single"
                               selected={subTask.deadline}
                               onSelect={(date) => handleSubTaskChange(index, 'deadline', date)}
-                              disabled={(date) => date < new Date()}
+                              disabled={(date) => {
+                                const today = new Date();
+                                const maxDate = getSubTaskMaxDate();
+                                if (date < today) return true;
+                                if (maxDate && date > maxDate) return true;
+                                return false;
+                              }}
                               initialFocus
                             />
                           </PopoverContent>
@@ -432,7 +572,7 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
                 className="w-full border-dashed border-2 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-[#008080] hover:text-[#008080]"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Add Sub-task
+                Add Another Sub-task
               </Button>
             </div>
 
@@ -441,11 +581,11 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger }: C
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleFinish}
+                onClick={() => setStep('main')}
                 disabled={isLoading}
                 className="flex-1"
               >
-                Skip Sub-tasks
+                Back to Main Task
               </Button>
               <Button
                 type="button"

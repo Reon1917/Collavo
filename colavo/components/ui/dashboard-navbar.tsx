@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth-client';
 import { useAuth } from '@/providers/auth-provider';
-import { Search, Bell, Plus, User, Settings, LogOut, Moon, Sun } from 'lucide-react';
+import { Search, Plus, User, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { 
@@ -16,16 +16,15 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { formatInitials } from '@/utils/format';
-import { useTheme } from 'next-themes';
 
 export function DashboardNavbar(): React.JSX.Element {
   const { user, isAuthenticated, refetch } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
-  const { setTheme, theme } = useTheme();
 
   const handleLogout = async (): Promise<void> => {
     try {
@@ -33,8 +32,8 @@ export function DashboardNavbar(): React.JSX.Element {
       await refetch();
       toast.success('Logged out successfully');
       router.push('/');
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch {
+      //console.error('Logout error:', error);
       toast.error('Failed to logout');
     }
   };
@@ -107,14 +106,8 @@ export function DashboardNavbar(): React.JSX.Element {
               </Link>
             </Button>
 
-            {/* Notifications */}
-            <Button variant="ghost" size="sm" className="relative">
-              <Bell className="h-5 w-5" />
-              {/* Notification badge */}
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-[#00FFFF] rounded-full text-xs text-gray-800 flex items-center justify-center">
-                3
-              </span>
-            </Button>
+            {/* Theme Toggle */}
+            <ThemeToggle />
 
             {/* User Menu */}
             {isAuthenticated && user ? (
@@ -142,27 +135,6 @@ export function DashboardNavbar(): React.JSX.Element {
                       <User className="h-4 w-4 mr-2" />
                       Profile
                     </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings" className="flex items-center">
-                      <Settings className="h-4 w-4 mr-2" />
-                      Settings
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {/* Theme Toggle */}
-                  <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="flex items-center">
-                    {theme === 'dark' ? (
-                      <>
-                        <Sun className="h-4 w-4 mr-2" />
-                        Light Mode
-                      </>
-                    ) : (
-                      <>
-                        <Moon className="h-4 w-4 mr-2" />
-                        Dark Mode
-                      </>
-                    )}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-red-600 dark:text-red-400">

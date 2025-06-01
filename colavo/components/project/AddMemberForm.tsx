@@ -51,8 +51,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to add member');
+        throw new Error('Failed to add member');
       }
 
       const member = await response.json();
@@ -66,9 +65,8 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
 
       // Trigger refresh callback
       onMemberAdded?.();
-    } catch (error) {
-      console.error('Error adding member:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to add member');
+    } catch {
+      toast.error('Failed to add member');
     } finally {
       setIsLoading(false);
     }
@@ -134,15 +132,15 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
             </Label>
             <Select
               value={formData.identifierType}
-              onValueChange={(value: IdentifierType) => 
-                setFormData(prev => ({ ...prev, identifierType: value, identifier: '' }))
-              }
-              disabled={isLoading}
+              onValueChange={(value) => {
+                const typedValue = value as IdentifierType;
+                setFormData(prev => ({ ...prev, identifierType: typedValue, identifier: '' }));
+              }}
             >
               <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+              <SelectContent>
                 <SelectItem value="email">Email Address</SelectItem>
                 <SelectItem value="username">Username</SelectItem>
                 <SelectItem value="id">User ID</SelectItem>
