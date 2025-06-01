@@ -62,7 +62,7 @@ export const auth = betterAuth({
   secret: envConfig.BETTER_AUTH_SECRET,
   baseURL: envConfig.BETTER_AUTH_URL || 
     (envConfig.NODE_ENV === "production" 
-      ? "https://collavo-alpha.vercel.app/" 
+      ? "https://collavo-alpha.vercel.app" 
       : "http://localhost:3000"
     ),
   // Additional security configurations
