@@ -17,16 +17,16 @@ import {
   User, 
   Loader2,
   Edit,
-  CheckCircle,
   Trash2,
   Settings,
   CheckSquare,
-  Plus,
-  UserPlus,
   CalendarIcon
 } from 'lucide-react';
 import { AddMemberForm } from '@/components/project/AddMemberForm';
 import { CreateTaskForm } from '@/components/project/CreateTaskForm';
+import { ProjectHeader } from './ProjectView/components/Header';
+import { OverviewStats } from './ProjectView/components/Overview';
+import { ProjectManagement } from './ProjectView/components/Management';
 import { toast } from 'sonner';
 import { formatDistanceToNow, format, isAfter } from 'date-fns';
 import { formatInitials } from '@/utils/format';
@@ -254,68 +254,11 @@ export function ProjectView({ projectId }: ProjectViewProps) {
   const canCreateTasks = project.userPermissions.includes('createTask');
   const canManagePermissions = project.isLeader; // Only leaders can manage member permissions
 
-  // Get current user's role display
-  const getUserRoleDisplay = () => {
-    if (project.isLeader) {
-      return {
-        label: 'Project Leader',
-        icon: Crown,
-        className: "bg-[#008080] hover:bg-[#006666] text-white"
-      };
-    }
-    return {
-      label: 'Team Member',
-      icon: User,
-      className: "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-    };
-  };
 
-  const roleDisplay = getUserRoleDisplay();
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
-      {/* Project Header */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl p-8 border border-gray-200/60 dark:border-gray-700 shadow-md">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                {project.name}
-              </h1>
-            </div>
-            {project.description && (
-              <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
-                {project.description}
-              </p>
-            )}
-            <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-              <div className="flex items-center gap-2">
-                <Crown className="h-4 w-4" />
-                <span>Led by {project.leaderName}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span>{project.members.length} member{project.members.length !== 1 ? 's' : ''}</span>
-              </div>
-              {project.deadline && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>Due {format(new Date(project.deadline), 'PPP')}</span>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Badge 
-              variant={project.isLeader ? "default" : "secondary"}
-              className={roleDisplay.className}
-            >
-              <roleDisplay.icon className="h-3 w-3 mr-1" />
-              {roleDisplay.label}
-            </Badge>
-          </div>
-        </div>
-      </div>
+      <ProjectHeader project={project} />
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -350,124 +293,18 @@ export function ProjectView({ projectId }: ProjectViewProps) {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Project Stats */}
-            <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white">Project Statistics</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Total Tasks</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">{tasks.length}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Team Members</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">{project.members.length}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Your Role</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">{roleDisplay.label}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Permissions</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">{project.userPermissions.length}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Your Permissions */}
-            <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white">Your Permissions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {project.userPermissions.length > 0 ? (
-                    project.userPermissions.map((permission) => (
-                      <div key={permission} className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
-                          {permission.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      No specific permissions assigned
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Admin Actions for Leaders */}
-          {project.isLeader && (
-            <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white">Project Management</CardTitle>
-                <CardDescription>
-                  Manage your project settings and team. Only project leaders can access these actions.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Quick Actions */}
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-gray-900 dark:text-white">Quick Actions</h4>
-                    <div className="space-y-2">
-                      {canCreateTasks && (
-                        <CreateTaskForm 
-                          projectId={projectId} 
-                          onTaskCreated={handleTaskCreated}
-                          members={project.members}
-                          trigger={
-                            <div className="flex items-center justify-start p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors">
-                              <Plus className="h-4 w-4 mr-2 text-[#008080]" />
-                              <span className="text-sm font-medium text-gray-900 dark:text-white">Create New Task</span>
-                            </div>
-                          }
-                        />
-                      )}
-                      {canAddMembers && (
-                        <div className="flex items-center justify-start p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-                             onClick={() => setActiveTab('members')}>
-                          <UserPlus className="h-4 w-4 mr-2 text-[#008080]" />
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">Add Team Member</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Project Settings */}
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-gray-900 dark:text-white">Project Settings</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-                        <div className="flex items-center">
-                          <Edit className="h-4 w-4 mr-2 text-gray-500" />
-                          <span className="text-sm text-gray-700 dark:text-gray-300">Edit Project Details</span>
-                        </div>
-                        <Button variant="outline" size="sm" onClick={openEditDialog}>
-                          Edit
-                        </Button>
-                      </div>
-                      <div className="flex items-center justify-between p-3 border border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-950/20">
-                        <div className="flex items-center">
-                          <Trash2 className="h-4 w-4 mr-2 text-red-500" />
-                          <span className="text-sm text-red-700 dark:text-red-300">Delete Project</span>
-                        </div>
-                        <Button variant="destructive" size="sm" onClick={() => setIsDeleteDialogOpen(true)}>
-                          Delete
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <OverviewStats project={project} tasks={tasks} />
+          
+          <ProjectManagement
+            project={project}
+            projectId={projectId}
+            canCreateTasks={canCreateTasks}
+            canAddMembers={canAddMembers}
+            onTaskCreated={handleTaskCreated}
+            onEditProject={openEditDialog}
+            onDeleteProject={() => setIsDeleteDialogOpen(true)}
+            onNavigateToMembers={() => setActiveTab('members')}
+          />
         </TabsContent>
 
         {/* Tasks Tab */}
