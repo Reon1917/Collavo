@@ -32,37 +32,49 @@ function ProjectHeader({ projectId }: { projectId: string }) {
         if (response.ok) {
           const projectData = await response.json();
           setProject(projectData);
+          setIsLoading(false);
+        } else {
+          setIsLoading(false);
+          if (response.status === 404 || response.status === 403) {
+            notFound();
+          }
         }
-      } catch {
+      } catch (error) {
+        console.error('Error fetching project:', error);
         setIsLoading(false);
-        // User doesn't have access to this project
-        notFound();
+        // For network errors, still try to show something
+        setProject({ id: projectId, name: `Project ${projectId}` });
       }
     };
 
-    fetchProject();
+    if (projectId) {
+      fetchProject();
+    }
   }, [projectId]);
 
   return (
     <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             <Button variant="ghost" size="sm" asChild>
               <Link href="/dashboard" className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
                 <ArrowLeft className="h-4 w-4" />
                 Back to Dashboard
               </Link>
             </Button>
-            <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+            <div className="flex items-center gap-3">
+              <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-[#008080] rounded-full"></div>
                 {isLoading ? (
-                  <span className="animate-pulse bg-gray-200 dark:bg-gray-700 h-6 w-48 rounded"></span>
+                  <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-6 w-48 rounded"></div>
                 ) : (
-                  project?.name || `Project ${projectId}`
+                  <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    {project?.name || `Project ${projectId}`}
+                  </h1>
                 )}
-              </h1>
+              </div>
             </div>
           </div>
           <ThemeToggle />
