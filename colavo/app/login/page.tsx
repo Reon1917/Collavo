@@ -35,7 +35,10 @@ export default function LoginPage() {
         toast.error('Invalid credentials. Please try again.');
       } else {
         toast.success('Login successful!');
-        router.push('/dashboard');
+        // Wait a moment for the session to be established
+        setTimeout(() => {
+          router.push(callbackUrl);
+        }, 100);
       }
     } catch {
       toast.error('An error occurred. Please try again.');

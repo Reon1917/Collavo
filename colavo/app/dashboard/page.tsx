@@ -60,10 +60,18 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
+    console.log('[Dashboard] Session state:', {
+      isPending,
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userId: session?.user?.id
+    });
+    
     if (!isPending && session?.user) {
       fetchProjects();
     } else if (!isPending && !session) {
       // Redirect to login if not authenticated
+      console.log('[Dashboard] No session, redirecting to login');
       window.location.href = '/login';
     }
   }, [session, isPending]);
