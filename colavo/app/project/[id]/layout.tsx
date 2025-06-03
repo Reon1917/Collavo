@@ -2,16 +2,61 @@
 
 import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Home, Users, FileText, FolderOpen, AlignLeft } from 'lucide-react';
+import { ArrowLeft, Home, Users, FileText, FolderOpen, AlignLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChatButton } from '@/components/project/chat-button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { notFound } from 'next/navigation';
+import { notFound, usePathname } from 'next/navigation';
 
 interface Project {
   id: string;
   name: string;
   description?: string;
+}
+
+// Simple breadcrumb component with home icon and chevrons
+function SimpleBreadcrumb() {
+  const pathname = usePathname();
+  const segments = pathname.split('/').filter(Boolean);
+  const isProjectPage = segments.length >= 2 && segments[0] === 'project';
+  const projectId = isProjectPage ? segments[1] : '';
+  const currentSection = segments.length > 2 ? segments[2] : '';
+
+  return (
+    <div className="flex items-center mb-4 text-sm">
+      <Link 
+        href="/dashboard" 
+        className="flex items-center font-medium text-gray-600 hover:text-[#008080] transition-colors dark:text-gray-400 dark:hover:text-[#00FFFF]"
+      >
+        <Home className="h-4 w-4 mr-1" />
+        Home
+      </Link>
+      
+      {projectId && (
+        <>
+          <ChevronRight className="h-4 w-4 mx-2 text-gray-400 dark:text-gray-600" />
+          
+          <Link 
+            href={`/project/${projectId}`} 
+            className={`font-medium ${segments.length === 2 
+              ? 'text-[#008080] dark:text-[#00FFFF]' 
+              : 'text-gray-600 hover:text-[#008080] dark:text-gray-400 dark:hover:text-[#00FFFF]'}`}
+          >
+            Project
+          </Link>
+        </>
+      )}
+      
+      {currentSection && (
+        <>
+          <ChevronRight className="h-4 w-4 mx-2 text-gray-400 dark:text-gray-600" />
+          <span className="font-semibold text-[#008080] dark:text-[#00FFFF]">
+            {currentSection.charAt(0).toUpperCase() + currentSection.slice(1)}
+          </span>
+        </>
+      )}
+    </div>
+  );
 }
 
 function ProjectHeader({ projectId }: { projectId: string }) {
@@ -55,6 +100,9 @@ function ProjectHeader({ projectId }: { projectId: string }) {
   return (
     <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
       <div className="container mx-auto px-4 py-4">
+        {/* Add breadcrumb navigation above project header */}
+        <SimpleBreadcrumb />
+        
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
             <Button variant="ghost" size="sm" asChild>
