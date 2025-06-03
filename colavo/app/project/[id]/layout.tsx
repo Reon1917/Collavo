@@ -23,18 +23,18 @@ function SimpleBreadcrumb() {
   const currentSection = segments.length > 2 ? segments[2] : '';
 
   return (
-    <div className="flex items-center mb-4 text-sm">
+    <div className="flex items-center mb-5 text-base">
       <Link 
         href="/dashboard" 
         className="flex items-center font-medium text-gray-600 hover:text-[#008080] transition-colors dark:text-gray-400 dark:hover:text-[#00FFFF]"
       >
-        <Home className="h-4 w-4 mr-1" />
+        <Home className="h-4 w-4 mr-1.5" />
         Home
       </Link>
       
       {projectId && (
         <>
-          <ChevronRight className="h-4 w-4 mx-2 text-gray-400 dark:text-gray-600" />
+          <ChevronRight className="h-4 w-4 mx-2.5 text-gray-400 dark:text-gray-600" />
           
           <Link 
             href={`/project/${projectId}`} 
@@ -49,7 +49,7 @@ function SimpleBreadcrumb() {
       
       {currentSection && (
         <>
-          <ChevronRight className="h-4 w-4 mx-2 text-gray-400 dark:text-gray-600" />
+          <ChevronRight className="h-4 w-4 mx-2.5 text-gray-400 dark:text-gray-600" />
           <span className="font-semibold text-[#008080] dark:text-[#00FFFF]">
             {currentSection.charAt(0).toUpperCase() + currentSection.slice(1)}
           </span>
@@ -99,26 +99,26 @@ function ProjectHeader({ projectId }: { projectId: string }) {
 
   return (
     <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-      <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-6 py-7">
         {/* Add breadcrumb navigation above project header */}
         <SimpleBreadcrumb />
         
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
+        <div className="flex items-center justify-between mt-3">
+          <div className="flex items-center gap-7">
             <Button variant="ghost" size="sm" asChild>
               <Link href="/dashboard" className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
                 <ArrowLeft className="h-4 w-4" />
                 Back to Dashboard
               </Link>
             </Button>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-[#008080] rounded-full"></div>
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 bg-[#008080] rounded-full"></div>
                 {isLoading ? (
-                  <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-6 w-48 rounded"></div>
+                  <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-9 w-64 rounded"></div>
                 ) : (
-                  <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                     {project?.name || `Project ${projectId}`}
                   </h1>
                 )}
@@ -197,7 +197,7 @@ export default function ProjectLayout({
           bg-white border-r border-gray-200 dark:bg-gray-900 dark:border-gray-700`}
       >
         {/* Toggle button area */}
-        <div className="p-4">
+        <div className="p-5">
           <div className="flex items-center justify-between">
             {isExpanded && !isLoading && (
               <div className="text-xl font-bold text-[#008080] dark:text-[#00FFFF] truncate">
@@ -205,11 +205,11 @@ export default function ProjectLayout({
               </div>
             )}
             {isExpanded && isLoading && (
-              <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+              <div className="h-7 w-36 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
             )}
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="p-1 rounded-md text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 hover:text-[#008080] dark:hover:text-white"
+              className="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 hover:text-[#008080] dark:hover:text-white"
             >
               <AlignLeft className="h-5 w-5" />
             </button>
@@ -217,7 +217,7 @@ export default function ProjectLayout({
         </div>
         
         {/* Navigation */}
-        <nav className="mt-6">
+        <nav className="mt-8">
           <SidebarLink 
             href={`/project/${projectId}`} 
             icon={<Home />} 
@@ -249,8 +249,8 @@ export default function ProjectLayout({
       <div className={`flex-1 ${isExpanded ? 'ml-64' : 'ml-16'} transition-all duration-300`}>
         <ProjectHeader projectId={projectId} />
         
-        <div className="container mx-auto px-4 py-6">
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-6">
+        <div className="container mx-auto px-7 py-9">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-8">
             {children}
           </div>
         </div>
@@ -276,12 +276,12 @@ function SidebarLink({
   return (
     <Link 
       href={href}
-      className={`flex items-center py-3 px-4 text-gray-700 hover:text-[#008080] hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-[#008080]/20 transition-colors ${
+      className={`flex items-center py-3.5 px-5 text-gray-700 hover:text-[#008080] hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-[#008080]/20 transition-colors ${
         !isExpanded ? 'justify-center' : ''
       }`}
     >
       <div className="text-[#008080] dark:text-[#00FFFF]">{icon}</div>
-      {isExpanded && <span className="ml-3">{label}</span>}
+      {isExpanded && <span className="ml-3.5 font-medium">{label}</span>}
     </Link>
   );
 }
