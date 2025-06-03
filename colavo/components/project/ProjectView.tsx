@@ -350,32 +350,28 @@ export function ProjectView({ projectId }: ProjectViewProps) {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Project Stats */}
-            <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white">Project Statistics</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Total Tasks</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">{tasks.length}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Team Members</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">{project.members.length}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Your Role</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">{roleDisplay.label}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Permissions</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">{project.userPermissions.length}</span>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 rounded-lg p-4">
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{tasks.length}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Total Tasks</div>
+            </div>
+            <div className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 rounded-lg p-4">
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{project.members.length}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Team Members</div>
+            </div>
+            <div className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 rounded-lg p-4">
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{project.userPermissions.length}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Permissions</div>
+            </div>
+            <div className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 rounded-lg p-4">
+              <div className="text-sm font-medium text-gray-900 dark:text-white">{roleDisplay.label}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Your Role</div>
+            </div>
+          </div>
 
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Your Permissions */}
             <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
               <CardHeader>
@@ -398,6 +394,47 @@ export function ProjectView({ projectId }: ProjectViewProps) {
                     </p>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Tasks */}
+            <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-gray-900 dark:text-white">Recent Tasks</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {tasks.length > 0 ? (
+                  <div className="space-y-3">
+                    {tasks.slice(0, 4).map((task) => (
+                      <div key={task.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{task.title}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Created by {task.creatorName}</p>
+                        </div>
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs ml-2 ${task.importanceLevel === 'critical' ? 'bg-red-100 text-red-800 border-red-200' : task.importanceLevel === 'high' ? 'bg-orange-100 text-orange-800 border-orange-200' : task.importanceLevel === 'medium' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' : 'bg-green-100 text-green-800 border-green-200'}`}
+                        >
+                          {task.importanceLevel}
+                        </Badge>
+                      </div>
+                    ))}
+                    {tasks.length > 4 && (
+                      <div className="text-center pt-2">
+                        <button 
+                          onClick={() => setActiveTab('tasks')}
+                          className="text-sm text-[#008080] hover:text-[#006666] font-medium"
+                        >
+                          View all {tasks.length} tasks →
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                    No tasks created yet
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -834,9 +871,16 @@ function TaskCard({ task }: { task: Task }) {
               <div className="space-y-2">
                 {task.subTasks.slice(0, 2).map((subtask) => (
                   <div key={subtask.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
-                    <span className="text-sm text-gray-700 dark:text-gray-300 truncate flex-1">
-                      {subtask.title}
-                    </span>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate block">
+                        {subtask.title}
+                      </span>
+                      {subtask.assignedUserName && (
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          Assigned to: {subtask.assignedUserName}
+                        </span>
+                      )}
+                    </div>
                     <Badge 
                       variant="secondary" 
                       className={`text-xs ml-2 ${

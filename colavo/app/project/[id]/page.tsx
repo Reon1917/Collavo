@@ -15,11 +15,5 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
 
   const { id: projectId } = await params;
 
-  return (
-    <div className="min-h-screen bg-[#f9f8f0] dark:bg-gray-950">
-      <div className="container mx-auto px-4 py-8">
-        <ProjectView projectId={projectId} />
-      </div>
-    </div>
-  );
+  return <ProjectView projectId={projectId} />;
 }

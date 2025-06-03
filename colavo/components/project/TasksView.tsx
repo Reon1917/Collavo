@@ -495,7 +495,7 @@ export function TasksView({ projectId }: TasksViewProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredAndSortedTasks.map((task) => (
             <TaskCard 
               key={task.id} 
@@ -511,6 +511,80 @@ export function TasksView({ projectId }: TasksViewProps) {
         </div>
       )}
     </div>
+  );
+}
+
+function SubTaskMiniItem({ 
+  subtask, 
+  task,
+  project, 
+  onSubTaskUpdated,
+  onSubTaskDeleted
+}: { 
+  subtask: SubTask; 
+  task: Task;
+  project: Project;
+  onSubTaskUpdated: (updatedSubTask: Partial<SubTask> & { id: string }) => void;
+  onSubTaskDeleted: (subtaskId: string) => void;
+}) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  // Check if user can update this subtask
+  const canUpdateSubtask = subtask.assignedId === project.currentUserId || 
+                          project.isLeader || 
+                          project.userPermissions.includes('updateTask');
+
+  const handleSubTaskUpdatedCallback = (updatedSubTask: Partial<SubTask> & { id: string }) => {
+    onSubTaskUpdated(updatedSubTask);
+  };
+
+  const handleOpenDialog = () => {
+    setIsDialogOpen(true);
+  };
+
+  return (
+    <>
+      <div 
+        className={`flex items-center gap-2 text-xs p-2 rounded border border-gray-200 dark:border-gray-700 transition-colors ${
+          canUpdateSubtask ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800' : ''
+        }`}
+        onClick={canUpdateSubtask ? handleOpenDialog : undefined}
+      >
+        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+          subtask.status === 'completed' ? 'bg-green-500' :
+          subtask.status === 'in_progress' ? 'bg-blue-500' : 'bg-gray-300'
+        }`} />
+        <div className="flex-1 min-w-0">
+          <span className="truncate text-gray-700 dark:text-gray-300 block">
+            {subtask.title}
+          </span>
+          {subtask.assignedUserName && (
+            <span className="text-gray-500 dark:text-gray-400 text-xs">
+              {subtask.assignedUserName === project.currentUserId ? 'You' : subtask.assignedUserName}
+            </span>
+          )}
+        </div>
+        {canUpdateSubtask && (
+          <span className="text-gray-400 text-xs">Click to edit</span>
+        )}
+      </div>
+
+      {/* Subtask Details Dialog */}
+      <SubTaskDetailsDialog
+        subTask={subtask}
+        currentUserId={project.currentUserId}
+        isProjectLeader={project.isLeader}
+        projectId={project.id}
+        mainTaskId={task.id}
+        mainTaskDeadline={task.deadline}
+        projectDeadline={project.deadline}
+        members={project.members}
+        onSubTaskUpdated={handleSubTaskUpdatedCallback}
+        onSubTaskDeleted={onSubTaskDeleted}
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+      />
+    </>
   );
 }
 
@@ -608,10 +682,10 @@ function TaskCard({
 
   return (
     <>
-      <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow duration-200">
-        <CardHeader className="pb-3">
+      <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow duration-200 h-full flex flex-col">
+        <CardHeader className="pb-3 flex-shrink-0">
           <div className="flex items-start justify-between">
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2">
                 <Badge 
                   variant="outline" 
@@ -621,15 +695,15 @@ function TaskCard({
                 </Badge>
                 {!canViewAllTasks && (
                   <Badge variant="secondary" className="text-xs">
-                    Your Tasks Only
+                    Your Tasks
                   </Badge>
                 )}
               </div>
-              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
+              <CardTitle className="text-base font-semibold text-gray-900 dark:text-white line-clamp-2 mb-1">
                 {task.title}
               </CardTitle>
               {task.description && (
-                <CardDescription className="text-gray-600 dark:text-gray-400 line-clamp-2 mt-1">
+                <CardDescription className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                   {task.description}
                 </CardDescription>
               )}
@@ -637,9 +711,9 @@ function TaskCard({
             {(canModifyTask || canCreateSubtasks) && (
               <DropdownMenu>
                 <DropdownMenuTrigger 
-                  className="h-8 w-8 p-0 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center"
+                  className="h-7 w-7 p-0 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center flex-shrink-0 ml-2"
                 >
-                  <MoreVertical className="h-4 w-4" />
+                  <MoreVertical className="h-3.5 w-3.5" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {canCreateSubtasks && (
@@ -669,31 +743,30 @@ function TaskCard({
           </div>
         </CardHeader>
 
-        <CardContent className="pt-0">
+        <CardContent className="pt-0 flex-1 flex flex-col">
           {/* Progress */}
           {visibleSubTasks.length > 0 && (
-            <div className="mb-4">
-              <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-                <span>Progress {!canViewAllTasks && '(Your Tasks)'}</span>
-                <span>{Math.round(progress)}%</span>
+            <div className="mb-3">
+              <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                <span className="text-xs">Progress</span>
+                <span className="text-xs font-medium">{Math.round(progress)}%</span>
               </div>
-              <Progress value={progress} className="h-2" />
+              <Progress value={progress} className="h-1.5" />
               <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                {completedSubTasks} of {totalSubTasks} subtasks completed
-                {!canViewAllTasks && ' (assigned to you)'}
+                {completedSubTasks}/{totalSubTasks} completed
               </p>
             </div>
           )}
 
           {/* Sub-tasks preview */}
           {visibleSubTasks.length > 0 ? (
-            <div className="space-y-3">
-              <h4 className="text-sm font-medium text-gray-900 dark:text-white">
-                Subtasks {!canViewAllTasks && '(Assigned to You)'}
+            <div className="flex-1 min-h-0">
+              <h4 className="text-xs font-medium text-gray-900 dark:text-white mb-2">
+                Subtasks ({visibleSubTasks.length})
               </h4>
-              <div className="space-y-3 max-h-48 overflow-y-auto">
-                {visibleSubTasks.slice(0, 4).map((subtask) => (
-                  <SubTaskItem 
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {visibleSubTasks.slice(0, 3).map((subtask) => (
+                  <SubTaskMiniItem 
                     key={subtask.id} 
                     subtask={subtask} 
                     task={task}
@@ -702,50 +775,36 @@ function TaskCard({
                     onSubTaskDeleted={(subtaskId) => onSubTaskDeleted(task.id, subtaskId)}
                   />
                 ))}
-                {visibleSubTasks.length > 4 && (
-                  <div className="text-center py-2 border-t border-gray-200 dark:border-gray-700">
-                    <p className="text-xs text-gray-500 dark:text-gray-500">
-                      +{visibleSubTasks.length - 4} more subtasks
-                    </p>
-                  </div>
+                {visibleSubTasks.length > 3 && (
+                  <p className="text-xs text-gray-500 dark:text-gray-500">
+                    +{visibleSubTasks.length - 3} more
+                  </p>
                 )}
               </div>
             </div>
           ) : (
-            <div className="text-center py-4">
-              <p className="text-sm text-gray-500 dark:text-gray-500">
+            <div className="flex-1 flex items-center justify-center py-4">
+              <p className="text-xs text-gray-500 dark:text-gray-500 text-center">
                 {!canViewAllTasks 
-                  ? 'No subtasks assigned to you in this task'
-                  : 'No subtasks created yet'
+                  ? 'No subtasks assigned'
+                  : 'No subtasks yet'
                 }
               </p>
-              {canCreateSubtasks && (
-                <CreateSubTaskForm 
-                  projectId={project.id}
-                  mainTaskId={task.id}
-                  mainTaskDeadline={task.deadline}
-                  projectDeadline={project.deadline}
-                  open={showCreateSubTaskDialog}
-                  onOpenChange={setShowCreateSubTaskDialog}
-                  onSubTaskCreated={(newSubTask) => onSubTaskCreated(task.id, newSubTask)}
-                  members={project.members}
-                />
-              )}
             </div>
           )}
 
           {/* Task metadata */}
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
             <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
-              <div className="flex items-center gap-2">
-                <User className="h-3 w-3" />
-                <span>Created by {task.creatorName}</span>
+              <div className="flex items-center gap-1 min-w-0">
+                <User className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate">{task.creatorName}</span>
               </div>
               {task.deadline && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <Calendar className="h-3 w-3" />
-                  <span className={isAfter(new Date(), new Date(task.deadline)) ? 'text-red-500' : ''}>
-                    Due {formatDistanceToNow(new Date(task.deadline), { addSuffix: true })}
+                  <span className={`${isAfter(new Date(), new Date(task.deadline)) ? 'text-red-500' : ''}`}>
+                    {formatDistanceToNow(new Date(task.deadline), { addSuffix: true })}
                   </span>
                 </div>
               )}
@@ -819,8 +878,8 @@ function TaskCard({
         </div>
       )}
     </>
-  );
-}
+      );
+  }
 
 function SubTaskItem({ 
   subtask, 

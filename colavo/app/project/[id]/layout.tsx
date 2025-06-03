@@ -256,10 +256,8 @@ export default function ProjectLayout({
       <div className={`flex-1 ${isExpanded ? 'ml-64' : 'ml-16'} transition-all duration-300`}>
         <ProjectHeader projectId={projectId} />
         
-        <div className="container mx-auto px-7 py-9">
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-8 transition-all duration-200 hover:shadow-lg">
-            {children}
-          </div>
+        <div className="flex-1 p-6">
+          {children}
         </div>
         
         <ChatButton />
@@ -281,7 +279,7 @@ function SidebarLink({
   isExpanded: boolean;
 }) {
   const pathname = usePathname();
-  const isActive = pathname === href || pathname.startsWith(`${href}/`);
+  const isActive = pathname === href || (href !== `/project/${pathname.split('/')[2]}` && pathname.startsWith(`${href}/`));
   
   return (
     <Link 
