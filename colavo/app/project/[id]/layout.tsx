@@ -26,7 +26,7 @@ function SimpleBreadcrumb() {
     <div className="flex items-center mb-5 text-base">
       <Link 
         href="/dashboard" 
-        className="flex items-center font-medium text-gray-600 hover:text-[#008080] transition-colors dark:text-gray-400 dark:hover:text-[#00FFFF]"
+        className="flex items-center font-medium text-gray-600 hover:text-[#008080] transition-colors duration-200 dark:text-gray-400 dark:hover:text-[#00FFFF] focus:outline-none focus:ring-2 focus:ring-[#008080]/20 dark:focus:ring-[#00FFFF]/20 rounded"
       >
         <Home className="h-4 w-4 mr-1.5" />
         Home
@@ -38,9 +38,11 @@ function SimpleBreadcrumb() {
           
           <Link 
             href={`/project/${projectId}`} 
-            className={`font-medium ${segments.length === 2 
-              ? 'text-[#008080] dark:text-[#00FFFF]' 
-              : 'text-gray-600 hover:text-[#008080] dark:text-gray-400 dark:hover:text-[#00FFFF]'}`}
+            className={`font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#008080]/20 dark:focus:ring-[#00FFFF]/20 rounded ${
+              segments.length === 2 
+                ? 'text-[#008080] dark:text-[#00FFFF]' 
+                : 'text-gray-600 hover:text-[#008080] dark:text-gray-400 dark:hover:text-[#00FFFF]'
+            }`}
           >
             Project
           </Link>
@@ -105,8 +107,13 @@ function ProjectHeader({ projectId }: { projectId: string }) {
         
         <div className="flex items-center justify-between mt-3">
           <div className="flex items-center gap-7">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/dashboard" className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              asChild
+              className="text-[#008080] hover:text-[#008080] hover:bg-[#008080]/10 dark:text-[#00FFFF] dark:hover:text-[#00FFFF] dark:hover:bg-[#00FFFF]/10 transition-colors duration-200"
+            >
+              <Link href="/dashboard" className="flex items-center gap-2">
                 <ArrowLeft className="h-4 w-4" />
                 Back to Dashboard
               </Link>
@@ -114,7 +121,7 @@ function ProjectHeader({ projectId }: { projectId: string }) {
             <div className="flex items-center gap-4">
               <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
               <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-[#008080] rounded-full"></div>
+                <div className="w-4 h-4 bg-[#008080] dark:bg-[#00FFFF] rounded-full"></div>
                 {isLoading ? (
                   <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-9 w-64 rounded"></div>
                 ) : (
@@ -209,7 +216,7 @@ export default function ProjectLayout({
             )}
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 hover:text-[#008080] dark:hover:text-white"
+              className="p-1.5 rounded-md text-gray-500 hover:text-[#008080] hover:bg-[#008080]/10 dark:text-gray-400 dark:hover:text-[#00FFFF] dark:hover:bg-[#00FFFF]/10 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#008080]/20 dark:focus:ring-[#00FFFF]/20"
             >
               <AlignLeft className="h-5 w-5" />
             </button>
@@ -250,7 +257,7 @@ export default function ProjectLayout({
         <ProjectHeader projectId={projectId} />
         
         <div className="container mx-auto px-7 py-9">
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-8">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-8 transition-all duration-200 hover:shadow-lg">
             {children}
           </div>
         </div>
@@ -273,14 +280,24 @@ function SidebarLink({
   label: string; 
   isExpanded: boolean;
 }) {
+  const pathname = usePathname();
+  const isActive = pathname === href || pathname.startsWith(`${href}/`);
+  
   return (
     <Link 
       href={href}
-      className={`flex items-center py-3.5 px-5 text-gray-700 hover:text-[#008080] hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-[#008080]/20 transition-colors ${
-        !isExpanded ? 'justify-center' : ''
-      }`}
+      className={`flex items-center py-3.5 px-5 text-gray-700 transition-all duration-200
+        ${isActive 
+          ? 'text-[#008080] bg-[#008080]/10 dark:text-[#00FFFF] dark:bg-[#00FFFF]/10' 
+          : 'hover:text-[#008080] hover:bg-[#008080]/5 dark:text-gray-300 dark:hover:text-[#00FFFF] dark:hover:bg-[#00FFFF]/5'
+        }
+        focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#008080]/20 dark:focus:ring-[#00FFFF]/20
+        ${!isExpanded ? 'justify-center' : ''}
+      `}
     >
-      <div className="text-[#008080] dark:text-[#00FFFF]">{icon}</div>
+      <div className={isActive ? 'text-[#008080] dark:text-[#00FFFF]' : 'text-gray-500 dark:text-gray-400 group-hover:text-[#008080] dark:group-hover:text-[#00FFFF]'}>
+        {icon}
+      </div>
       {isExpanded && <span className="ml-3.5 font-medium">{label}</span>}
     </Link>
   );
