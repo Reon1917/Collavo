@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Home, Users, FileText, FolderOpen, AlignLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChatButton } from '@/components/project/chat-button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -92,9 +92,41 @@ export default function ProjectLayout({
   params: Promise<{ id: string }>;
 }) {
   const [projectId, setProjectId] = useState<string>('');
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [projectName, setProjectName] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    params.then(({ id }) => setProjectId(id));
+    params.then(({ id }) => {
+      setProjectId(id);
+      
+      // Fetch project data to get the name
+      const fetchProjectData = async () => {
+        try {
+          setIsLoading(true);
+          const response = await fetch(`/api/projects/${id}`, {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+          });
+          
+          if (response.ok) {
+            const projectData = await response.json();
+            setProjectName(projectData.name || `Project ${id}`);
+          } else {
+            setProjectName(`Project ${id}`);
+          }
+          setIsLoading(false);
+        } catch (error) {
+          console.error('Error fetching project:', error);
+          setProjectName(`Project ${id}`);
+          setIsLoading(false);
+        }
+      };
+      
+      fetchProjectData();
+    });
   }, [params]);
 
   if (!projectId) {
@@ -102,60 +134,106 @@ export default function ProjectLayout({
       <div className="flex flex-col min-h-screen bg-[#f9f8f0] dark:bg-gray-950">
         <div className="animate-pulse bg-gray-200 dark:bg-gray-800 h-16"></div>
         <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#008080] dark:border-[#00FFFF]"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f9f8f0] dark:bg-gray-950">
-      {/* Header with back button and theme toggle */}
-      <ProjectHeader projectId={projectId} />
-
-      {/* Main content */}
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="lg:w-1/4">
-            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-6">
-              <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Project Navigation</h2>
-              <nav className="space-y-2">
-                <Link 
-                  href={`/project/${projectId}`}
-                  className="block px-3 py-2 rounded-md hover:bg-[#008080] hover:text-white text-gray-700 dark:text-gray-300 dark:hover:text-white transition-colors duration-200"
-                >
-                  Overview
-                </Link>
-                <Link 
-                  href={`/project/${projectId}/tasks`}
-                  className="block px-3 py-2 rounded-md hover:bg-[#008080] hover:text-white text-gray-700 dark:text-gray-300 dark:hover:text-white transition-colors duration-200"
-                >
-                  Tasks
-                </Link>
-                <Link 
-                  href={`/project/${projectId}/members`}
-                  className="block px-3 py-2 rounded-md hover:bg-[#008080] hover:text-white text-gray-700 dark:text-gray-300 dark:hover:text-white transition-colors duration-200"
-                >
-                  Members
-                </Link>
-                <Link 
-                  href={`/project/${projectId}/files`}
-                  className="block px-3 py-2 rounded-md hover:bg-[#008080] hover:text-white text-gray-700 dark:text-gray-300 dark:hover:text-white transition-colors duration-200"
-                >
-                  Files
-                </Link>
-              </nav>
-            </div>
-          </div>
-          <div className="lg:w-3/4">
-            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-6">
-              {children}
-            </div>
+    <div className="flex min-h-screen bg-[#f9f8f0] dark:bg-gray-950">
+      {/* Sidebar */}
+      <div 
+        className={`fixed top-0 bottom-0 left-0 z-40 transition-all duration-300 
+          ${isExpanded ? 'w-64' : 'w-16'} 
+          bg-white border-r border-gray-200 dark:bg-gray-900 dark:border-gray-700`}
+      >
+        {/* Toggle button area */}
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            {isExpanded && !isLoading && (
+              <div className="text-xl font-bold text-[#008080] dark:text-[#00FFFF] truncate">
+                {projectName}
+              </div>
+            )}
+            {isExpanded && isLoading && (
+              <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+            )}
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="p-1 rounded-md text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 hover:text-[#008080] dark:hover:text-white"
+            >
+              <AlignLeft className="h-5 w-5" />
+            </button>
           </div>
         </div>
+        
+        {/* Navigation */}
+        <nav className="mt-6">
+          <SidebarLink 
+            href={`/project/${projectId}`} 
+            icon={<Home />} 
+            label="Overview" 
+            isExpanded={isExpanded} 
+          />
+          <SidebarLink 
+            href={`/project/${projectId}/tasks`} 
+            icon={<FileText />} 
+            label="Tasks" 
+            isExpanded={isExpanded} 
+          />
+          <SidebarLink 
+            href={`/project/${projectId}/members`} 
+            icon={<Users />} 
+            label="Members" 
+            isExpanded={isExpanded} 
+          />
+          <SidebarLink 
+            href={`/project/${projectId}/files`} 
+            icon={<FolderOpen />} 
+            label="Files" 
+            isExpanded={isExpanded} 
+          />
+        </nav>
       </div>
-
-      <ChatButton />
+      
+      {/* Main content */}
+      <div className={`flex-1 ${isExpanded ? 'ml-64' : 'ml-16'} transition-all duration-300`}>
+        <ProjectHeader projectId={projectId} />
+        
+        <div className="container mx-auto px-4 py-6">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-6">
+            {children}
+          </div>
+        </div>
+        
+        <ChatButton />
+      </div>
     </div>
+  );
+}
+
+// Sidebar link component
+function SidebarLink({ 
+  href, 
+  icon, 
+  label, 
+  isExpanded 
+}: { 
+  href: string; 
+  icon: React.ReactNode; 
+  label: string; 
+  isExpanded: boolean;
+}) {
+  return (
+    <Link 
+      href={href}
+      className={`flex items-center py-3 px-4 text-gray-700 hover:text-[#008080] hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-[#008080]/20 transition-colors ${
+        !isExpanded ? 'justify-center' : ''
+      }`}
+    >
+      <div className="text-[#008080] dark:text-[#00FFFF]">{icon}</div>
+      {isExpanded && <span className="ml-3">{label}</span>}
+    </Link>
   );
 }
