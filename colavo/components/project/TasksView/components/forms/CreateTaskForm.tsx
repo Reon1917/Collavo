@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { FileText, Plus } from 'lucide-react';
 import { MainTaskForm } from './MainTaskForm';
 import { SubTasksForm } from './SubTasksForm';
@@ -116,7 +115,7 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger, pro
             projectId={projectId}
             mainTaskData={mainTaskData}
             setMainTaskData={setMainTaskData}
-            projectData={projectData}
+            projectData={projectData || { deadline: null }}
             onSuccess={handleMainTaskSuccess}
             onCancel={() => setIsOpen(false)}
           />

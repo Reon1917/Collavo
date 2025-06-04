@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 import { CreateSubTaskForm } from './forms/CreateSubTaskForm';
 import { EditTaskDialog } from './dialogs/EditTaskDialog';
 import { SubTaskMiniItem } from './SubTaskMiniItem';
-import { Task, Project, SubTask, getTaskProgress, getImportanceColor } from '../types';
+import { Task, Project, SubTask, getImportanceColor } from '../types';
 
 interface TaskCardProps {
   task: Task;

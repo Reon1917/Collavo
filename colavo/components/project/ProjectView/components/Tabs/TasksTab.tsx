@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckSquare, Plus } from 'lucide-react';
-import { CreateTaskForm } from '@/components/project/TasksView';
+import { CreateTaskForm } from '@/components/project/TasksView/components/forms/CreateTaskForm';
 import { CompactTaskCard } from '../CompactTaskCard';
 import { Task, Member } from '@/hooks/shared/useProjectData';
 
