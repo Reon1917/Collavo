@@ -1,0 +1,115 @@
+---
+description: 
+globs: *.tsx,*.ts
+alwaysApply: false
+---
+# Next.js 15 + TypeScript Component Design Rules for Cursor AI
+
+## Core Philosophy
+Always prefer server components over client components. Only use 'use client' when you absolutely need browser APIs, event handlers, or React hooks. Server components are faster, more secure, and better for SEO.
+
+## Component Structure Rules
+
+### Server Components (Default Choice)
+- Write async server components by default
+- Fetch data directly in server components using await
+- Keep server components simple and focused on data fetching and rendering
+- Use proper TypeScript interfaces for all props
+- Handle errors gracefully with try/catch blocks
+- Always include loading states with Suspense boundaries
+
+Example pattern:
+```typescript
+// Always start with this pattern for new components
+interface ComponentProps {
+  id: string;
+  className?: string;
+}
+
+export default async function MyComponent({ id, className }: ComponentProps) {
+  try {
+    const data = await fetchData(id);
+    return <div className={className}>{data.title}</div>;
+  } catch (error) {
+    return <div>Error loading data</div>;
+  }
+}
+```
+
+### Client Components (Use Sparingly)
+- Only add 'use client' when you need interactivity, hooks, or browser APIs
+- Keep client components small and focused
+- Use React 18+ features like useDeferredValue for performance
+- Prefer useCallback and useMemo for expensive operations
+- Always handle loading and error states
+
+### File Organization Rules
+- Use feature-based folder structure: `/components/features/auth/`, `/components/features/dashboard/`
+- Keep related files together: component, test, and story files in same folder
+- Use barrel exports (index.ts files) for clean imports
+- Separate UI components from feature components
+- Co-locate types with components when they're component-specific
+
+### TypeScript Patterns
+- Always define proper interfaces for props, never use `any`
+- Use discriminated unions for variant props
+- Extend base interfaces for common props like className and children
+- Use generic types for reusable data components
+- Include data-testid props for testing
+
+### Component Composition
+- Build compound components for complex UI patterns
+- Use render props pattern for data fetching components
+- Prefer composition over inheritance
+- Create HOCs for cross-cutting concerns like authentication
+- Use children prop for flexible layouts
+
+### Error Handling
+- Wrap components in Error Boundaries for production
+- Use error.tsx and loading.tsx files in app router
+- Always provide fallback UI for failed states
+- Log errors properly but don't expose sensitive info to users
+
+### Performance Rules
+- Use Suspense for loading states
+- Implement proper caching strategies
+- Use React.memo only when necessary (profile first)
+- Prefer server-side data fetching over client-side
+- Use streaming for large data sets
+
+### Naming Conventions
+- Use PascalCase for component names and files
+- Use camelCase for props and variables
+- Use descriptive names that explain the component's purpose
+- Prefix custom hooks with 'use'
+- Use 'Props' suffix for prop interfaces
+
+### Import/Export Rules
+- Use default exports for components
+- Use named exports for utilities and hooks
+- Group imports: React first, then third-party, then local
+- Use absolute imports with @ alias for cleaner paths
+- Avoid deep import paths
+
+### Testing Considerations
+- Structure components to be easily testable
+- Include data-testid attributes for important elements
+- Keep business logic separate from UI logic
+- Write components that work well with React Testing Library
+
+### Accessibility Rules
+- Always include proper ARIA attributes
+- Use semantic HTML elements
+- Ensure keyboard navigation works
+- Include alt text for images
+- Test with screen readers
+
+When creating new components, always ask yourself:
+1. Can this be a server component?
+2. What's the minimum client-side code needed?
+3. How will this handle errors and loading states?
+4. Is this component reusable or feature-specific?
+5. Are the types properly defined?
+
+
+Follow these patterns consistently across the entire codebase for maintainability and performance.

@@ -13,6 +13,7 @@ import { CalendarIcon, Loader2, Edit3, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Task } from '../../types';
 
 interface EditTaskDialogProps {
   isOpen: boolean;
@@ -21,19 +22,6 @@ interface EditTaskDialogProps {
   projectId: string;
   projectDeadline: string | null;
   onTaskUpdated?: (updatedTask: Partial<Task> & { id: string }) => void;
-}
-
-interface Task {
-  id: string;
-  title: string;
-  description: string | null;
-  importanceLevel: 'low' | 'medium' | 'high' | 'critical';
-  deadline: string | null;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
-  creatorName: string;
-  creatorEmail: string;
 }
 
 interface TaskFormData {
@@ -60,7 +48,6 @@ export function EditTaskDialog({
     deadline: task.deadline ? new Date(task.deadline) : undefined
   });
 
-  // Reset form data when task changes
   useEffect(() => {
     setFormData({
       title: task.title,
@@ -88,13 +75,11 @@ export function EditTaskDialog({
       return;
     }
 
-    // Validate deadline against project deadline
     if (projectDeadline && formData.deadline > new Date(projectDeadline)) {
       toast.error('Task deadline cannot be later than project deadline');
       return;
     }
 
-    // Check if anything actually changed
     const titleChanged = formData.title.trim() !== task.title;
     const descriptionChanged = formData.description.trim() !== (task.description || '');
     const importanceChanged = formData.importanceLevel !== task.importanceLevel;
@@ -135,7 +120,7 @@ export function EditTaskDialog({
         importanceLevel: formData.importanceLevel,
         deadline: formData.deadline?.toISOString()
       });
-    } catch  {
+    } catch {
       toast.error('Failed to update task');
     } finally {
       setIsLoading(false);
@@ -179,7 +164,6 @@ export function EditTaskDialog({
             </div>
           )}
 
-          {/* Task Title */}
           <div className="space-y-2">
             <Label htmlFor="edit-task-title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Task Title *
@@ -197,7 +181,6 @@ export function EditTaskDialog({
             />
           </div>
 
-          {/* Task Description */}
           <div className="space-y-2">
             <Label htmlFor="edit-task-description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Description
@@ -212,7 +195,6 @@ export function EditTaskDialog({
             />
           </div>
 
-          {/* Importance Level */}
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Importance Level
@@ -229,7 +211,7 @@ export function EditTaskDialog({
                   isLoading && "opacity-50 cursor-not-allowed"
                 )}
               >
-                <SelectValue placeholder="Select importance level" />
+                <SelectValue placeholder="Select importance level *" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="low">Low</SelectItem>
@@ -240,7 +222,6 @@ export function EditTaskDialog({
             </Select>
           </div>
 
-          {/* Deadline */}
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Deadline *
@@ -277,7 +258,6 @@ export function EditTaskDialog({
             </Popover>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
             <Button
               type="button"
@@ -299,7 +279,7 @@ export function EditTaskDialog({
                   Updating...
                 </>
               ) : (
-                'Save Changes'
+                'Update Task'
               )}
             </Button>
           </div>

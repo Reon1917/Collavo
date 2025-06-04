@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
-import { TasksView } from '@/components/project/TasksView';
+import { TasksView } from '@/components/project/TasksView/TasksView';
 
 export default async function TasksPage({ params }: { params: Promise<{ id: string }> }) {
   // Check authentication

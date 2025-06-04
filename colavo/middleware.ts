@@ -3,65 +3,75 @@ import { auth } from '@/lib/auth';
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+  const isDev = process.env.NODE_ENV === 'development';
   
-  // Public routes - allow access without authentication
-  const publicRoutes = [
-    '/',
-    '/login',
-    '/signup',
-    '/forgot-password',
-  ];
-  
-  // Allow access to static files and API routes
+  // Early returns for static assets and API routes
   if (
     pathname.startsWith('/_next') || 
-    pathname.startsWith('/favicon.ico') ||
+    pathname === '/favicon.ico' ||
     pathname.startsWith('/landingpage-img/') ||
     pathname.startsWith('/api/') ||
-    pathname.includes('.') // Allow files with extensions
+    (pathname.includes('.') && !pathname.endsWith('/'))
   ) {
     return NextResponse.next();
   }
   
-  // Check if the current path is a public route
-  const isPublicRoute = publicRoutes.includes(pathname);
+  // Public routes - use Set for O(1) lookup
+  const publicRoutes = new Set([
+    '/',
+    '/login',
+    '/signup',
+    '/forgot-password',
+  ]);
   
-  // For public routes, continue without authentication
-  if (isPublicRoute) {
+  // Check if the current path is a public route
+  if (publicRoutes.has(pathname)) {
     return NextResponse.next();
   }
 
   try {
-    console.log('[Middleware] Checking auth for path:', pathname);
+    if (isDev) {
+      console.log('[Middleware] Checking auth for path:', pathname);
+    }
     
     // Use better-auth's built-in session verification
     const session = await auth.api.getSession({
       headers: request.headers
     });
     
-    console.log('[Middleware] Session check result:', {
-      hasSession: !!session,
-      hasUser: !!session?.user,
-      userId: session?.user?.id
-    });
-    
-    // If no valid session, redirect to login
-    if (!session || !session.user) {
-      console.log('[Middleware] No valid session, redirecting to login');
-      const url = new URL('/login', request.url);
-      url.searchParams.set('callbackUrl', pathname);
-      return NextResponse.redirect(url);
+    if (isDev) {
+      console.log('[Middleware] Session check result:', {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        userId: session?.user?.id
+      });
     }
     
-    console.log('[Middleware] Valid session found, allowing access');
-    // User has valid session, continue
-    return NextResponse.next();
+    // If no valid session, redirect to login
+    if (!session?.user) {
+      if (isDev) {
+        console.log('[Middleware] No valid session, redirecting to login');
+      }
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('callbackUrl', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    
+    if (isDev) {
+      console.log('[Middleware] Valid session found, allowing access');
+    }
+    
+    // User has valid session, continue with optional response headers
+    const response = NextResponse.next();
+    response.headers.set('x-pathname', pathname);
+    return response;
+    
   } catch (error) {
     console.error('[Middleware] Auth error:', error);
     // On error, redirect to login
-    const url = new URL('/login', request.url);
-    url.searchParams.set('callbackUrl', pathname);
-    return NextResponse.redirect(url);
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('callbackUrl', pathname);
+    return NextResponse.redirect(loginUrl);
   }
 }
 
@@ -74,7 +84,8 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - API routes
+     * - landingpage-img (static images)
      */
-    '/((?!_next/static|_next/image|favicon.ico|api).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api|landingpage-img).*)',
   ],
-}; 
+};
