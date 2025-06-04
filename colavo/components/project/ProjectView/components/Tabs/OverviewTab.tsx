@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { CheckSquare, Plus, UserPlus, Edit, Trash2, CheckCircle, Crown } from 'lucide-react';
-import { CreateTaskForm } from '@/components/project/CreateTaskForm';
+import { CreateTaskForm } from '@/components/project/TasksView';
 import { Project, Task } from '@/hooks/shared/useProjectData';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatInitials } from '@/utils/format';

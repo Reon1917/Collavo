@@ -13,6 +13,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Member, SubTask } from '../../types';
 
 interface CreateSubTaskFormProps {
   projectId: string;
@@ -24,30 +25,6 @@ interface CreateSubTaskFormProps {
   trigger?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-}
-
-interface Member {
-  id: string;
-  userId: string;
-  role: 'leader' | 'member';
-  userName: string;
-  userEmail: string;
-  userImage: string | null;
-}
-
-interface SubTask {
-  id: string;
-  title: string;
-  description: string | null;
-  status: 'pending' | 'in_progress' | 'completed';
-  note: string | null;
-  deadline: string | null;
-  assignedId: string | null;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
-  assignedUserName: string | null;
-  assignedUserEmail: string | null;
 }
 
 interface SubTaskFormData {
@@ -71,7 +48,6 @@ export function CreateSubTaskForm({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Use external open state if provided, otherwise use internal state
   const dialogOpen = open !== undefined ? open : isOpen;
   const setDialogOpen = onOpenChange || setIsOpen;
   
@@ -100,13 +76,11 @@ export function CreateSubTaskForm({
       return;
     }
 
-    // Validate deadline against main task deadline
     if (mainTaskDeadline && formData.deadline > new Date(mainTaskDeadline)) {
       toast.error('Subtask deadline cannot be later than the main task deadline');
       return;
     }
 
-    // Validate deadline against project deadline
     if (projectDeadline && formData.deadline > new Date(projectDeadline)) {
       toast.error('Subtask deadline cannot be later than the project deadline');
       return;
@@ -136,7 +110,6 @@ export function CreateSubTaskForm({
       const newSubTask = await response.json();
       toast.success('Subtask created successfully!');
       
-      // Reset form
       setFormData({
         title: '',
         description: '',
@@ -145,7 +118,6 @@ export function CreateSubTaskForm({
       });
       setDialogOpen(false);
       
-      // Pass the created subtask to the callback
       onSubTaskCreated?.(newSubTask);
     } catch {
       toast.error('Failed to create subtask');
@@ -199,7 +171,6 @@ export function CreateSubTaskForm({
             </div>
           )}
 
-          {/* Subtask Title */}
           <div className="space-y-2">
             <Label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Subtask Title *
@@ -217,7 +188,6 @@ export function CreateSubTaskForm({
             />
           </div>
 
-          {/* Subtask Description */}
           <div className="space-y-2">
             <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Description
@@ -233,7 +203,6 @@ export function CreateSubTaskForm({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* Assigned Member */}
             <div className="space-y-2">
               <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Assign to *
@@ -260,7 +229,6 @@ export function CreateSubTaskForm({
               </Select>
             </div>
 
-            {/* Deadline */}
             <div className="space-y-2">
               <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Deadline *
@@ -299,7 +267,6 @@ export function CreateSubTaskForm({
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
             <Button
               type="button"
