@@ -273,39 +273,14 @@ export function ProjectView({ projectId }: ProjectViewProps) {
   const roleDisplay = getUserRoleDisplay();
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
-      {/* Project Header */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl p-8 border border-gray-200/60 dark:border-gray-700 shadow-md">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                {project.name}
-              </h1>
-            </div>
-            {project.description && (
-              <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
-                {project.description}
-              </p>
-            )}
-            <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-              <div className="flex items-center gap-2">
-                <Crown className="h-4 w-4" />
-                <span>Led by {project.leaderName}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span>{project.members.length} member{project.members.length !== 1 ? 's' : ''}</span>
-              </div>
-              {project.deadline && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>Due {format(new Date(project.deadline), 'PPP')}</span>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
+    <div className="min-h-screen space-y-6">
+      {/* Project Header - Streamlined */}
+      <div className="flex items-start justify-between mb-8">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-3">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+              {project.name}
+            </h1>
             <Badge 
               variant={project.isLeader ? "default" : "secondary"}
               className={roleDisplay.className}
@@ -313,6 +288,27 @@ export function ProjectView({ projectId }: ProjectViewProps) {
               <roleDisplay.icon className="h-3 w-3 mr-1" />
               {roleDisplay.label}
             </Badge>
+          </div>
+          {project.description && (
+            <p className="text-gray-600 dark:text-gray-400 text-lg mb-4 max-w-3xl">
+              {project.description}
+            </p>
+          )}
+          <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex items-center gap-2">
+              <Crown className="h-4 w-4" />
+              <span>Led by {project.leaderName}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span>{project.members.length} member{project.members.length !== 1 ? 's' : ''}</span>
+            </div>
+            {project.deadline && (
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                <span>Due {format(new Date(project.deadline), 'PPP')}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -349,40 +345,129 @@ export function ProjectView({ projectId }: ProjectViewProps) {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Stats Grid */}
+        <TabsContent value="overview" className="space-y-8">
+          {/* Stats Row - Defined */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 rounded-lg p-4">
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">{tasks.length}</div>
+            <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
+              <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{tasks.length}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Total Tasks</div>
             </div>
-            <div className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 rounded-lg p-4">
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">{project.members.length}</div>
+            <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
+              <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{project.members.length}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Team Members</div>
             </div>
-            <div className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 rounded-lg p-4">
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">{project.userPermissions.length}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Permissions</div>
+            <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
+              <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{project.userPermissions.length}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Your Permissions</div>
             </div>
-            <div className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 rounded-lg p-4">
-              <div className="text-sm font-medium text-gray-900 dark:text-white">{roleDisplay.label}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Your Role</div>
+            <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
+              <div className="text-lg font-medium text-gray-900 dark:text-white mb-1">
+                {tasks.filter(t => t.subTasks.some(st => st.status === 'completed')).length}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Tasks in Progress</div>
             </div>
           </div>
 
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Your Permissions */}
-            <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white">Your Permissions</CardTitle>
-              </CardHeader>
-              <CardContent>
+          {/* Main Content - Wide Layout */}
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+            {/* Tasks Overview - Takes more space */}
+            <div className="xl:col-span-3 space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Recent Tasks</h2>
+                {tasks.length > 0 && (
+                  <button 
+                    onClick={() => setActiveTab('tasks')}
+                    className="text-sm text-[#008080] hover:text-[#006666] font-medium flex items-center gap-1"
+                  >
+                    View all {tasks.length} tasks →
+                  </button>
+                )}
+              </div>
+              
+              {tasks.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {tasks.slice(0, 6).map((task) => (
+                    <div key={task.id} className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-4 hover:shadow-sm hover:border-gray-200 dark:hover:border-gray-700 transition-all">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-gray-900 dark:text-white truncate mb-1">{task.title}</h3>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Created by {task.creatorName}</p>
+                        </div>
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs ml-2 ${task.importanceLevel === 'critical' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' : task.importanceLevel === 'high' ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800' : task.importanceLevel === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800' : 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800'}`}
+                        >
+                          {task.importanceLevel}
+                        </Badge>
+                      </div>
+                      
+                      {/* Progress */}
+                      {task.subTasks.length > 0 && (
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            <span>Progress</span>
+                            <span>{Math.round((task.subTasks.filter(st => st.status === 'completed').length / task.subTasks.length) * 100)}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                            <div 
+                              className="bg-[#008080] h-1.5 rounded-full transition-all duration-300" 
+                              style={{ width: `${(task.subTasks.filter(st => st.status === 'completed').length / task.subTasks.length) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Subtasks Preview */}
+                      {task.subTasks.length > 0 && (
+                        <div className="space-y-1">
+                          {task.subTasks.slice(0, 2).map((subtask) => (
+                            <div key={subtask.id} className="flex items-center gap-2 text-xs">
+                              <div className={`w-1.5 h-1.5 rounded-full ${
+                                subtask.status === 'completed' ? 'bg-green-500' :
+                                subtask.status === 'in_progress' ? 'bg-blue-500' : 'bg-gray-300'
+                              }`} />
+                              <span className="text-gray-600 dark:text-gray-400 truncate flex-1">{subtask.title}</span>
+                              {subtask.assignedUserName && (
+                                <span className="text-gray-500 dark:text-gray-500 text-xs">
+                                  {subtask.assignedUserName === project.currentUserId ? 'You' : subtask.assignedUserName}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                          {task.subTasks.length > 2 && (
+                            <p className="text-xs text-gray-500 dark:text-gray-500">
+                              +{task.subTasks.length - 2} more subtasks
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-gray-50 dark:bg-gray-900/20 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700">
+                  <CheckSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No tasks yet</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    {canCreateTasks 
+                      ? "Get started by creating your first task."
+                      : "Tasks will appear here once they're created."
+                    }
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Side Panel - Compact */}
+            <div className="space-y-4">
+              {/* Your Permissions */}
+              <div className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Your Access</h3>
                 <div className="space-y-2">
                   {project.userPermissions.length > 0 ? (
-                    project.userPermissions.map((permission) => (
+                    project.userPermissions.slice(0, 4).map((permission) => (
                       <div key={permission} className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
                         <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
                           {permission.replace(/([A-Z])/g, ' $1').toLowerCase()}
                         </span>
@@ -393,117 +478,96 @@ export function ProjectView({ projectId }: ProjectViewProps) {
                       No specific permissions assigned
                     </p>
                   )}
+                  {project.userPermissions.length > 4 && (
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                      +{project.userPermissions.length - 4} more permissions
+                    </p>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Recent Tasks */}
-            <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white">Recent Tasks</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {tasks.length > 0 ? (
-                  <div className="space-y-3">
-                    {tasks.slice(0, 4).map((task) => (
-                      <div key={task.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{task.title}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Created by {task.creatorName}</p>
-                        </div>
-                        <Badge 
-                          variant="outline" 
-                          className={`text-xs ml-2 ${task.importanceLevel === 'critical' ? 'bg-red-100 text-red-800 border-red-200' : task.importanceLevel === 'high' ? 'bg-orange-100 text-orange-800 border-orange-200' : task.importanceLevel === 'medium' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' : 'bg-green-100 text-green-800 border-green-200'}`}
-                        >
-                          {task.importanceLevel}
-                        </Badge>
+              {/* Team Members Preview */}
+              <div className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Team</h3>
+                <div className="space-y-2">
+                  {project.members.slice(0, 4).map((member) => (
+                    <div key={member.id} className="flex items-center gap-2">
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={member.userImage || ''} alt={member.userName} />
+                        <AvatarFallback className="bg-[#008080] text-white text-xs">
+                          {formatInitials(member.userName)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm text-gray-700 dark:text-gray-300 truncate block">
+                          {member.userName}
+                          {member.userId === project.currentUserId && (
+                            <span className="text-xs text-gray-500 ml-1">(You)</span>
+                          )}
+                        </span>
                       </div>
-                    ))}
-                    {tasks.length > 4 && (
-                      <div className="text-center pt-2">
-                        <button 
-                          onClick={() => setActiveTab('tasks')}
-                          className="text-sm text-[#008080] hover:text-[#006666] font-medium"
-                        >
-                          View all {tasks.length} tasks →
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-                    No tasks created yet
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+                      {member.role === 'leader' && (
+                        <Crown className="h-3 w-3 text-[#008080]" />
+                      )}
+                    </div>
+                  ))}
+                  {project.members.length > 4 && (
+                    <button 
+                      onClick={() => setActiveTab('members')}
+                      className="text-xs text-[#008080] hover:text-[#006666] font-medium"
+                    >
+                      +{project.members.length - 4} more members
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Admin Actions for Leaders */}
+          {/* Quick Actions for Leaders */}
           {project.isLeader && (
-            <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-gray-900 dark:text-white">Project Management</CardTitle>
-                <CardDescription>
-                  Manage your project settings and team. Only project leaders can access these actions.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Quick Actions */}
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-gray-900 dark:text-white">Quick Actions</h4>
-                    <div className="space-y-2">
-                      {canCreateTasks && (
-                        <CreateTaskForm 
-                          projectId={projectId} 
-                          onTaskCreated={handleTaskCreated}
-                          members={project.members}
-                          trigger={
-                            <div className="flex items-center justify-start p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors">
-                              <Plus className="h-4 w-4 mr-2 text-[#008080]" />
-                              <span className="text-sm font-medium text-gray-900 dark:text-white">Create New Task</span>
-                            </div>
-                          }
-                        />
-                      )}
-                      {canAddMembers && (
-                        <div className="flex items-center justify-start p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-                             onClick={() => setActiveTab('members')}>
-                          <UserPlus className="h-4 w-4 mr-2 text-[#008080]" />
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">Add Team Member</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Project Settings */}
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-gray-900 dark:text-white">Project Settings</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-                        <div className="flex items-center">
-                          <Edit className="h-4 w-4 mr-2 text-gray-500" />
-                          <span className="text-sm text-gray-700 dark:text-gray-300">Edit Project Details</span>
-                        </div>
-                        <Button variant="outline" size="sm" onClick={openEditDialog}>
-                          Edit
-                        </Button>
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Project Management</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Leader actions</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {canCreateTasks && (
+                  <CreateTaskForm 
+                    projectId={projectId} 
+                    onTaskCreated={handleTaskCreated}
+                    members={project.members}
+                    trigger={
+                      <div className="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors text-center">
+                        <Plus className="h-6 w-6 mb-2 text-[#008080]" />
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">Create Task</span>
                       </div>
-                      <div className="flex items-center justify-between p-3 border border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-950/20">
-                        <div className="flex items-center">
-                          <Trash2 className="h-4 w-4 mr-2 text-red-500" />
-                          <span className="text-sm text-red-700 dark:text-red-300">Delete Project</span>
-                        </div>
-                        <Button variant="destructive" size="sm" onClick={() => setIsDeleteDialogOpen(true)}>
-                          Delete
-                        </Button>
-                      </div>
-                    </div>
+                    }
+                  />
+                )}
+                
+                {canAddMembers && (
+                  <div className="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors text-center"
+                       onClick={() => setActiveTab('members')}>
+                    <UserPlus className="h-6 w-6 mb-2 text-[#008080]" />
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">Add Member</span>
                   </div>
+                )}
+                
+                <div className="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors text-center"
+                     onClick={openEditDialog}>
+                  <Edit className="h-6 w-6 mb-2 text-gray-600 dark:text-gray-400" />
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Edit Project</span>
                 </div>
-              </CardContent>
-            </Card>
+                
+                <div className="flex flex-col items-center p-4 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 cursor-pointer transition-colors text-center"
+                     onClick={() => setIsDeleteDialogOpen(true)}>
+                  <Trash2 className="h-6 w-6 mb-2 text-red-500" />
+                  <span className="text-sm font-medium text-red-700 dark:text-red-300">Delete Project</span>
+                </div>
+              </div>
+            </div>
           )}
         </TabsContent>
 
@@ -527,35 +591,33 @@ export function ProjectView({ projectId }: ProjectViewProps) {
           </div>
           
           {tasks.length === 0 ? (
-            <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
-              <CardContent className="text-center py-12">
-                <CheckSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No tasks yet</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  {canCreateTasks 
-                    ? "Get started by creating your first task."
-                    : "Tasks will appear here once they're created."
+            <div className="text-center py-12 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
+              <CheckSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No tasks yet</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                {canCreateTasks 
+                  ? "Get started by creating your first task."
+                  : "Tasks will appear here once they're created."
+                }
+              </p>
+              {canCreateTasks && (
+                <CreateTaskForm 
+                  projectId={projectId} 
+                  onTaskCreated={handleTaskCreated}
+                  members={project.members}
+                  trigger={
+                    <div className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#008080] hover:bg-[#006666] text-white rounded-md font-medium transition-colors cursor-pointer">
+                      <Plus className="h-4 w-4" />
+                      Create Task
+                    </div>
                   }
-                </p>
-                {canCreateTasks && (
-                  <CreateTaskForm 
-                    projectId={projectId} 
-                    onTaskCreated={handleTaskCreated}
-                    members={project.members}
-                    trigger={
-                      <div className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#008080] hover:bg-[#006666] text-white rounded-md font-medium transition-colors cursor-pointer">
-                        <Plus className="h-4 w-4" />
-                        Create Task
-                      </div>
-                    }
-                  />
-                )}
-              </CardContent>
-            </Card>
+                />
+              )}
+            </div>
           ) : (
-            <div className="grid gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {tasks.map((task) => (
-                <TaskCard key={task.id} task={task} />
+                <CompactTaskCard key={task.id} task={task} />
               ))}
             </div>
           )}
@@ -569,89 +631,77 @@ export function ProjectView({ projectId }: ProjectViewProps) {
           
           {/* Add Member Form for Leaders */}
           {canAddMembers && (
-            <AddMemberForm 
-              projectId={projectId} 
-              onMemberAdded={handleMemberAdded}
-            />
+            <div className="mb-6">
+              <AddMemberForm 
+                projectId={projectId} 
+                onMemberAdded={handleMemberAdded}
+              />
+            </div>
           )}
           
-          <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="text-gray-900 dark:text-white">Project Team</CardTitle>
-              <CardDescription>
-                {project.members.length} member{project.members.length !== 1 ? 's' : ''} in this project
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {project.members.map((member) => (
-                  <div key={member.id} className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={member.userImage || ''} alt={member.userName} />
-                      <AvatarFallback className="bg-[#008080] text-white text-sm">
-                        {formatInitials(member.userName)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                          {member.userName}
-                          {member.userId === project.currentUserId && (
-                            <span className="text-xs text-gray-500 ml-1">(You)</span>
-                          )}
-                        </p>
-                        <Badge 
-                          variant={member.role === 'leader' ? "default" : "secondary"}
-                          className={member.role === 'leader'
-                            ? "bg-[#008080] hover:bg-[#006666] text-white text-xs" 
-                            : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs"
-                          }
-                        >
-                          {member.role === 'leader' ? (
-                            <>
-                              <Crown className="h-2 w-2 mr-1" />
-                              Leader
-                            </>
-                          ) : (
-                            'Member'
-                          )}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                        {member.userEmail}
+          {/* Compact Members Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {project.members.map((member) => (
+              <div key={member.id} className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-3 hover:shadow-sm hover:border-gray-200 dark:hover:border-gray-700 transition-all">
+                <div className="flex items-center gap-2 mb-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={member.userImage || ''} alt={member.userName} />
+                    <AvatarFallback className="bg-[#008080] text-white text-xs">
+                      {formatInitials(member.userName)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        {member.userName}
                       </p>
-                      {member.permissions.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {member.permissions.slice(0, 3).map((permission) => (
-                            <span 
-                              key={permission}
-                              className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded"
-                            >
-                              {permission}
-                            </span>
-                          ))}
-                          {member.permissions.length > 3 && (
-                            <span className="text-xs text-gray-500">
-                              +{member.permissions.length - 3} more
-                            </span>
-                          )}
-                        </div>
+                      {member.role === 'leader' && (
+                        <Crown className="h-3 w-3 text-[#008080] flex-shrink-0" />
                       )}
                     </div>
-                    {canManagePermissions && member.userId !== project.currentUserId && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                      >
-                        <Settings className="h-4 w-4" />
-                      </Button>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      {member.userEmail}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Role and permissions */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <Badge 
+                      variant={member.role === 'leader' ? "default" : "secondary"}
+                      className={`text-xs ${member.role === 'leader'
+                        ? "bg-[#008080] text-white" 
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                      }`}
+                    >
+                      {member.role === 'leader' ? 'Leader' : 'Member'}
+                    </Badge>
+                    {member.userId === project.currentUserId && (
+                      <span className="text-xs text-[#008080] font-medium">You</span>
                     )}
                   </div>
-                ))}
+                  
+                  {member.permissions.length > 0 && (
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {member.permissions.length} permission{member.permissions.length !== 1 ? 's' : ''}
+                    </div>
+                  )}
+                </div>
+
+                {canManagePermissions && member.userId !== project.currentUserId && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full mt-2 h-6 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    <Settings className="h-3 w-3 mr-1" />
+                    Manage
+                  </Button>
+                )}
               </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
         </TabsContent>
       </Tabs>
 
@@ -800,6 +850,90 @@ export function ProjectView({ projectId }: ProjectViewProps) {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+// Compact task card for maximum density
+function CompactTaskCard({ task }: { task: Task }) {
+  const getImportanceColor = (level: string) => {
+    switch (level) {
+      case 'critical': return 'bg-red-500';
+      case 'high': return 'bg-orange-500';
+      case 'medium': return 'bg-yellow-500';
+      case 'low': return 'bg-green-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const completedSubTasks = task.subTasks.filter(st => st.status === 'completed').length;
+  const totalSubTasks = task.subTasks.length;
+  const progress = totalSubTasks > 0 ? (completedSubTasks / totalSubTasks) * 100 : 0;
+
+  return (
+    <div className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-3 hover:shadow-sm hover:border-gray-200 dark:hover:border-gray-700 transition-all h-full flex flex-col">
+      {/* Header with importance indicator */}
+      <div className="flex items-start gap-2 mb-2">
+        <div className={`w-2 h-2 rounded-full mt-1 flex-shrink-0 ${getImportanceColor(task.importanceLevel)}`} />
+        <div className="flex-1 min-w-0">
+          <h3 className="font-medium text-sm text-gray-900 dark:text-white line-clamp-2 leading-tight mb-1">
+            {task.title}
+          </h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            {task.creatorName}
+          </p>
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      {totalSubTasks > 0 && (
+        <div className="mb-2">
+          <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
+            <span>{completedSubTasks}/{totalSubTasks}</span>
+            <span>{Math.round(progress)}%</span>
+          </div>
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1">
+            <div 
+              className="bg-[#008080] h-1 rounded-full transition-all duration-300" 
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Subtasks preview - ultra compact */}
+      {totalSubTasks > 0 && (
+        <div className="flex-1 space-y-1">
+          {task.subTasks.slice(0, 3).map((subtask) => (
+            <div key={subtask.id} className="flex items-center gap-1.5 text-xs">
+              <div className={`w-1 h-1 rounded-full flex-shrink-0 ${
+                subtask.status === 'completed' ? 'bg-green-500' :
+                subtask.status === 'in_progress' ? 'bg-blue-500' : 'bg-gray-300'
+              }`} />
+              <span className="text-gray-600 dark:text-gray-400 truncate flex-1 text-xs">
+                {subtask.title}
+              </span>
+            </div>
+          ))}
+          {totalSubTasks > 3 && (
+            <p className="text-xs text-gray-500 dark:text-gray-500 text-center">
+              +{totalSubTasks - 3}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Deadline if exists */}
+      {task.deadline && (
+        <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-1 text-xs">
+            <Calendar className="h-3 w-3 text-gray-400" />
+            <span className={`${isAfter(new Date(), new Date(task.deadline)) ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`}>
+              {formatDistanceToNow(new Date(task.deadline), { addSuffix: true })}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
