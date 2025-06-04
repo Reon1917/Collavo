@@ -141,9 +141,11 @@ export function CreateSubTaskForm({
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-      <DialogTrigger className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm text-[#008080] border border-[#008080] hover:bg-[#008080] hover:text-white rounded-md font-medium transition-colors">
-        {trigger || defaultTrigger}
-      </DialogTrigger>
+      {(trigger !== undefined || open === undefined) && (
+        <DialogTrigger className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm text-[#008080] border border-[#008080] hover:bg-[#008080] hover:text-white rounded-md font-medium transition-colors">
+          {trigger || defaultTrigger}
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-2">
