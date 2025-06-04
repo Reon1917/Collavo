@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
-import { ProjectView } from '@/components/project/ProjectView';
+import { ProjectView } from '@/components/project/ProjectView/ProjectView';
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   // Check authentication
