@@ -177,9 +177,11 @@ export function TaskCard({
           {/* Sub-tasks preview */}
           {visibleSubTasks.length > 0 ? (
             <div className="flex-1 min-h-0">
-              <h4 className="text-xs font-medium text-gray-900 dark:text-white mb-2">
-                Subtasks ({visibleSubTasks.length})
-              </h4>
+              <div className="mb-2">
+                <h4 className="text-xs font-medium text-gray-900 dark:text-white">
+                  Subtasks ({visibleSubTasks.length})
+                </h4>
+              </div>
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {visibleSubTasks.slice(0, 3).map((subtask) => (
                   <SubTaskMiniItem 
@@ -199,7 +201,7 @@ export function TaskCard({
               </div>
             </div>
           ) : (
-            <div className="flex-1 flex items-center justify-center py-4">
+            <div className="flex-1 flex flex-col items-center justify-center py-4">
               <p className="text-xs text-gray-500 dark:text-gray-500 text-center">
                 {!canViewAllTasks 
                   ? 'No subtasks assigned'
@@ -242,16 +244,18 @@ export function TaskCard({
       )}
 
       {/* Create SubTask Dialog */}
-      <CreateSubTaskForm 
-        projectId={project.id}
-        mainTaskId={task.id}
-        mainTaskDeadline={task.deadline}
-        projectDeadline={project.deadline}
-        open={showCreateSubTaskDialog}
-        onOpenChange={setShowCreateSubTaskDialog}
-        onSubTaskCreated={(newSubTask) => onSubTaskCreated(task.id, newSubTask)}
-        members={project.members}
-      />
+      {showCreateSubTaskDialog && (
+        <CreateSubTaskForm 
+          projectId={project.id}
+          mainTaskId={task.id}
+          mainTaskDeadline={task.deadline}
+          projectDeadline={project.deadline}
+          open={showCreateSubTaskDialog}
+          onOpenChange={setShowCreateSubTaskDialog}
+          onSubTaskCreated={(newSubTask) => onSubTaskCreated(task.id, newSubTask)}
+          members={project.members}
+        />
+      )}
 
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirmDialog && (
