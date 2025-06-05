@@ -57,6 +57,7 @@ export const auth = betterAuth({
       clientId: envConfig.GOOGLE_CLIENT_ID,
       clientSecret: envConfig.GOOGLE_CLIENT_SECRET,
       scope: ["email", "profile"], // Explicitly define scopes
+      prompt: "select_account", // Force account selection on every login
     },
   },
   secret: envConfig.BETTER_AUTH_SECRET,
