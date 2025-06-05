@@ -109,7 +109,27 @@ export function GanttChart({ tasks }: GanttChartProps) {
         width="100%"
         height="400px"
         chartType="Gantt"
-        loader={<div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading Chart...</div>}
+        loader={
+          <div className="p-8 text-center">
+            <div className="relative animate-in fade-in duration-500 mb-4">
+              {/* Multi-layer spinner */}
+              <div className="w-8 h-8 mx-auto relative">
+                <div className="absolute inset-0 w-8 h-8 border-4 border-blue-200 dark:border-blue-800 rounded-full animate-pulse"></div>
+                <div className="absolute inset-0 w-8 h-8 border-4 border-transparent border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full animate-ping"></div>
+                </div>
+              </div>
+              <div className="absolute inset-0 w-8 h-8 mx-auto bg-blue-600/20 dark:bg-blue-400/20 rounded-full blur-xl animate-pulse"></div>
+            </div>
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Loading Chart...</p>
+            <div className="flex justify-center space-x-1">
+              <div className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+              <div className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            </div>
+          </div>
+        }
         data={chartData}
         options={{
           height: 400,

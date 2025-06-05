@@ -1,17 +1,16 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect, useCallback, use } from 'react';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Crown, User, Loader2 } from 'lucide-react';
+import { UserPlus, Crown, User } from 'lucide-react';
 import { AddMemberForm } from '@/components/project/AddMemberForm';
 import { cn } from '@/lib/utils';
-import { buttonVariants } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { use } from 'react';
+import { ContentLoading } from '@/components/ui/content-loading';
 
 interface Member {
   id: string;
@@ -123,9 +122,11 @@ export default function MembersPage({ params }: MembersPageProps) {
             Invite Member
           </Button>
         </div>
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
+        <ContentLoading 
+          size="md" 
+          message="Loading project members..." 
+          className="py-12"
+        />
       </div>
     );
   }
