@@ -34,15 +34,17 @@ export default function Home() {
             </div>
           </div>
           <div className="lg:w-1/2">
-            <Image
-              src="/landingpage-img/dashboard.png"
-              alt="Project management dashboard"
-              width={600}
-              height={450}
-              className="rounded-lg shadow-2xl"
-              loading="lazy"
-              quality={75}
-            />
+            <video
+              src="/mockup.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full max-w-[600px] h-auto rounded-lg shadow-2xl"
+              aria-label="Project management platform demonstration"
+            >
+              Your browser does not support the video tag.
+            </video>
           </div>
         </div>
       </div>
