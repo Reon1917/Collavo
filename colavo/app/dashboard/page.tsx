@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { DashboardNavbar } from '@/components/ui/dashboard-navbar';
-import { PlusCircle, File, Users, FolderOpen, UserPlus, Calendar, Crown, User, Loader2 } from 'lucide-react';
+import { PlusCircle, File, Users, FolderOpen, UserPlus, Calendar, Crown, User} from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
