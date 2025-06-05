@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
 import { useTasksData } from './hooks/useTasksData';
 import { useTaskFilters } from './hooks/useTaskFilters';
 import { TasksHeader } from './components/TasksHeader';
@@ -8,12 +8,15 @@ import { AccessLevelInfo } from './components/AccessLevelInfo';
 import { TasksFilters } from './components/TasksFilters';
 import { EmptyState } from './components/EmptyState';
 import { TaskCard } from './components/TaskCard';
+import { ContentLoading } from '@/components/ui/content-loading';
+import { useNavigationStore } from '@/lib/stores/navigation-store';
 
 interface TasksViewProps {
   projectId: string;
 }
 
 export function TasksView({ projectId }: TasksViewProps) {
+  const { setLoading } = useNavigationStore();
   const {
     tasks,
     project,
@@ -38,11 +41,21 @@ export function TasksView({ projectId }: TasksViewProps) {
     filteredAndSortedTasks,
   } = useTaskFilters(tasks);
 
+  // Update navigation loading state
+  useEffect(() => {
+    setLoading(isLoading, `/project/${projectId}/tasks`);
+    
+    // Cleanup on unmount
+    return () => setLoading(false);
+  }, [isLoading, projectId, setLoading]);
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#008080]" />
-      </div>
+      <ContentLoading 
+        size="md" 
+        message="Loading tasks..." 
+        className="min-h-[400px]"
+      />
     );
   }
 

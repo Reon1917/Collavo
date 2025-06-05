@@ -1,8 +1,10 @@
 "use client";
 import { cn } from "@/lib/utils";
-import React, { useState, createContext, useContext } from "react";
+import React, { useState, createContext, useContext, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { IconMenu2, IconX } from "@tabler/icons-react";
+import { usePathname } from "next/navigation";
+import { useNavigationStore } from "@/lib/stores/navigation-store";
 
 interface Links {
   label: string;
@@ -152,7 +154,7 @@ export const MobileSidebar = ({
               >
                 <IconX />
               </div>
-              {children}
+              {children as React.ReactNode}
             </motion.div>
           )}
         </AnimatePresence>
@@ -170,16 +172,35 @@ export const SidebarLink = ({
   className?: string;
 }) => {
   const { open, animate } = useSidebar();
+  const pathname = usePathname();
+  const { isRouteActive, setActiveRoute } = useNavigationStore();
+  
+  const isActive = isRouteActive(link.href, pathname);
+  
+  useEffect(() => {
+    if (isActive) {
+      setActiveRoute(link.href);
+    }
+  }, [isActive, link.href, setActiveRoute]);
+
   return (
     <a
       href={link.href}
       className={cn(
-        "flex items-center justify-start gap-2 group/sidebar py-3 px-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-[#008080] dark:hover:text-[#00FFFF] hover:bg-[#008080]/10 dark:hover:bg-[#00FFFF]/10 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#008080]/20 dark:focus:ring-[#00FFFF]/20",
+        "flex items-center justify-start gap-2 group/sidebar py-3 px-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#008080]/20 dark:focus:ring-[#00FFFF]/20",
+        isActive 
+          ? "text-[#008080] dark:text-[#00FFFF] bg-[#008080]/10 dark:bg-[#00FFFF]/10 border border-[#008080]/20 dark:border-[#00FFFF]/20" 
+          : "text-gray-700 dark:text-gray-300 hover:text-[#008080] dark:hover:text-[#00FFFF] hover:bg-[#008080]/10 dark:hover:bg-[#00FFFF]/10",
         className
       )}
       {...props}
     >
-      <div className="text-gray-500 dark:text-gray-400 group-hover/sidebar:text-[#008080] dark:group-hover/sidebar:text-[#00FFFF] transition-colors duration-200">
+      <div className={cn(
+        "transition-colors duration-200",
+        isActive 
+          ? "text-[#008080] dark:text-[#00FFFF]" 
+          : "text-gray-500 dark:text-gray-400 group-hover/sidebar:text-[#008080] dark:group-hover/sidebar:text-[#00FFFF]"
+      )}>
         {link.icon}
       </div>
 
@@ -188,7 +209,10 @@ export const SidebarLink = ({
           display: animate ? (open ? "inline-block" : "none") : "inline-block",
           opacity: animate ? (open ? 1 : 0) : 1,
         }}
-        className="font-medium group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block !p-0 !m-0"
+        className={cn(
+          "font-medium group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block !p-0 !m-0",
+          isActive ? "text-[#008080] dark:text-[#00FFFF]" : ""
+        )}
       >
         <span>{link.label}</span>
       </motion.span>

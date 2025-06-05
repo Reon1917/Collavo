@@ -3,11 +3,12 @@
 import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Home, Users, FileText, FolderOpen, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+
 import { ChatButton } from '@/components/project/chat-button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { notFound, usePathname } from 'next/navigation';
 import { Sidebar, SidebarBody, SidebarLink } from '@/components/ui/sidebar';
+import { useNavigationLoading } from '@/hooks/useNavigationLoading';
 
 interface Project {
   id: string;
@@ -124,6 +125,9 @@ export default function ProjectLayout({
   params: Promise<{ id: string }>;
 }) {
   const [projectId, setProjectId] = useState<string>('');
+  
+  // Initialize navigation loading
+  useNavigationLoading();
 
   useEffect(() => {
     params.then(({ id }) => {
