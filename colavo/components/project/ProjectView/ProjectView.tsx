@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useProjectData } from '@/hooks/shared/useProjectData';
 import { useProjectPermissions } from '@/hooks/shared/useProjectPermissions';
@@ -9,21 +8,34 @@ import { ProjectHeader } from './components/ProjectHeader';
 import { OverviewTab } from './components/Tabs/OverviewTab';
 import { TasksTab } from './components/Tabs/TasksTab';
 import { MembersTab } from '@/components/project/ProjectView/components/Tabs/MembersTab';
+import { ContentLoading } from '@/components/ui/content-loading';
+import { useNavigationStore } from '@/lib/stores/navigation-store';
 
 interface ProjectViewProps {
   projectId: string;
 }
 
 export function ProjectView({ projectId }: ProjectViewProps) {
+  const { setLoading } = useNavigationStore();
   const { project, tasks, isLoading, refreshData } = useProjectData(projectId);
   const permissions = useProjectPermissions(project);
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Update navigation loading state
+  useEffect(() => {
+    setLoading(isLoading, `/project/${projectId}`);
+    
+    // Cleanup on unmount
+    return () => setLoading(false);
+  }, [isLoading, projectId, setLoading]);
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#008080]" />
-      </div>
+      <ContentLoading 
+        size="md" 
+        message="Loading project..." 
+        className="min-h-[400px]"
+      />
     );
   }
 
