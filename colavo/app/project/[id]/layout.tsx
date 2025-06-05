@@ -9,6 +9,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { notFound, usePathname } from 'next/navigation';
 import { Sidebar, SidebarBody, SidebarLink } from '@/components/ui/sidebar';
 import { useNavigationLoading } from '@/hooks/useNavigationLoading';
+import { ContentLoading } from '@/components/ui/content-loading';
 
 interface Project {
   id: string;
@@ -139,9 +140,11 @@ export default function ProjectLayout({
     return (
       <div className="flex flex-col min-h-screen bg-[#f9f8f0] dark:bg-gray-950">
         <div className="animate-pulse bg-gray-200 dark:bg-gray-800 h-16"></div>
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#008080] dark:border-[#00FFFF]"></div>
-        </div>
+        <ContentLoading 
+          size="lg" 
+          message="Loading project..." 
+          className="flex-1"
+        />
       </div>
     );
   }
