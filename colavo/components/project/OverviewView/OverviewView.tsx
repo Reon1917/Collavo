@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useProjectData } from '@/hooks/shared/useProjectData';
+import { useProjectOverviewData } from '@/hooks/shared/useProjectOverviewData';
 import { useProjectPermissions } from '@/hooks/shared/useProjectPermissions';
 import { ProjectHeader } from '../ProjectView/components/ProjectHeader';
 import { OverviewTab } from '../ProjectView/components/Tabs/OverviewTab';
@@ -11,7 +11,9 @@ import type { OverviewViewProps } from './types';
 
 export function OverviewView({ projectId }: OverviewViewProps) {
   const { setLoading } = useNavigationStore();
-  const { project, tasks, isLoading, refreshData } = useProjectData(projectId);
+  const { data, isLoading, refreshData } = useProjectOverviewData(projectId);
+  const project = data?.project || null;
+  const tasks = data?.tasks || [];
   const permissions = useProjectPermissions(project);
 
   // Function to handle tab changes by updating URL

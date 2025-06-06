@@ -9,15 +9,6 @@ interface TabPreloaderOptions {
 export function useTabPreloader({ projectId, currentTab, preloadDelay = 2000 }: TabPreloaderOptions) {
   const preloadedTabs = useRef<Set<string>>(new Set());
   
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      // Only preload if user stays on current tab for specified delay
-      preloadTabData(projectId, currentTab);
-    }, preloadDelay);
-
-    return () => clearTimeout(timer);
-  }, [projectId, currentTab, preloadDelay]);
-
   const preloadTabData = async (projectId: string, currentTab: string) => {
     const tabsToPreload = ['tasks', 'members', 'files'].filter(
       tab => tab !== currentTab && !preloadedTabs.current.has(tab)
@@ -40,10 +31,18 @@ export function useTabPreloader({ projectId, currentTab, preloadDelay = 2000 }: 
           fetch(`/api/projects/${projectId}/files`, { credentials: 'include' });
           preloadedTabs.current.add('files');
         }
-      } catch (error) {
-        // Silently handle preload errors
-        console.warn(`Failed to preload ${tab} data:`, error);
+      } catch {
+        // Silently handle preload errors - no logging needed
       }
     });
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Only preload if user stays on current tab for specified delay
+      preloadTabData(projectId, currentTab);
+    }, preloadDelay);
+
+    return () => clearTimeout(timer);
+  }, [projectId, currentTab, preloadDelay]);
 } 

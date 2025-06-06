@@ -59,7 +59,9 @@ function ProjectHeader({ projectId }: { projectId: string }) {
         }
         setIsLoading(false);
       } catch (error) {
-        console.error('Error fetching project:', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error fetching project:', error);
+        }
         setIsLoading(false);
       }
     };
