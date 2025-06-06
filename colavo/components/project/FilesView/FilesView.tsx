@@ -1,12 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileIcon, Plus, Upload } from 'lucide-react';
+import type { FilesViewProps } from './types';
 
-export default async function FilesPage() {
-  
+export function FilesView({ projectId }: FilesViewProps) {
   // TODO: Replace with actual API call to fetch project files
-  // const files = await fetch(`/api/projects/${id}/files`).then(res => res.json());
-  // const project = await fetch(`/api/projects/${id}`).then(res => res.json());
+  // const files = await fetch(`/api/projects/${projectId}/files`).then(res => res.json());
   
   return (
     <div>
@@ -63,4 +62,4 @@ export default async function FilesPage() {
       */}
     </div>
   );
-}
+} 

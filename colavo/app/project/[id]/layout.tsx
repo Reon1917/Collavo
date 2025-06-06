@@ -18,11 +18,6 @@ interface Project {
 }
 
 function SimpleBreadcrumb() {
-  const pathname = usePathname();
-  const segments = pathname.split('/').filter(segment => segment);
-  const projectId = segments[1];
-  const currentSection = segments[2];
-
   return (
     <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-3">
       <Link 
@@ -32,31 +27,11 @@ function SimpleBreadcrumb() {
         Home
       </Link>
       
-      {projectId && (
-        <>
-          <ChevronRight className="h-4 w-4 mx-2.5 text-gray-400 dark:text-gray-600" />
-          
-          <Link 
-            href={`/project/${projectId}`} 
-            className={`font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#008080]/20 dark:focus:ring-[#00FFFF]/20 rounded ${
-              segments.length === 2 
-                ? 'text-[#008080] dark:text-[#00FFFF]' 
-                : 'text-gray-600 hover:text-[#008080] dark:text-gray-400 dark:hover:text-[#00FFFF]'
-            }`}
-          >
-            Project
-          </Link>
-        </>
-      )}
+      <ChevronRight className="h-4 w-4 mx-2.5 text-gray-400 dark:text-gray-600" />
       
-      {currentSection && (
-        <>
-          <ChevronRight className="h-4 w-4 mx-2.5 text-gray-400 dark:text-gray-600" />
-          <span className="font-semibold text-[#008080] dark:text-[#00FFFF]">
-            {currentSection.charAt(0).toUpperCase() + currentSection.slice(1)}
-          </span>
-        </>
-      )}
+      <span className="font-semibold text-[#008080] dark:text-[#00FFFF]">
+        Project
+      </span>
     </div>
   );
 }
@@ -162,17 +137,17 @@ export default function ProjectLayout({
     },
     {
       label: "Tasks", 
-      href: `/project/${projectId}/tasks`,
+      href: `/project/${projectId}?tab=tasks`,
       icon: <FileText className="h-5 w-5" />
     },
     {
       label: "Members",
-      href: `/project/${projectId}/members`, 
+      href: `/project/${projectId}?tab=members`, 
       icon: <Users className="h-5 w-5" />
     },
     {
       label: "Files",
-      href: `/project/${projectId}/files`,
+      href: `/project/${projectId}?tab=files`,
       icon: <FolderOpen className="h-5 w-5" />
     }
   ];

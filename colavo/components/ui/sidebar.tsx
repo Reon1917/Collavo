@@ -3,7 +3,8 @@ import { cn } from "@/lib/utils";
 import React, { useState, createContext, useContext, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { IconMenu2, IconX } from "@tabler/icons-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useNavigationStore } from "@/lib/stores/navigation-store";
 
 interface Links {
@@ -173,9 +174,45 @@ export const SidebarLink = ({
 }) => {
   const { open, animate } = useSidebar();
   const pathname = usePathname();
-  const { isRouteActive, setActiveRoute } = useNavigationStore();
+  const searchParams = useSearchParams();
+  const { setActiveRoute } = useNavigationStore();
   
-  const isActive = isRouteActive(link.href, pathname);
+  // Custom active state logic that handles query parameters
+  const isActive = React.useMemo(() => {
+    // Handle "Back to Dashboard" - only active if we're exactly on dashboard
+    if (link.href === '/dashboard') {
+      return pathname === '/dashboard';
+    }
+    
+    // Handle project routes with query parameters
+    if (link.href.includes('/project/')) {
+      try {
+        const url = new URL(link.href, 'http://localhost');
+        const linkPathname = url.pathname;
+        const linkSearchParams = url.searchParams;
+        
+        // Check if pathname matches
+        if (pathname !== linkPathname) {
+          return false;
+        }
+        
+        const currentTab = searchParams.get('tab') || 'overview';
+        
+        // If link has tab parameter, check current tab
+        const linkTab = linkSearchParams.get('tab');
+        if (linkTab) {
+          return currentTab === linkTab;
+        }
+        
+        // If link has no tab parameter, it's the overview link - active when tab is overview or null
+        return currentTab === 'overview';
+      } catch {
+        return false;
+      }
+    }
+    
+    return pathname === link.href;
+  }, [link.href, pathname, searchParams]);
   
   useEffect(() => {
     if (isActive) {
@@ -183,8 +220,19 @@ export const SidebarLink = ({
     }
   }, [isActive, link.href, setActiveRoute]);
 
+  // Force re-render when URL changes to update active states
+  useEffect(() => {
+    // This effect ensures the component re-renders when navigation happens
+    const handleNavigation = () => {
+      // Component will re-render due to useSearchParams and usePathname hooks
+    };
+    
+    window.addEventListener('popstate', handleNavigation);
+    return () => window.removeEventListener('popstate', handleNavigation);
+  }, []);
+
   return (
-    <a
+    <Link
       href={link.href}
       className={cn(
         "flex items-center justify-start gap-2 group/sidebar py-3 px-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#008080]/20 dark:focus:ring-[#00FFFF]/20",
@@ -216,6 +264,6 @@ export const SidebarLink = ({
       >
         <span>{link.label}</span>
       </motion.span>
-    </a>
+    </Link>
   );
 };
