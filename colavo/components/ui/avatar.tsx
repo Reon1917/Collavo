@@ -29,6 +29,10 @@ function AvatarImage({
     <AvatarPrimitive.Image
       data-slot="avatar-image"
       className={cn("aspect-square size-full", className)}
+      onError={(e) => {
+        // Silently handle image load errors to prevent console spam
+        e.currentTarget.style.display = 'none';
+      }}
       {...props}
     />
   )

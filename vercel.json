@@ -1,0 +1,6 @@
+{
+  "version": 2,
+  "git": {
+    "productionBranch": "main"
+  }
+}
