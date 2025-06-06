@@ -27,6 +27,53 @@ export function OverviewTab({ project, tasks, permissions, onRefresh, onTabChang
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+  // Format user permissions for display
+  const getUserPermissions = () => {
+    const permissionsList: string[] = [];
+    
+    // Add role-based label first
+    if (permissions.isLeader) {
+      permissionsList.push('Project Leader');
+    } else {
+      permissionsList.push('Team Member');
+    }
+    
+    // Add actual permissions from the database
+    if (project.userPermissions && project.userPermissions.length > 0) {
+      const formattedPermissions = project.userPermissions.map(permission => {
+        // Convert camelCase to readable format
+        switch (permission) {
+          case 'createTask': return 'Create Tasks';
+          case 'handleTask': return 'Manage Tasks';
+          case 'updateTask': return 'Update Tasks';
+          case 'handleEvent': return 'Manage Events';
+          case 'handleFile': return 'Manage Files';
+          case 'addMember': return 'Add Members';
+          case 'createEvent': return 'Create Events';
+          case 'viewFiles': return 'View Files';
+          case 'viewTasks': return 'View Tasks';
+          case 'editProject': return 'Edit Project';
+          case 'deleteProject': return 'Delete Project';
+          case 'managePermissions': return 'Manage Permissions';
+          default: 
+            // Fallback: convert camelCase to Title Case
+            return permission.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        }
+      });
+      
+      permissionsList.push(...formattedPermissions);
+    } else {
+      // Fallback for members with no specific permissions
+      if (!permissions.isLeader) {
+        permissionsList.push('View Project');
+      }
+    }
+    
+    return permissionsList;
+  };
+
+  const userPermissions = getUserPermissions();
+
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -39,7 +86,7 @@ export function OverviewTab({ project, tasks, permissions, onRefresh, onTabChang
           <div className="text-sm text-gray-600 dark:text-gray-400">Team Members</div>
         </div>
         <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
-          <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{project.userPermissions.length}</div>
+          <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{userPermissions.length}</div>
           <div className="text-sm text-gray-600 dark:text-gray-400">Your Permissions</div>
         </div>
         <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
@@ -88,12 +135,12 @@ export function OverviewTab({ project, tasks, permissions, onRefresh, onTabChang
           <div className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-4">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Your Access</h3>
             <div className="space-y-2">
-              {project.userPermissions.length > 0 ? (
-                project.userPermissions.slice(0, 4).map((permission) => (
-                  <div key={permission} className="flex items-center gap-2">
+              {userPermissions.length > 0 ? (
+                userPermissions.slice(0, 4).map((permission, index) => (
+                  <div key={index} className="flex items-center gap-2">
                     <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
-                    <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
-                      {permission.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      {permission}
                     </span>
                   </div>
                 ))
@@ -102,9 +149,9 @@ export function OverviewTab({ project, tasks, permissions, onRefresh, onTabChang
                   No specific permissions assigned
                 </p>
               )}
-              {project.userPermissions.length > 4 && (
+              {userPermissions.length > 4 && (
                 <p className="text-xs text-gray-500 dark:text-gray-500">
-                  +{project.userPermissions.length - 4} more permissions
+                  +{userPermissions.length - 4} more permissions
                 </p>
               )}
             </div>
@@ -113,28 +160,34 @@ export function OverviewTab({ project, tasks, permissions, onRefresh, onTabChang
           <div className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-4">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Team</h3>
             <div className="space-y-2">
-              {project.members.slice(0, 4).map((member) => (
-                <div key={member.id} className="flex items-center gap-2">
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src={member.userImage || ''} alt={member.userName} />
-                    <AvatarFallback className="bg-[#008080] text-white text-xs">
-                      {formatInitials(member.userName)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm text-gray-700 dark:text-gray-300 truncate block">
-                      {member.userName}
-                      {member.userId === project.currentUserId && (
-                        <span className="text-xs text-gray-500 ml-1">(You)</span>
-                      )}
-                    </span>
-                  </div>
-                  {member.role === 'leader' && (
-                    <Crown className="h-3 w-3 text-[#008080]" />
-                  )}
-                </div>
-              ))}
-              {project.members.length > 4 && (
+              {project.members && project.members.length > 0 ? (
+                project.members.slice(0, 4).map((member) => (
+                                     <div key={member.id || member.userId} className="flex items-center gap-2">
+                     <Avatar className="h-6 w-6">
+                       <AvatarImage src={(member as any).userImage || ''} alt={(member as any).userName || 'User'} />
+                       <AvatarFallback className="bg-[#008080] text-white text-xs">
+                         {formatInitials((member as any).userName || 'U')}
+                       </AvatarFallback>
+                     </Avatar>
+                     <div className="flex-1 min-w-0">
+                       <span className="text-sm text-gray-700 dark:text-gray-300 truncate block">
+                         {(member as any).userName || 'Unknown User'}
+                         {(member.userId === project.currentUserId) && (
+                           <span className="text-xs text-gray-500 ml-1">(You)</span>
+                         )}
+                       </span>
+                     </div>
+                     {(member.role === 'leader' || project.leaderId === member.userId) && (
+                       <Crown className="h-3 w-3 text-[#008080]" />
+                     )}
+                   </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  No team members found
+                </p>
+              )}
+              {project.members && project.members.length > 4 && (
                 <button 
                   onClick={() => onTabChange('members')}
                   className="text-xs text-[#008080] hover:text-[#006666] font-medium"
