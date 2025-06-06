@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { projects, members, mainTasks, subTasks, user } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { requireProjectAccess } from '@/lib/auth-helpers';
 
 export async function GET(
@@ -45,11 +45,7 @@ export async function GET(
       }
     });
 
-  } catch (error) {
-    // Log error in development only
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error fetching overview data:', error);
-    }
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch overview data' },
       { status: 500 }

@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { FileIcon, Plus, Upload } from 'lucide-react';
 import type { FilesViewProps } from './types';
 
-export function FilesView({ projectId }: FilesViewProps) {
+export function FilesView({ }: FilesViewProps) {
   // TODO: Replace with actual API call to fetch project files
   // const files = await fetch(`/api/projects/${projectId}/files`).then(res => res.json());
   

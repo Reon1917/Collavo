@@ -6,7 +6,7 @@ import { ArrowLeft, Home, Users, FileText, FolderOpen, ChevronRight } from 'luci
 
 import { ChatButton } from '@/components/project/chat-button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { notFound, usePathname } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { Sidebar, SidebarBody, SidebarLink } from '@/components/ui/sidebar';
 import { useNavigationLoading } from '@/hooks/useNavigationLoading';
 import { ContentLoading } from '@/components/ui/content-loading';
@@ -58,10 +58,7 @@ function ProjectHeader({ projectId }: { projectId: string }) {
           notFound();
         }
         setIsLoading(false);
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Error fetching project:', error);
-        }
+      } catch {
         setIsLoading(false);
       }
     };
