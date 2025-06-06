@@ -1,8 +1,6 @@
 {
-    "git": {
-      "deploymentEnabled": {
-        "main": true,
-        "*": false
-      }
-    }
-  } 
+  "version": 2,
+  "git": {
+    "productionBranch": "main"
+  }
+}
