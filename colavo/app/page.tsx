@@ -145,41 +145,46 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 dark:bg-gray-950 text-white py-12">
+      <footer className="bg-[#f0efea] dark:bg-gray-900 border-t border-[#e5e4dd] dark:border-gray-800 py-12">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-2xl font-bold mb-4">Collavo</h3>
-              <p className="text-gray-400 dark:text-gray-500">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-8 h-8 bg-[#008080] rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">C</span>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Collavo</h3>
+              </div>
+              <p className="text-gray-600 dark:text-gray-400">
                 The ultimate project management platform for modern teams.
               </p>
             </div>
             <div>
-              <h4 className="text-lg font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-gray-400 dark:text-gray-500">
-                <li><Link href="#features" className="hover:text-[#00FFFF] transition-colors">Features</Link></li>
-                <li><Link href="#pricing" className="hover:text-[#00FFFF] transition-colors">Pricing</Link></li>
-                <li><Link href="#integrations" className="hover:text-[#00FFFF] transition-colors">Integrations</Link></li>
+              <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Product</h4>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li><Link href="#features" className="hover:text-[#008080] dark:hover:text-[#00FFFF] transition-colors">Features</Link></li>
+                <li><Link href="#pricing" className="hover:text-[#008080] dark:hover:text-[#00FFFF] transition-colors">Pricing</Link></li>
+                <li><Link href="#integrations" className="hover:text-[#008080] dark:hover:text-[#00FFFF] transition-colors">Integrations</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-lg font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-400 dark:text-gray-500">
-                <li><Link href="#about" className="hover:text-[#00FFFF] transition-colors">About</Link></li>
-                <li><Link href="#careers" className="hover:text-[#00FFFF] transition-colors">Careers</Link></li>
-                <li><Link href="#contact" className="hover:text-[#00FFFF] transition-colors">Contact</Link></li>
+              <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Company</h4>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li><Link href="#about" className="hover:text-[#008080] dark:hover:text-[#00FFFF] transition-colors">About</Link></li>
+                <li><Link href="#careers" className="hover:text-[#008080] dark:hover:text-[#00FFFF] transition-colors">Careers</Link></li>
+                <li><Link href="#contact" className="hover:text-[#008080] dark:hover:text-[#00FFFF] transition-colors">Contact</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-lg font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-gray-400 dark:text-gray-500">
-                <li><Link href="#help" className="hover:text-[#00FFFF] transition-colors">Help Center</Link></li>
-                <li><Link href="#docs" className="hover:text-[#00FFFF] transition-colors">Documentation</Link></li>
-                <li><Link href="#status" className="hover:text-[#00FFFF] transition-colors">Status</Link></li>
+              <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Support</h4>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li><Link href="#help" className="hover:text-[#008080] dark:hover:text-[#00FFFF] transition-colors">Help Center</Link></li>
+                <li><Link href="#docs" className="hover:text-[#008080] dark:hover:text-[#00FFFF] transition-colors">Documentation</Link></li>
+                <li><Link href="#status" className="hover:text-[#008080] dark:hover:text-[#00FFFF] transition-colors">Status</Link></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 dark:border-gray-700 mt-8 pt-8 text-center text-gray-400 dark:text-gray-500">
+          <div className="border-t border-[#e5e4dd] dark:border-gray-700 mt-8 pt-8 text-center text-gray-600 dark:text-gray-400">
             <p>&copy; 2024 Collavo. All rights reserved.</p>
           </div>
         </div>
