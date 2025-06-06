@@ -27,18 +27,11 @@ export function OverviewTab({ project, tasks, permissions, onRefresh, onTabChang
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  // Format user permissions for display
+  // Format user permissions for display (excluding role)
   const getUserPermissions = () => {
     const permissionsList: string[] = [];
     
-    // Add role-based label first
-    if (permissions.isLeader) {
-      permissionsList.push('Project Leader');
-    } else {
-      permissionsList.push('Team Member');
-    }
-    
-    // Add actual permissions from the database
+    // Add actual permissions from the database (no role label)
     if (project.userPermissions && project.userPermissions.length > 0) {
       const formattedPermissions = project.userPermissions.map(permission => {
         // Convert camelCase to readable format
@@ -74,26 +67,50 @@ export function OverviewTab({ project, tasks, permissions, onRefresh, onTabChang
 
   const userPermissions = getUserPermissions();
 
+  // Calculate task metrics
+  const totalSubTasks = tasks.reduce((total, task) => total + task.subTasks.length, 0);
+  const subTasksInProgress = tasks.reduce((total, task) => {
+    return total + task.subTasks.filter(st => st.status === 'in_progress').length;
+  }, 0);
+  const subTasksCompleted = tasks.reduce((total, task) => {
+    return total + task.subTasks.filter(st => st.status === 'completed').length;
+  }, 0);
+  
+  // Calculate average completion percentage of main tasks
+  const averageCompletionPercentage = tasks.length > 0 ? Math.round(
+    tasks.reduce((total, task) => {
+      if (task.subTasks.length === 0) return total;
+      const completionRate = (task.subTasks.filter(st => st.status === 'completed').length / task.subTasks.length) * 100;
+      return total + completionRate;
+    }, 0) / tasks.length
+  ) : 0;
+
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
-          <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{tasks.length}</div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Total Tasks</div>
-        </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
           <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{project.members.length}</div>
           <div className="text-sm text-gray-600 dark:text-gray-400">Team Members</div>
         </div>
         <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
-          <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{userPermissions.length}</div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Your Permissions</div>
+          <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{tasks.length}</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Total Main Tasks</div>
         </div>
         <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
-          <div className="text-lg font-medium text-gray-900 dark:text-white mb-1">
-            {tasks.filter(t => t.subTasks.some(st => st.status === 'completed')).length}
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Tasks in Progress</div>
+          <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{totalSubTasks}</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Total Sub-tasks</div>
+        </div>
+        <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
+          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">{subTasksInProgress}</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Sub-tasks in Progress</div>
+        </div>
+        <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
+          <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">{subTasksCompleted}</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Sub-tasks Completed</div>
+        </div>
+        <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
+          <div className="text-3xl font-bold text-[#008080] dark:text-[#00FFFF] mb-1">{averageCompletionPercentage}%</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Tasks Completed</div>
         </div>
       </div>
 
