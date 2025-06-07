@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { FileText, FileSpreadsheet, FileImage, Calendar, User, Edit, Trash2, MoreVertical } from 'lucide-react';
+import { FileText, FileSpreadsheet, FileImage, Calendar, User, Edit, Trash2, MoreVertical, Presentation } from 'lucide-react';
 import { formatDate, formatRelativeTime } from '@/utils/date';
 
 interface FileCardProps {
@@ -36,6 +36,8 @@ export function FileCard({ file, onClick, onEdit, onDelete }: FileCardProps) {
         return <FileText className="h-8 w-8 text-blue-500" />;
       case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
         return <FileSpreadsheet className="h-8 w-8 text-green-500" />;
+      case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+        return <Presentation className="h-8 w-8 text-orange-500" />;
       default:
         return <FileText className="h-8 w-8 text-gray-400" />;
     }
@@ -77,8 +79,6 @@ export function FileCard({ file, onClick, onEdit, onDelete }: FileCardProps) {
       onDelete(file);
     }
   };
-
-
 
   return (
     <Card 
@@ -167,7 +167,6 @@ export function FileCard({ file, onClick, onEdit, onDelete }: FileCardProps) {
                 </div>
               )}
             </div>
-
 
           </div>
         </div>

@@ -7,7 +7,7 @@ const auth = (req: Request) => ({ id: "fakeId" }); // Fake auth function
 
 // FileRouter for your app, can contain multiple FileRoutes
 export const ourFileRouter = {
-  // Document uploader for PDF, DOCX, and XLSX files
+  // Document uploader for PDF, DOCX, XLSX, and PPTX files
   documentUploader: f({
     "application/pdf": {
       maxFileSize: "4MB",
@@ -18,6 +18,10 @@ export const ourFileRouter = {
       maxFileCount: 1,
     },
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+      maxFileSize: "4MB",
+      maxFileCount: 1,
+    },
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation": {
       maxFileSize: "4MB",
       maxFileCount: 1,
     },

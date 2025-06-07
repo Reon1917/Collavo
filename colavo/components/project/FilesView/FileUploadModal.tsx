@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useUploadThing } from '@/utils/uploadthing';
-import { Loader2, X, Upload, FileText, FileSpreadsheet, File } from 'lucide-react';
+import { Loader2, X, Upload, FileText, FileSpreadsheet, File, Presentation } from 'lucide-react';
 
 interface FileUploadModalProps {
   isOpen: boolean;
@@ -106,11 +106,12 @@ export function FileUploadModal({
       const allowedTypes = [
         'application/pdf',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation'
       ];
 
       if (!allowedTypes.includes(file.type)) {
-        setUploadError('Please select a PDF, DOCX, or XLSX file.');
+        setUploadError('Please select a PDF, DOCX, XLSX, or PPTX file.');
         return;
       }
 
@@ -161,6 +162,8 @@ export function FileUploadModal({
         return <FileText className="h-6 w-6 text-blue-500" />;
       case 'xlsx':
         return <FileSpreadsheet className="h-6 w-6 text-green-500" />;
+      case 'pptx':
+        return <Presentation className="h-6 w-6 text-orange-500" />;
       default:
         return <File className="h-6 w-6 text-gray-400" />;
     }
@@ -183,6 +186,8 @@ export function FileUploadModal({
         return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
       case 'xlsx':
         return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      case 'pptx':
+        return 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
       default:
         return 'application/octet-stream';
     }
@@ -197,7 +202,7 @@ export function FileUploadModal({
             Upload File
           </DialogTitle>
           <DialogDescription>
-            Upload PDF, DOCX, or XLSX files up to 4MB. Add a name and description for better organization.
+            Upload PDF, DOCX, XLSX, or PPTX files up to 4MB. Add a name and description for better organization.
           </DialogDescription>
         </DialogHeader>
 
@@ -241,7 +246,7 @@ export function FileUploadModal({
                     <Upload className="h-8 w-8 text-gray-400" />
                   </div>
                   <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                    You can upload pdf files, word(.docx) files and excel(.xlsx) files up to 4MB.
+                    You can upload PDF files, Word (.docx) files, Excel (.xlsx) files and PowerPoint (.pptx) files up to 4MB.
                   </p>
                   <Button
                     type="button"
@@ -255,7 +260,7 @@ export function FileUploadModal({
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept=".pdf,.docx,.xlsx"
+                    accept=".pdf,.docx,.xlsx,.pptx"
                     onChange={handleFileSelect}
                     className="hidden"
                   />
