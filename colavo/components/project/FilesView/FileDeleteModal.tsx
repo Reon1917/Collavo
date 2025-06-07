@@ -83,7 +83,7 @@ export function FileDeleteModal({
             Delete File
           </DialogTitle>
           <DialogDescription>
-            This action cannot be undone. The file will be permanently removed from both your project and UploadThing storage.
+            This action cannot be undone. The file will be permanently removed from both your project and file storage.
           </DialogDescription>
         </DialogHeader>
 

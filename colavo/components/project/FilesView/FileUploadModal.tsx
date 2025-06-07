@@ -241,7 +241,7 @@ export function FileUploadModal({
                     <Upload className="h-8 w-8 text-gray-400" />
                   </div>
                   <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                    You can upload pdf files, word(.docx) files and excel(.xlsx) files up to 4MB.
+                    You can upload pdf files, powerpoint(.pptx) files, word(.docx) files and excel(.xlsx) files up to 4MB.
                   </p>
                   <Button
                     type="button"
