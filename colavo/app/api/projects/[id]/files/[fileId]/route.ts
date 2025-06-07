@@ -37,7 +37,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { name, description } = body;
+    const { name, description, url } = body;
 
     if (!name || typeof name !== 'string' || !name.trim()) {
       return NextResponse.json(
@@ -46,13 +46,21 @@ export async function PATCH(
       );
     }
 
+    // Prepare update data
+    const updateData: any = {
+      name: name.trim(),
+      description: description?.trim() || null,
+    };
+
+    // If URL is provided, update it (for links)
+    if (url !== undefined) {
+      updateData.url = url;
+    }
+
     // Update the file in the database
     const updatedFiles = await db
       .update(files)
-      .set({
-        name: name.trim(),
-        description: description?.trim() || null,
-      })
+      .set(updateData)
       .where(and(
         eq(files.id, fileId),
         eq(files.projectId, projectId)
