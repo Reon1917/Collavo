@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { UploadDropzone } from '@/utils/uploadthing';
-import { Loader2, X, CheckCircle, Upload } from 'lucide-react';
+import { useUploadThing } from '@/utils/uploadthing';
+import { Loader2, X, Upload, FileText, FileSpreadsheet, File } from 'lucide-react';
 
 interface FileUploadModalProps {
   isOpen: boolean;
@@ -16,9 +16,8 @@ interface FileUploadModalProps {
   onFileUploaded?: (file: any) => void;
 }
 
-interface UploadedFile {
-  url: string;
-  key: string;
+interface SelectedFile {
+  file: File;
   name: string;
   size: number;
 }
@@ -31,63 +30,23 @@ export function FileUploadModal({
 }: FileUploadModalProps) {
   const [fileName, setFileName] = useState('');
   const [description, setDescription] = useState('');
-  const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleReset = () => {
-    setFileName('');
-    setDescription('');
-    setUploadedFile(null);
-    setUploadError(null);
-    setIsSubmitting(false);
-  };
-
-  const handleClose = () => {
-    handleReset();
-    onOpenChange(false);
-  };
-
-  const handleFileUpload = (res: any[]) => {
-    const file = res[0];
-    if (file) {
-      setUploadedFile({
-        url: file.url,
-        key: file.key,
-        name: file.name,
-        size: file.size,
-      });
-      
-      // Auto-fill file name if not already set
-      if (!fileName.trim()) {
-        setFileName(file.name);
+  const { startUpload, isUploading } = useUploadThing('documentUploader', {
+    onClientUploadComplete: async (res) => {
+      if (res && res[0]) {
+        await handleSaveToDatabase(res[0]);
       }
-      
-      setUploadError(null);
-    }
-  };
+    },
+    onUploadError: (error) => {
+      console.error('Upload error:', error);
+      setUploadError(error.message || 'Upload failed. Please try again.');
+    },
+  });
 
-  const handleUploadError = (error: Error) => {
-    console.error('Upload error:', error);
-    setUploadError(error.message || 'Upload failed. Please try again.');
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!uploadedFile) {
-      setUploadError('Please upload a file first.');
-      return;
-    }
-    
-    if (!fileName.trim()) {
-      setUploadError('Please enter a file name.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    setUploadError(null);
-
+  const handleSaveToDatabase = async (uploadResult: any) => {
     try {
       const response = await fetch(`/api/projects/${projectId}/files`, {
         method: 'POST',
@@ -97,10 +56,10 @@ export function FileUploadModal({
         body: JSON.stringify({
           name: fileName.trim(),
           description: description.trim() || null,
-          url: uploadedFile.url,
-          uploadThingId: uploadedFile.key,
-          size: uploadedFile.size,
-          mimeType: getMimeType(uploadedFile.name),
+          url: uploadResult.url,
+          uploadThingId: uploadResult.key,
+          size: selectedFile?.size || 0,
+          mimeType: getMimeType(fileName),
         }),
       });
 
@@ -122,9 +81,97 @@ export function FileUploadModal({
     } catch (error) {
       console.error('Error saving file:', error);
       setUploadError(error instanceof Error ? error.message : 'Failed to save file');
-    } finally {
-      setIsSubmitting(false);
     }
+  };
+
+  const handleReset = () => {
+    setFileName('');
+    setDescription('');
+    setSelectedFile(null);
+    setUploadError(null);
+  };
+
+  const handleClose = () => {
+    // Only allow closing if no file is selected or we're not uploading
+    if (!selectedFile || !isUploading) {
+      handleReset();
+      onOpenChange(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = [
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      ];
+
+      if (!allowedTypes.includes(file.type)) {
+        setUploadError('Please select a PDF, DOCX, or XLSX file.');
+        return;
+      }
+
+      // Validate file size (4MB limit)
+      if (file.size > 4 * 1024 * 1024) {
+        setUploadError('File size must be less than 4MB.');
+        return;
+      }
+
+      setSelectedFile({
+        file,
+        name: file.name,
+        size: file.size,
+      });
+      
+      // Auto-fill file name if not already set
+      if (!fileName.trim()) {
+        setFileName(file.name);
+      }
+      
+      setUploadError(null);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      setUploadError('Please select a file first.');
+      return;
+    }
+    
+    if (!fileName.trim()) {
+      setUploadError('Please enter a file name.');
+      return;
+    }
+
+    setUploadError(null);
+    
+    // Start the upload process
+    await startUpload([selectedFile.file]);
+  };
+
+  const getFileIcon = (filename: string) => {
+    const extension = filename.toLowerCase().split('.').pop();
+    switch (extension) {
+      case 'pdf':
+        return <FileText className="h-6 w-6 text-red-500" />;
+      case 'docx':
+        return <FileText className="h-6 w-6 text-blue-500" />;
+      case 'xlsx':
+        return <FileSpreadsheet className="h-6 w-6 text-green-500" />;
+      default:
+        return <File className="h-6 w-6 text-gray-400" />;
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    if (bytes === 0) return '0 B';
+    
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
   };
 
   const getMimeType = (filename: string): string => {
@@ -142,7 +189,7 @@ export function FileUploadModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -154,54 +201,7 @@ export function FileUploadModal({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* File Upload Area */}
-          <div className="space-y-2">
-            <Label htmlFor="file-upload">File Upload</Label>
-            {!uploadedFile ? (
-              <UploadDropzone
-                endpoint="documentUploader"
-                onClientUploadComplete={handleFileUpload}
-                onUploadError={handleUploadError}
-                className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
-                appearance={{
-                  container: "w-full",
-                  uploadIcon: "text-gray-400 mb-4",
-                  label: "text-gray-600 dark:text-gray-400 text-sm mb-4",
-                  allowedContent: "hidden",
-                  button: "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 h-9 px-4 py-2 bg-[#008080] text-white shadow-xs hover:bg-[#006666] ut-ready:bg-[#008080] ut-ready:text-white ut-uploading:bg-[#006666]",
-                }}
-                content={{
-                  label: "You can upload pdf files, word(.docx) files and excel(.xlsx) files up to 5MB.",
-                  allowedContent: "",
-                }}
-              />
-            ) : (
-              <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-                  <div>
-                    <p className="font-medium text-green-800 dark:text-green-200">
-                      {uploadedFile.name}
-                    </p>
-                    <p className="text-sm text-green-600 dark:text-green-400">
-                      {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setUploadedFile(null)}
-                  className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </div>
-
+        <form onSubmit={(e) => { e.preventDefault(); handleUpload(); }} className="space-y-6">
           {/* File Name */}
           <div className="space-y-2">
             <Label htmlFor="fileName">File Name *</Label>
@@ -213,6 +213,7 @@ export function FileUploadModal({
               onChange={(e) => setFileName(e.target.value)}
               maxLength={500}
               required
+              disabled={isUploading}
             />
           </div>
 
@@ -226,7 +227,70 @@ export function FileUploadModal({
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               className="resize-none"
+              disabled={isUploading}
             />
+          </div>
+
+          {/* File Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="file-upload">Select File</Label>
+            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+              {!selectedFile ? (
+                <div>
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                    <Upload className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                    You can upload pdf files, word(.docx) files and excel(.xlsx) files up to 4MB.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="bg-[#008080] hover:bg-[#006666] text-white border-[#008080] hover:border-[#006666]"
+                  >
+                    Choose File
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.docx,.xlsx"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    {getFileIcon(selectedFile.name)}
+                    <div>
+                      <p className="font-medium text-blue-800 dark:text-blue-200">
+                        {selectedFile.name}
+                      </p>
+                      <p className="text-sm text-blue-600 dark:text-blue-400">
+                        {formatFileSize(selectedFile.size)}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedFile(null);
+                      if (fileInputRef.current) {
+                        fileInputRef.current.value = '';
+                      }
+                    }}
+                    disabled={isUploading}
+                    className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Error Message */}
@@ -242,23 +306,26 @@ export function FileUploadModal({
               type="button"
               variant="outline"
               onClick={handleClose}
-              disabled={isSubmitting}
+              disabled={isUploading}
               className="flex-1"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={!uploadedFile || isSubmitting || !fileName.trim()}
+              disabled={!selectedFile || !fileName.trim() || isUploading}
               className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
             >
-              {isSubmitting ? (
+              {isUploading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
+                  Uploading...
                 </>
               ) : (
-                'Done'
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload
+                </>
               )}
             </Button>
           </div>

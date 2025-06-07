@@ -3,7 +3,9 @@
 import React from "react";
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, FileSpreadsheet, FileImage, Calendar, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { FileText, FileSpreadsheet, FileImage, Calendar, User, Edit, Trash2, MoreVertical } from 'lucide-react';
 import { formatDate, formatRelativeTime } from '@/utils/date';
 
 interface FileCardProps {
@@ -19,9 +21,11 @@ interface FileCardProps {
     addedByEmail: string;
   };
   onClick?: () => void;
+  onEdit?: (file: FileCardProps['file']) => void;
+  onDelete?: (file: FileCardProps['file']) => void;
 }
 
-export function FileCard({ file, onClick }: FileCardProps) {
+export function FileCard({ file, onClick, onEdit, onDelete }: FileCardProps) {
   const getFileIcon = (mimeType?: string | null) => {
     if (!mimeType) return <FileText className="h-8 w-8 text-gray-400" />;
     
@@ -60,6 +64,20 @@ export function FileCard({ file, onClick }: FileCardProps) {
     }
   };
 
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onEdit) {
+      onEdit(file);
+    }
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete(file);
+    }
+  };
+
 
 
   return (
@@ -88,10 +106,42 @@ export function FileCard({ file, onClick }: FileCardProps) {
                 )}
               </div>
               
-              {/* File Type Badge */}
-              <Badge variant="outline" className="text-xs">
-                {getFileExtension(file.name)}
-              </Badge>
+              <div className="flex items-center gap-2">
+                {/* File Type Badge */}
+                <Badge variant="outline" className="text-xs">
+                  {getFileExtension(file.name)}
+                </Badge>
+                
+                {/* Actions Menu */}
+                {(onEdit || onDelete) && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {onEdit && (
+                        <DropdownMenuItem onClick={handleEdit}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                      )}
+                      {onDelete && (
+                        <DropdownMenuItem onClick={handleDelete} className="text-red-600 dark:text-red-400">
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
             </div>
 
             {/* File Metadata */}

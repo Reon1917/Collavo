@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FileIcon, Plus, Upload, Loader2, RefreshCw } from 'lucide-react';
 import { FileUploadModal } from './FileUploadModal';
+import { FileEditModal } from './FileEditModal';
+import { FileDeleteModal } from './FileDeleteModal';
 import { FileCard } from './FileCard';
 import type { FilesViewProps } from './types';
 
@@ -24,6 +26,9 @@ export function FilesView({ projectId }: FilesViewProps) {
   const [files, setFiles] = useState<ProjectFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<ProjectFile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fetchFiles = async () => {
@@ -56,6 +61,26 @@ export function FilesView({ projectId }: FilesViewProps) {
 
   const handleFileUploaded = (newFile: ProjectFile) => {
     setFiles(prevFiles => [newFile, ...prevFiles]);
+  };
+
+  const handleFileUpdated = (updatedFile: ProjectFile) => {
+    setFiles(prevFiles => prevFiles.map(file => 
+      file.id === updatedFile.id ? updatedFile : file
+    ));
+  };
+
+  const handleFileDeleted = (fileId: string) => {
+    setFiles(prevFiles => prevFiles.filter(file => file.id !== fileId));
+  };
+
+  const handleEditFile = (file: ProjectFile) => {
+    setSelectedFile(file);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDeleteFile = (file: ProjectFile) => {
+    setSelectedFile(file);
+    setIsDeleteModalOpen(true);
   };
 
   const handleRefresh = () => {
@@ -146,6 +171,8 @@ export function FilesView({ projectId }: FilesViewProps) {
                 key={file.id} 
                 file={file}
                 onClick={() => window.open(file.url, '_blank', 'noopener,noreferrer')}
+                onEdit={handleEditFile}
+                onDelete={handleDeleteFile}
               />
             ))}
           </div>
@@ -158,6 +185,24 @@ export function FilesView({ projectId }: FilesViewProps) {
         onOpenChange={setIsUploadModalOpen}
         projectId={projectId}
         onFileUploaded={handleFileUploaded}
+      />
+
+      {/* Edit Modal */}
+      <FileEditModal
+        isOpen={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        file={selectedFile}
+        projectId={projectId}
+        onFileUpdated={handleFileUpdated}
+      />
+
+      {/* Delete Modal */}
+      <FileDeleteModal
+        isOpen={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        file={selectedFile}
+        projectId={projectId}
+        onFileDeleted={handleFileDeleted}
       />
 
     </div>
