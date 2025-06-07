@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { FileText, FileSpreadsheet, FileImage, Calendar, User, Edit, Trash2, MoreVertical, Presentation } from 'lucide-react';
+import { FileText, FileSpreadsheet, Calendar, User, Edit, Trash2, MoreVertical, Presentation } from 'lucide-react';
 import { formatDate, formatRelativeTime } from '@/utils/date';
 
 interface FileCardProps {

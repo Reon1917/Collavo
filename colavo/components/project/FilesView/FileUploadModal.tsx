@@ -41,7 +41,6 @@ export function FileUploadModal({
       }
     },
     onUploadError: (error) => {
-      console.error('Upload error:', error);
       setUploadError(error.message || 'Upload failed. Please try again.');
     },
   });
@@ -79,7 +78,6 @@ export function FileUploadModal({
       handleClose();
       
     } catch (error) {
-      console.error('Error saving file:', error);
       setUploadError(error instanceof Error ? error.message : 'Failed to save file');
     }
   };

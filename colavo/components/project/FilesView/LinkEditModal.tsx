@@ -128,7 +128,6 @@ export function LinkEditModal({
       handleClose();
       
     } catch (error) {
-      console.error('Error updating link:', error);
       setUpdateError(error instanceof Error ? error.message : 'Failed to update link');
     } finally {
       setIsUpdating(false);

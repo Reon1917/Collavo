@@ -78,7 +78,7 @@ export async function GET(
       }
     }
     
-    console.error('Files GET error:', error);
+    // Log error for debugging (server-side only)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -208,7 +208,7 @@ export async function POST(
       }
     }
     
-    console.error('Files POST error:', error);
+    // Log error for debugging (server-side only)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

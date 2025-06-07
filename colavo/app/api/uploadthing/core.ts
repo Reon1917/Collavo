@@ -23,7 +23,7 @@ const authenticateUser = async (req: Request) => {
       email: session.user.email
     };
   } catch (error) {
-    console.error('UploadThing auth error:', error);
+    // Authentication failed
     throw new UploadThingError("Authentication failed. Please log in.");
   }
 };
@@ -78,7 +78,7 @@ export const ourFileRouter = {
           throw new UploadThingError("Insufficient permissions to upload files to this project.");
         }
       } catch (error) {
-        console.error('Permission check error:', error);
+        // Permission check failed
         throw new UploadThingError("Unable to verify permissions. Access denied.");
       }
 
@@ -92,16 +92,7 @@ export const ourFileRouter = {
     })
     .onUploadComplete(async ({ metadata, file }) => {
       // This code RUNS ON YOUR SERVER after upload
-      console.log("Upload complete for user:", {
-        userId: metadata.userId,
-        userName: metadata.userName,
-        projectId: metadata.projectId,
-        fileName: file.name,
-        fileSize: file.size
-      });
-
-      console.log("File URL:", file.url);
-      console.log("File key:", file.key);
+      // File upload completed successfully
 
       // Return metadata that will be sent to the client
       return { 

@@ -109,7 +109,6 @@ export function AddLinkModal({
       handleClose();
       
     } catch (error) {
-      console.error('Error adding link:', error);
       setAddError(error instanceof Error ? error.message : 'Failed to add link');
     } finally {
       setIsAdding(false);

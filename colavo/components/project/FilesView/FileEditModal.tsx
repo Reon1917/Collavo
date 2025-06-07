@@ -101,7 +101,6 @@ export function FileEditModal({
       handleClose();
       
     } catch (error) {
-      console.error('Error updating file:', error);
       setUpdateError(error instanceof Error ? error.message : 'Failed to update file');
     } finally {
       setIsUpdating(false);

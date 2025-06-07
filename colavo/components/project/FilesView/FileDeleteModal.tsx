@@ -65,7 +65,6 @@ export function FileDeleteModal({
       handleClose();
       
     } catch (error) {
-      console.error('Error deleting file:', error);
       setDeleteError(error instanceof Error ? error.message : 'Failed to delete file');
     } finally {
       setIsDeleting(false);
@@ -93,7 +92,7 @@ export function FileDeleteModal({
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
               <div className="text-sm text-red-800 dark:text-red-200">
-                <strong>Warning:</strong> This will permanently delete the file "{file.name}" and cannot be undone.
+                <strong>Warning:</strong> This will permanently delete the file &quot;{file.name}&quot; and cannot be undone.
               </div>
             </div>
           </div>

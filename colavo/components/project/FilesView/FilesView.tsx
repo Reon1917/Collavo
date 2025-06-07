@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileIcon, Plus, Upload, Loader2, RefreshCw } from 'lucide-react';
+import { FileIcon, Plus, Upload, RefreshCw } from 'lucide-react';
 import { ContentLoading } from '@/components/ui/content-loading';
 import { FileUploadModal } from './FileUploadModal';
 import { FileEditModal } from './FileEditModal';
@@ -53,7 +53,7 @@ export function FilesView({ projectId }: FilesViewProps) {
   const files = allItems.filter(item => item.uploadThingId !== null);
   const links = allItems.filter(item => item.uploadThingId === null);
 
-  const fetchFiles = async () => {
+  const fetchFiles = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -68,18 +68,17 @@ export function FilesView({ projectId }: FilesViewProps) {
       const data = await response.json();
       setAllItems(data.files || []);
     } catch (error) {
-      console.error('Error fetching files:', error);
       setError(error instanceof Error ? error.message : 'Failed to fetch files');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [projectId]);
 
   useEffect(() => {
     if (projectId) {
       fetchFiles();
     }
-  }, [projectId]);
+  }, [projectId, fetchFiles]);
 
   const handleFileUploaded = (newFile: ProjectFile) => {
     setAllItems(prevItems => [newFile, ...prevItems]);
