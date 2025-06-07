@@ -1,9 +1,32 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
+import { auth } from '@/lib/auth';
+import { hasPermission } from '@/lib/auth-helpers';
 
 const f = createUploadthing();
 
-const auth = (req: Request) => ({ id: "fakeId" }); // Fake auth function
+// Proper authentication function
+const authenticateUser = async (req: Request) => {
+  try {
+    // Get session using better-auth
+    const session = await auth.api.getSession({
+      headers: req.headers
+    });
+
+    if (!session?.user) {
+      throw new UploadThingError("Authentication required. Please log in.");
+    }
+
+    return {
+      id: session.user.id,
+      name: session.user.name,
+      email: session.user.email
+    };
+  } catch (error) {
+    console.error('UploadThing auth error:', error);
+    throw new UploadThingError("Authentication failed. Please log in.");
+  }
+};
 
 // FileRouter for your app, can contain multiple FileRoutes
 export const ourFileRouter = {
@@ -26,25 +49,67 @@ export const ourFileRouter = {
       maxFileCount: 1,
     },
   })
-    // Set permissions and file types for this FileRoute
+    // Authentication and authorization middleware
     .middleware(async ({ req }) => {
-      // This code runs on your server before upload
-      const user = await auth(req);
+      // Authenticate user first
+      const user = await authenticateUser(req);
 
-      // If you throw, the user will not be able to upload
-      if (!user) throw new UploadThingError("Unauthorized");
+      // Extract projectId from the request
+      // UploadThing doesn't give us access to URL params directly,
+      // so we need to get it from the referer or custom headers
+      const referer = req.headers.get('referer') || '';
+      const projectIdMatch = referer.match(/\/project\/([^/?]+)/);
+      
+      if (!projectIdMatch) {
+        throw new UploadThingError("Invalid request. Project context required.");
+      }
 
-      // Whatever is returned here is accessible in onUploadComplete as `metadata`
-      return { userId: user.id };
+      const projectId = projectIdMatch[1];
+      
+      if (!projectId) {
+        throw new UploadThingError("Project ID is required for file uploads.");
+      }
+
+      // Check if user has permission to upload files to this project
+      try {
+        const hasUploadPermission = await hasPermission(user.id, projectId, 'handleFile');
+        
+        if (!hasUploadPermission) {
+          throw new UploadThingError("Insufficient permissions to upload files to this project.");
+        }
+      } catch (error) {
+        console.error('Permission check error:', error);
+        throw new UploadThingError("Unable to verify permissions. Access denied.");
+      }
+
+      // Return metadata for onUploadComplete
+      return { 
+        userId: user.id,
+        userName: user.name,
+        userEmail: user.email,
+        projectId: projectId
+      };
     })
     .onUploadComplete(async ({ metadata, file }) => {
       // This code RUNS ON YOUR SERVER after upload
-      console.log("Upload complete for userId:", metadata.userId);
+      console.log("Upload complete for user:", {
+        userId: metadata.userId,
+        userName: metadata.userName,
+        projectId: metadata.projectId,
+        fileName: file.name,
+        fileSize: file.size
+      });
 
-      console.log("file url", file.url);
+      console.log("File URL:", file.url);
+      console.log("File key:", file.key);
 
-      // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
-      return { uploadedBy: metadata.userId, fileUrl: file.url, fileKey: file.key };
+      // Return metadata that will be sent to the client
+      return { 
+        uploadedBy: metadata.userId,
+        fileUrl: file.url, 
+        fileKey: file.key,
+        projectId: metadata.projectId
+      };
     }),
 } satisfies FileRouter;
 
