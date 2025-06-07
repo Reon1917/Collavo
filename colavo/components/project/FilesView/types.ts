@@ -10,4 +10,9 @@ export interface ProjectFile {
   size?: number;
   uploadedBy: string;
   uploadedAt: string;
+  description?: string | null;
+  mimeType?: string | null;
+  addedByName: string;
+  addedByEmail: string;
+  addedAt: string;
 } 
