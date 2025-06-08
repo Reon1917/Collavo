@@ -5,7 +5,7 @@ import { CheckCircle, Star, Users, Calendar, User} from 'lucide-react';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f9f8f0] to-white dark:from-gray-950 dark:to-gray-900">
+    <div className="min-h-screen bg-[#f9f8f0] dark:bg-gray-950">
       {/* Navigation */}
       <Navbar />
 
@@ -15,7 +15,7 @@ export default function Home() {
           <div className="lg:w-1/2 space-y-8">
             <h1 className="text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-white leading-tight">
               The Future of{' '}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#008080] to-[#00FFFF] dark:from-[#008080] dark:to-[#00FFFF]">
+              <span className="text-[#008080] dark:text-[#00FFFF]">
                 Project Collaboration
               </span>
             </h1>
@@ -138,7 +138,7 @@ export default function Home() {
             {/* Progress Timeline */}
             <div className="relative">
               {/* Timeline Line */}
-              <div className="absolute top-6 left-6 right-6 h-0.5 bg-gradient-to-r from-[#008080] via-[#008080] to-[#00FFFF] hidden md:block"></div>
+              <div className="absolute top-6 left-6 right-6 h-0.5 bg-[#008080] hidden md:block"></div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
                 {/* Stage 1: Project Creation */}
@@ -170,8 +170,8 @@ export default function Home() {
 
                 {/* Stage 3: Tracking & Analytics */}
                 <div className="flex flex-col items-center text-center">
-                  <div className="w-12 h-12 bg-[#00FFFF] rounded-full flex items-center justify-center mb-4 relative z-10 shadow-lg">
-                    <Calendar className="h-6 w-6 text-gray-900" />
+                  <div className="w-12 h-12 bg-[#008080] rounded-full flex items-center justify-center mb-4 relative z-10 shadow-lg">
+                    <Calendar className="h-6 w-6 text-white" />
                   </div>
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Real-time Insights</h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Overview dashboard with metrics</p>
@@ -202,7 +202,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-gradient-to-r from-[#008080] to-[#00FFFF] dark:from-[#008080] dark:to-[#006666] py-20">
+      <section className="bg-[#008080] dark:bg-[#006666] py-20">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold text-white mb-4">
             Ready to Transform Your Team&apos;s Productivity?
