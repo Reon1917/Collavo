@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { projects, members, mainTasks, subTasks, user } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { requireProjectAccess } from '@/lib/auth-helpers';
 
 export async function GET(
@@ -28,7 +28,7 @@ export async function GET(
     
     // Batch all overview data in parallel
     const [projectData, tasksData, membersData] = await Promise.all([
-      getProjectData(projectId),
+      getProjectData(projectId, session.user.id),
       getProjectTasks(projectId),
       getProjectMembers(projectId),
     ]);
@@ -54,7 +54,7 @@ export async function GET(
 }
 
 // Optimized database queries
-async function getProjectData(projectId: string) {
+async function getProjectData(projectId: string, userId: string) {
   // Get project with leader info and all members
   const projectWithMembers = await db
     .select({
@@ -84,6 +84,46 @@ async function getProjectData(projectId: string) {
   
   const { project, leader } = result;
   
+  // Check if user is leader
+  const isLeader = project.leaderId === userId;
+  
+  // Get user permissions if not leader
+  let userPermissions: string[] = [];
+  let userRole: 'leader' | 'member' | null = null;
+  
+  if (isLeader) {
+    userPermissions = ['createTask', 'handleTask', 'updateTask', 'handleEvent', 'handleFile', 'addMember', 'createEvent', 'viewFiles'];
+    userRole = 'leader';
+  } else {
+    // Get member permissions
+    const memberRecord = await db
+      .select({
+        id: members.id,
+        role: members.role,
+      })
+      .from(members)
+      .where(and(eq(members.userId, userId), eq(members.projectId, projectId)))
+      .limit(1);
+    
+    if (memberRecord.length > 0 && memberRecord[0]) {
+      userRole = 'member';
+      
+      // Get member permissions
+      const { permissions } = await import('@/db/schema');
+      const memberPermissions = await db
+        .select({
+          permission: permissions.permission,
+          granted: permissions.granted
+        })
+        .from(permissions)
+        .where(eq(permissions.memberId, memberRecord[0].id));
+      
+      userPermissions = memberPermissions
+        .filter(p => p.granted)
+        .map(p => p.permission);
+    }
+  }
+  
   // Get all members with their data
   const allMembers = await getProjectMembers(projectId);
   
@@ -93,10 +133,10 @@ async function getProjectData(projectId: string) {
     leaderName: leader.name,
     leaderEmail: leader.email,
     members: allMembers,
-    userPermissions: [], // Will be populated by permissions hook
-    isLeader: false, // Will be set by permissions hook
-    userRole: null, // Will be set by permissions hook
-    currentUserId: '', // Will be set by auth context
+    userPermissions,
+    isLeader,
+    userRole,
+    currentUserId: userId,
   };
 }
 
@@ -160,9 +200,9 @@ async function getProjectMembers(projectId: string) {
       userId: members.userId,
       role: members.role,
       joinedAt: members.joinedAt,
-      name: user.name,
-      email: user.email,
-      image: user.image,
+      userName: user.name,
+      userEmail: user.email,
+      userImage: user.image,
     })
     .from(members)
     .innerJoin(user, eq(user.id, members.userId))
