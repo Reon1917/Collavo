@@ -15,7 +15,7 @@ export default function Home() {
           <div className="lg:w-1/2 space-y-8">
             <h1 className="text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-white leading-tight">
               The Future of{' '}
-              <span className="text-[#008080] dark:text-[#00FFFF]">
+              <span className="text-[#008080] dark:text-[#008080]">
                 Project Collaboration
               </span>
             </h1>
@@ -78,7 +78,7 @@ export default function Home() {
               description="Live progress tracking with visual indicators, completion percentages, and instant status updates."
             />
             <FeatureCard
-              icon={<Star className="h-8 w-8 text-[#00FFFF] dark:text-[#00FFFF]" />}
+              icon={<Star className="h-8 w-8 text-[#008080] dark:text-[#00FFFF]" />}
               title="Intuitive Dashboard"
               description="Clean overview with project stats, recent activity, team insights, and quick access to all features."
             />
@@ -88,7 +88,7 @@ export default function Home() {
               description="Easily invite members, manage roles, and track who's working on what with visual team indicators."
             />
             <FeatureCard
-              icon={<CheckCircle className="h-8 w-8 text-[#00FFFF] dark:text-[#00FFFF]" />}
+              icon={<CheckCircle className="h-8 w-8 text-[#008080] dark:text-[#00FFFF]" />}
               title="Responsive Design"
               description="Beautiful interface that works seamlessly across desktop, tablet, and mobile devices with dark mode support."
             />
