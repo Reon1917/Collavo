@@ -56,9 +56,9 @@ export function useFilesFilters(allItems: ProjectFile[], projectMembers: Project
         item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      // User filter
+      // User filter - now filtering by name only
       const matchesUser = filterByUser === 'all' || 
-        `${item.addedByName} (${item.addedByEmail})` === filterByUser;
+        item.addedByName === filterByUser;
 
       return matchesSearch && matchesUser;
     });

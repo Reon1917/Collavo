@@ -248,4 +248,104 @@ export async function POST(
       { status: 500 }
     );
   }
+}
+
+// DELETE /api/projects/[id]/members - Remove project member
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth.api.getSession({
+      headers: request.headers
+    });
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const { id: projectId } = await params;
+
+    // Check if user has addMember permission (same permission for adding/removing)
+    const canManageMembers = await hasPermission(session.user.id, projectId, 'addMember');
+    if (!canManageMembers) {
+      return NextResponse.json(
+        { error: 'Insufficient permissions to remove members' },
+        { status: 403 }
+      );
+    }
+
+    const body = await request.json();
+    const { userId } = body;
+
+    // Validate input
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'User ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Prevent removing yourself
+    if (userId === session.user.id) {
+      return NextResponse.json(
+        { error: 'Cannot remove yourself from the project' },
+        { status: 400 }
+      );
+    }
+
+    // Check if user is a member of this project
+    const memberToRemove = await db.select()
+      .from(members)
+      .where(and(
+        eq(members.userId, userId),
+        eq(members.projectId, projectId)
+      )).limit(1);
+
+    if (!memberToRemove.length) {
+      return NextResponse.json(
+        { error: 'User is not a member of this project' },
+        { status: 404 }
+      );
+    }
+
+    const member = memberToRemove[0]!;
+
+    // Delete member permissions first (foreign key constraint)
+    await db.delete(permissions)
+      .where(eq(permissions.memberId, member.id));
+
+    // Delete member record
+    await db.delete(members)
+      .where(eq(members.id, member.id));
+
+    return NextResponse.json({ 
+      message: 'Member removed successfully',
+      removedUserId: userId 
+    });
+
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes('not found') || error.message.includes('access denied')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 404 }
+        );
+      }
+      if (error.message.includes('Insufficient permissions')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 403 }
+        );
+      }
+    }
+    
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
 } 

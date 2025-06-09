@@ -201,9 +201,9 @@ export function FilesView({ projectId }: FilesViewProps) {
   }
 
   // Check if selected user has uploaded anything
-  const selectedUser = availableUsers.find(user => `${user.name} (${user.email})` === filterByUser);
+  const selectedUser = availableUsers.find(user => user.name === filterByUser);
   const selectedUserHasUploads = selectedUser && allItems.some(item => 
-    item.addedByName === selectedUser.name && item.addedByEmail === selectedUser.email
+    item.addedByName === selectedUser.name
   );
   const showNoUploadsMessage = filterByUser !== 'all' && selectedUser && !selectedUserHasUploads;
 

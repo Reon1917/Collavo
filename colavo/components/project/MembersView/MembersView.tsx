@@ -8,7 +8,7 @@ import { MembersHeader, MemberCard, EmptyState } from './components';
 import type { MembersViewProps } from './types';
 
 export function MembersView({ projectId }: MembersViewProps) {
-  const { members, permissions, isLoading, refreshMembers } = useMembersData(projectId);
+  const { members, permissions, currentUserId, isLoading, refreshMembers } = useMembersData(projectId);
 
   if (isLoading) {
     return (
@@ -51,7 +51,14 @@ export function MembersView({ projectId }: MembersViewProps) {
       ) : (
         <div className="grid gap-4">
           {members.map((member) => (
-            <MemberCard key={member.id} member={member} />
+            <MemberCard 
+              key={member.id} 
+              member={member} 
+              permissions={permissions}
+              projectId={projectId}
+              currentUserId={currentUserId}
+              onMemberRemoved={refreshMembers}
+            />
           ))}
         </div>
       )}

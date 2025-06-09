@@ -19,7 +19,7 @@ export function FilesFilters({
   setFilterByUser,
   availableUsers,
 }: FilesFiltersProps) {
-  const selectedUser = availableUsers.find(user => `${user.name} (${user.email})` === filterByUser);
+  const selectedUser = availableUsers.find(user => user.name === filterByUser);
 
   return (
     <div className="space-y-4">
@@ -55,18 +55,14 @@ export function FilesFilters({
                     <span>All members</span>
                   </div>
                 </SelectItem>
-                {availableUsers.map((user) => {
-                  const userKey = `${user.name} (${user.email})`;
-                  return (
-                    <SelectItem key={userKey} value={userKey}>
-                      <div className="flex items-center gap-2">
-                        <User className="w-3 h-3" />
-                        <span>{user.name}</span>
-                        <span className="text-xs text-gray-500">({user.email})</span>
-                      </div>
-                    </SelectItem>
-                  );
-                })}
+                {availableUsers.map((user) => (
+                  <SelectItem key={user.name} value={user.name}>
+                    <div className="flex items-center gap-2">
+                      <User className="w-3 h-3" />
+                      <span>{user.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
