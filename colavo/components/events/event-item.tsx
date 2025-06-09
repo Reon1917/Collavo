@@ -21,9 +21,11 @@ export function EventItem({ event, onEdit, onDelete }: EventItemProps) {
   };
 
   const handleDelete = () => {
-    // TODO: Replace with proper confirmation dialog
-    // For now, calling the delete callback directly
-    onDelete?.(event.id);
+    // TODO: Replace with proper confirmation dialog  
+    // Using window.confirm for now until proper modal is implemented in parent component
+    if (window.confirm(`Are you sure you want to delete the event "${event.title}"? This action cannot be undone.`)) {
+      onDelete?.(event.id);
+    }
   };
 
   const getEventTypeColor = (type: Event['type']) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Calendar, Plus } from 'lucide-react';
 import { EventForm } from './EventForm';
@@ -22,28 +22,37 @@ interface EventFormData {
   location: string;
 }
 
+const initialFormData: EventFormData = {
+  title: '',
+  description: '',
+  datetime: undefined,
+  location: ''
+};
+
 export function CreateEventForm({ projectId, onEventCreated, trigger, projectData }: CreateEventFormProps) {
   const [isOpen, setIsOpen] = useState(false);
-  
-  const [eventData, setEventData] = useState<EventFormData>({
-    title: '',
-    description: '',
-    datetime: undefined,
-    location: ''
-  });
+  const [eventData, setEventData] = useState<EventFormData>(initialFormData);
+
+  // Reset form data whenever modal is opened or closed
+  useEffect(() => {
+    if (!isOpen) {
+      setEventData(initialFormData);
+    }
+  }, [isOpen]);
 
   const handleEventSuccess = (event: Event) => {
-    // Reset form
-    setEventData({
-      title: '',
-      description: '',
-      datetime: undefined,
-      location: ''
-    });
+    // Reset form and close modal
+    setEventData(initialFormData);
     setIsOpen(false);
     
     // Trigger optimistic update
     onEventCreated?.(event);
+  };
+
+  const handleCancel = () => {
+    // Reset form and close modal
+    setEventData(initialFormData);
+    setIsOpen(false);
   };
 
   return (
@@ -75,7 +84,7 @@ export function CreateEventForm({ projectId, onEventCreated, trigger, projectDat
           setEventData={setEventData}
           projectData={projectData || { deadline: null }}
           onSuccess={handleEventSuccess}
-          onCancel={() => setIsOpen(false)}
+          onCancel={handleCancel}
         />
       </DialogContent>
     </Dialog>

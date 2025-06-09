@@ -16,6 +16,7 @@ import { formatDistanceToNow, isAfter, isBefore, isToday } from 'date-fns';
 import { toast } from 'sonner';
 import { EditEventDialog } from './dialogs/EditEventDialog';
 import { EventDetailsDialog } from './dialogs/EventDetailsDialog';
+import { EventDeleteModal } from './dialogs/EventDeleteModal';
 import { Event, Project, getEventStatusColor, formatEventDateTime } from '../types';
 
 interface EventCardProps {
@@ -53,22 +54,13 @@ export function EventCard({
     setShowDetailsDialog(true);
   };
 
-  const handleDeleteEvent = async () => {
-    try {
-      const response = await fetch(`/api/projects/${project.id}/events/${event.id}`, {
-        method: 'DELETE',
-      });
+  const handleDeleteEvent = () => {
+    setShowDeleteConfirmDialog(true);
+  };
 
-      if (response.ok) {
-        toast.success('Event deleted successfully');
-        onEventDeleted(event.id);
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.error || 'Failed to delete event');
-      }
-    } catch {
-      toast.error('Failed to delete event');
-    }
+  const handleConfirmDelete = (deletedEventId: string) => {
+    onEventDeleted(deletedEventId);
+    setShowDeleteConfirmDialog(false);
   };
 
   const handleEventUpdatedCallback = (updatedEvent: Event) => {
@@ -187,6 +179,7 @@ export function EventCard({
         <EditEventDialog
           event={event}
           projectId={project.id}
+          projectData={project}
           onEventUpdated={handleEventUpdatedCallback}
           onClose={() => setShowEditDialog(false)}
         />
@@ -200,6 +193,16 @@ export function EventCard({
           onEventUpdated={handleEventUpdatedCallback}
           onEventDeleted={onEventDeleted}
           onClose={() => setShowDetailsDialog(false)}
+        />
+      )}
+
+      {showDeleteConfirmDialog && (
+        <EventDeleteModal
+          isOpen={showDeleteConfirmDialog}
+          onOpenChange={setShowDeleteConfirmDialog}
+          event={event}
+          projectId={project.id}
+          onEventDeleted={handleConfirmDelete}
         />
       )}
     </>
