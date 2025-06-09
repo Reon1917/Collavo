@@ -5,7 +5,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Loader2, Clock } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CalendarIcon, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -52,7 +53,12 @@ export function EventForm({
     }
 
     // Combine date and time
-    const [hours, minutes] = selectedTime.split(':');
+    const timeParts = selectedTime.split(':');
+    if (timeParts.length !== 2) {
+      toast.error('Invalid time format');
+      return;
+    }
+    const [hours, minutes] = timeParts;
     const eventDateTime = new Date(eventData.datetime);
     eventDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
@@ -90,7 +96,7 @@ export function EventForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Event Title */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         <Label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Event Title *
         </Label>
@@ -108,7 +114,7 @@ export function EventForm({
       </div>
 
       {/* Event Description */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Description
         </Label>
@@ -123,7 +129,7 @@ export function EventForm({
       </div>
 
       {/* Event Date */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Event Date *
         </Label>
@@ -158,26 +164,63 @@ export function EventForm({
       </div>
 
       {/* Event Time */}
-      <div className="space-y-2">
-        <Label htmlFor="time" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      <div className="space-y-3">
+        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Event Time *
         </Label>
-        <div className="relative">
-          <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            id="time"
-            type="time"
-            value={selectedTime}
-            onChange={(e) => setSelectedTime(e.target.value)}
-            className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] pl-10"
-            required
-            disabled={isLoading}
-          />
+        <div className="grid grid-cols-2 gap-3">
+          {/* Hour Selector */}
+          <div>
+            <Label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Hour</Label>
+            <Select
+              value={selectedTime.split(':')[0] || '12'}
+              onValueChange={(hour) => {
+                const parts = selectedTime.split(':');
+                const minute = parts[1] || '00';
+                setSelectedTime(`${hour}:${minute}`);
+              }}
+            >
+              <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
+                <SelectValue placeholder="Hour" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 24 }, (_, i) => (
+                  <SelectItem key={i} value={i.toString().padStart(2, '0')}>
+                    {i.toString().padStart(2, '0')}:00
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Minute Selector */}
+          <div>
+            <Label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Minute</Label>
+            <Select
+              value={selectedTime.split(':')[1] || '00'}
+              onValueChange={(minute) => {
+                const parts = selectedTime.split(':');
+                const hour = parts[0] || '12';
+                setSelectedTime(`${hour}:${minute}`);
+              }}
+            >
+              <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
+                <SelectValue placeholder="Min" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 4 }, (_, i) => (
+                  <SelectItem key={i} value={(i * 15).toString().padStart(2, '0')}>
+                    :{(i * 15).toString().padStart(2, '0')}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
       {/* Location */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         <Label htmlFor="location" className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Location
         </Label>
