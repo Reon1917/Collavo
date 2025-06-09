@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Home, Users, FileText, FolderOpen, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Home, Users, FileText, FolderOpen, Calendar, ChevronRight } from 'lucide-react';
 
 import { ChatButton } from '@/components/project/chat-button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -138,6 +138,11 @@ export default function ProjectLayout({
       label: "Tasks", 
       href: `/project/${projectId}?tab=tasks`,
       icon: <FileText className="h-5 w-5" />
+    },
+    {
+      label: "Events",
+      href: `/project/${projectId}?tab=events`,
+      icon: <Calendar className="h-5 w-5" />
     },
     {
       label: "Members",

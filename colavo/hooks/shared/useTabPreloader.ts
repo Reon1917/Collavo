@@ -10,7 +10,7 @@ export function useTabPreloader({ projectId, currentTab, preloadDelay = 2000 }: 
   const preloadedTabs = useRef<Set<string>>(new Set());
   
   const preloadTabData = async (projectId: string, currentTab: string) => {
-    const tabsToPreload = ['tasks', 'members', 'files'].filter(
+    const tabsToPreload = ['tasks', 'events', 'members', 'files'].filter(
       tab => tab !== currentTab && !preloadedTabs.current.has(tab)
     );
 
@@ -20,6 +20,11 @@ export function useTabPreloader({ projectId, currentTab, preloadDelay = 2000 }: 
         if (tab === 'tasks' && !preloadedTabs.current.has('tasks')) {
           fetch(`/api/projects/${projectId}/tasks`, { credentials: 'include' });
           preloadedTabs.current.add('tasks');
+        }
+          
+        if (tab === 'events' && !preloadedTabs.current.has('events')) {
+          fetch(`/api/projects/${projectId}/events`, { credentials: 'include' });
+          preloadedTabs.current.add('events');
         }
         
         if (tab === 'members' && !preloadedTabs.current.has('members')) {
