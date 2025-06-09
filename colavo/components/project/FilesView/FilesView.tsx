@@ -12,6 +12,8 @@ import { AddLinkModal } from './AddLinkModal';
 import { LinkEditModal } from './LinkEditModal';
 import { FileCard } from './FileCard';
 import { LinkCard } from './LinkCard';
+import { FilesFilters } from './components/FilesFilters';
+import { useFilesFilters } from './hooks/useFilesFilters';
 import type { FilesViewProps } from './types';
 
 interface ProjectFile {
@@ -37,8 +39,20 @@ interface ProjectLink {
   addedByEmail: string;
 }
 
+interface ProjectMember {
+  id: string;
+  userId: string;
+  role: string;
+  joinedAt: string;
+  userName: string;
+  userEmail: string;
+  userImage?: string;
+  permissions: string[];
+}
+
 export function FilesView({ projectId }: FilesViewProps) {
   const [allItems, setAllItems] = useState<ProjectFile[]>([]);
+  const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isAddLinkModalOpen, setIsAddLinkModalOpen] = useState(false);
@@ -49,9 +63,16 @@ export function FilesView({ projectId }: FilesViewProps) {
   const [selectedLink, setSelectedLink] = useState<ProjectLink | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Separate files and links
-  const files = allItems.filter(item => item.uploadThingId !== null);
-  const links = allItems.filter(item => item.uploadThingId === null);
+  // Use the custom hook for filtering
+  const {
+    searchQuery,
+    setSearchQuery,
+    filterByUser,
+    setFilterByUser,
+    filteredFiles,
+    filteredLinks,
+    availableUsers,
+  } = useFilesFilters(allItems, projectMembers);
 
   const fetchFiles = useCallback(async () => {
     try {
@@ -74,11 +95,28 @@ export function FilesView({ projectId }: FilesViewProps) {
     }
   }, [projectId]);
 
+  const fetchProjectMembers = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}/members`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch project members');
+      }
+      
+      const members = await response.json();
+      setProjectMembers(members || []);
+    } catch (error) {
+      console.error('Failed to fetch project members:', error);
+      // Don't set error state for members fetch failure, just log it
+    }
+  }, [projectId]);
+
   useEffect(() => {
     if (projectId) {
-      fetchFiles();
+      Promise.all([fetchFiles(), fetchProjectMembers()]);
     }
-  }, [projectId, fetchFiles]);
+  }, [projectId, fetchFiles, fetchProjectMembers]);
 
   const handleFileUploaded = (newFile: ProjectFile) => {
     setAllItems(prevItems => [newFile, ...prevItems]);
@@ -125,7 +163,7 @@ export function FilesView({ projectId }: FilesViewProps) {
   };
 
   const handleRefresh = () => {
-    fetchFiles();
+    Promise.all([fetchFiles(), fetchProjectMembers()]);
   };
 
   if (isLoading) {
@@ -162,12 +200,19 @@ export function FilesView({ projectId }: FilesViewProps) {
     );
   }
 
+  // Check if selected user has uploaded anything
+  const selectedUser = availableUsers.find(user => `${user.name} (${user.email})` === filterByUser);
+  const selectedUserHasUploads = selectedUser && allItems.some(item => 
+    item.addedByName === selectedUser.name && item.addedByEmail === selectedUser.email
+  );
+  const showNoUploadsMessage = filterByUser !== 'all' && selectedUser && !selectedUserHasUploads;
+
   return (
-    <div>
-      <header className="mb-8 flex justify-between items-center">
+    <div className="space-y-6">
+      <header className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold mb-2">Files & Resources</h1>
-          <p className="text-gray-600">Manage project files and external links</p>
+          <p className="text-gray-600 dark:text-gray-400">Manage project files and external links</p>
         </div>
         <div className="flex gap-2">
           <Button 
@@ -198,6 +243,15 @@ export function FilesView({ projectId }: FilesViewProps) {
         </div>
       </header>
 
+      {/* Filters Section */}
+      <FilesFilters
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        filterByUser={filterByUser}
+        setFilterByUser={setFilterByUser}
+        availableUsers={availableUsers}
+      />
+
       {/* Files and Resources List */}
       <section>
         {error && (
@@ -210,34 +264,53 @@ export function FilesView({ projectId }: FilesViewProps) {
           </Card>
         )}
 
-        {files.length === 0 && links.length === 0 ? (
+        {showNoUploadsMessage ? (
           <Card>
             <CardContent className="p-12 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
                 <FileIcon className="h-8 w-8 text-gray-400" />
               </div>
-              <h3 className="text-lg font-medium mb-2">No files or links yet</h3>
-              <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                Upload files or add links to Google Docs, Canva presentations, and other project resources.
+              <h3 className="text-lg font-medium mb-2">No uploads from {selectedUser?.name}</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                {selectedUser?.name} hasn't uploaded any files or added any links to this project yet.
               </p>
-              <div className="flex gap-2 justify-center">
-                <Button 
-                  variant="outline" 
-                  className="flex items-center gap-2"
-                  onClick={() => setIsUploadModalOpen(true)}
-                >
-                  <Upload className="h-4 w-4" />
-                  Upload File
-                </Button>
-                <Button 
-                  variant="outline"
-                  className="flex items-center gap-2"
-                  onClick={() => setIsAddLinkModalOpen(true)}
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Link
-                </Button>
+            </CardContent>
+          </Card>
+        ) : filteredFiles.length === 0 && filteredLinks.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                <FileIcon className="h-8 w-8 text-gray-400" />
               </div>
+              <h3 className="text-lg font-medium mb-2">
+                {allItems.length === 0 ? "No files or links yet" : "No results found"}
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                {allItems.length === 0 
+                  ? "Upload files or add links to Google Docs, Canva presentations, and other project resources."
+                  : "Try adjusting your search or filter criteria to find what you're looking for."
+                }
+              </p>
+              {allItems.length === 0 && (
+                <div className="flex gap-2 justify-center">
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center gap-2"
+                    onClick={() => setIsUploadModalOpen(true)}
+                  >
+                    <Upload className="h-4 w-4" />
+                    Upload File
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="flex items-center gap-2"
+                    onClick={() => setIsAddLinkModalOpen(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Link
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         ) : (
@@ -248,33 +321,43 @@ export function FilesView({ projectId }: FilesViewProps) {
               <div className="flex items-center gap-2 mb-4">
                 <Upload className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Files ({files.length})
+                  Files ({filteredFiles.length})
                 </h2>
+                {allItems.filter(item => item.uploadThingId !== null).length !== filteredFiles.length && (
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    of {allItems.filter(item => item.uploadThingId !== null).length}
+                  </span>
+                )}
               </div>
               
-              {files.length === 0 ? (
+              {filteredFiles.length === 0 ? (
                 <Card>
                   <CardContent className="p-6 text-center">
                     <div className="w-12 h-12 mx-auto mb-3 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
                       <Upload className="h-6 w-6 text-gray-400" />
                     </div>
                     <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
-                      No files uploaded yet
+                      {allItems.filter(item => item.uploadThingId !== null).length === 0 
+                        ? "No files uploaded yet"
+                        : "No files match your current filters"
+                      }
                     </p>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="flex items-center gap-2"
-                      onClick={() => setIsUploadModalOpen(true)}
-                    >
-                      <Upload className="h-4 w-4" />
-                      Upload File
-                    </Button>
+                    {allItems.filter(item => item.uploadThingId !== null).length === 0 && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="flex items-center gap-2"
+                        onClick={() => setIsUploadModalOpen(true)}
+                      >
+                        <Upload className="h-4 w-4" />
+                        Upload File
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               ) : (
                 <div className="space-y-3">
-                  {files.map((file) => (
+                  {filteredFiles.map((file) => (
                     <FileCard 
                       key={file.id} 
                       file={file}
@@ -292,33 +375,43 @@ export function FilesView({ projectId }: FilesViewProps) {
               <div className="flex items-center gap-2 mb-4">
                 <Plus className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Links ({links.length})
+                  Links ({filteredLinks.length})
                 </h2>
+                {allItems.filter(item => item.uploadThingId === null).length !== filteredLinks.length && (
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    of {allItems.filter(item => item.uploadThingId === null).length}
+                  </span>
+                )}
               </div>
               
-              {links.length === 0 ? (
+              {filteredLinks.length === 0 ? (
                 <Card>
                   <CardContent className="p-6 text-center">
                     <div className="w-12 h-12 mx-auto mb-3 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
                       <Plus className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                     </div>
                     <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
-                      No links added yet
+                      {allItems.filter(item => item.uploadThingId === null).length === 0 
+                        ? "No links added yet"
+                        : "No links match your current filters"
+                      }
                     </p>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="flex items-center gap-2"
-                      onClick={() => setIsAddLinkModalOpen(true)}
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add Link
-                    </Button>
+                    {allItems.filter(item => item.uploadThingId === null).length === 0 && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="flex items-center gap-2"
+                        onClick={() => setIsAddLinkModalOpen(true)}
+                      >
+                        <Plus className="h-4 w-4" />
+                        Add Link
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               ) : (
                 <div className="space-y-3">
-                  {links.map((link) => (
+                  {filteredLinks.map((link) => (
                     <LinkCard 
                       key={link.id} 
                       link={link}

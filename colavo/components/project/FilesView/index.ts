@@ -6,4 +6,7 @@ export { AddLinkModal } from './AddLinkModal';
 export { LinkEditModal } from './LinkEditModal';
 export { FileCard } from './FileCard';
 export { LinkCard } from './LinkCard';
-export type { FilesViewProps, ProjectFile } from './types'; 
+export { FilesFilters } from './components/FilesFilters';
+export { useFilesFilters } from './hooks/useFilesFilters';
+export type { FilesViewProps, ProjectFile } from './types';
+export type { UseFilesFiltersReturn } from './hooks/useFilesFilters'; 
