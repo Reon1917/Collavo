@@ -17,16 +17,16 @@ export function LoadingWrapper({ children }: LoadingWrapperProps) {
           <div className="relative mb-8">
             <div className="w-20 h-20 mx-auto relative">
               {/* Outer Ring */}
-              <div className="absolute inset-0 w-20 h-20 border-4 border-blue-200 dark:border-blue-800 rounded-full animate-pulse"></div>
+              <div className="absolute inset-0 w-20 h-20 border-4 border-[#008080]/30 dark:border-[#00FFFF]/30 rounded-full animate-pulse"></div>
               {/* Spinning Ring */}
-              <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin"></div>
+              <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-t-[#008080] dark:border-t-[#00FFFF] rounded-full animate-spin"></div>
               {/* Center Dot with Scale Animation */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-3 h-3 bg-blue-600 dark:bg-blue-400 rounded-full animate-ping"></div>
+                <div className="w-3 h-3 bg-[#008080] dark:bg-[#00FFFF] rounded-full animate-ping"></div>
               </div>
             </div>
             {/* Glow Effect */}
-            <div className="absolute inset-0 w-20 h-20 mx-auto bg-blue-600/20 dark:bg-blue-400/20 rounded-full blur-xl animate-pulse"></div>
+            <div className="absolute inset-0 w-20 h-20 mx-auto bg-[#008080]/20 dark:bg-[#00FFFF]/20 rounded-full blur-xl animate-pulse"></div>
           </div>
 
           {/* Text Content with Stagger Animation */}
@@ -42,21 +42,21 @@ export function LoadingWrapper({ children }: LoadingWrapperProps) {
           {/* Progress Indicator */}
           <div className="w-64 mx-auto animate-in slide-in-from-bottom-4 duration-700 delay-500">
             <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 rounded-full animate-pulse"></div>
+              <div className="h-full bg-gradient-to-r from-[#008080] to-[#00FFFF] dark:from-[#008080] dark:to-[#00FFFF] rounded-full animate-pulse"></div>
             </div>
           </div>
 
           {/* Floating Dots Animation */}
           <div className="flex justify-center space-x-2 animate-in fade-in duration-1000 delay-700">
-            <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-            <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-            <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            <div className="w-2 h-2 bg-[#008080] dark:bg-[#00FFFF] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+            <div className="w-2 h-2 bg-[#008080] dark:bg-[#00FFFF] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+            <div className="w-2 h-2 bg-[#008080] dark:bg-[#00FFFF] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
           </div>
         </div>
 
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5 dark:opacity-10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,theme(colors.blue.600)_1px,transparent_1px)] bg-[length:24px_24px] animate-pulse"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,theme(colors.teal.600)_1px,transparent_1px)] bg-[length:24px_24px] animate-pulse"></div>
         </div>
       </div>
     );
