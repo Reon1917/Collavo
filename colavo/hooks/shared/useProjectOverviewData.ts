@@ -23,11 +23,22 @@ interface UseProjectOverviewDataResult {
   isLoading: boolean;
   error: string | null;
   refreshData: () => void;
+  refreshIfStale: () => void;
 }
 
 // Simple in-memory cache with TTL
 const cache = new Map<string, { data: OverviewData; timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 2 * 60 * 1000; // 2 minutes (shorter cache for more responsive updates)
+
+// Function to clear cache for a specific project
+export function clearOverviewCache(projectId: string) {
+  cache.delete(`overview-${projectId}`);
+}
+
+// Function to clear all overview cache
+export function clearAllOverviewCache() {
+  cache.clear();
+}
 
 export function useProjectOverviewData(projectId: string): UseProjectOverviewDataResult {
   const [data, setData] = useState<OverviewData | null>(null);
@@ -84,6 +95,17 @@ export function useProjectOverviewData(projectId: string): UseProjectOverviewDat
     fetchData(true); // Bypass cache on manual refresh
   }, [fetchData]);
 
+  // Function to check if cache is stale and refresh if needed
+  const refreshIfStale = useCallback(() => {
+    const cacheKey = `overview-${projectId}`;
+    const cached = cache.get(cacheKey);
+    
+    // If no cache or cache is older than 1 minute, refresh
+    if (!cached || Date.now() - cached.timestamp > 60 * 1000) {
+      fetchData(true);
+    }
+  }, [projectId, fetchData]);
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -93,6 +115,7 @@ export function useProjectOverviewData(projectId: string): UseProjectOverviewDat
     isLoading,
     error,
     refreshData,
+    refreshIfStale,
   };
 }
 

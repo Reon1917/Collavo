@@ -11,7 +11,7 @@ import type { OverviewViewProps } from './types';
 
 export function OverviewView({ projectId }: OverviewViewProps) {
   const { setLoading } = useNavigationStore();
-  const { data, isLoading, refreshData } = useProjectOverviewData(projectId);
+  const { data, isLoading, refreshData, refreshIfStale } = useProjectOverviewData(projectId);
   const project = data?.project || null;
   const tasks = data?.tasks || [];
   const events = data?.events || [];
@@ -34,6 +34,64 @@ export function OverviewView({ projectId }: OverviewViewProps) {
     // Cleanup on unmount
     return () => setLoading(false);
   }, [isLoading, projectId, setLoading]);
+
+  // Refresh data when page becomes visible (user returns from another tab/window)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Page became visible, check if data is stale and refresh if needed
+        refreshIfStale();
+      }
+    };
+
+    const handleFocus = () => {
+      // Window gained focus, check if data is stale and refresh if needed
+      refreshIfStale();
+    };
+
+    // Listen for tab/window visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [refreshIfStale]);
+
+  // Refresh data when component mounts or projectId changes
+  useEffect(() => {
+    refreshData();
+  }, [projectId, refreshData]);
+
+  // Periodic refresh to catch updates from other users/sessions
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Only refresh if page is visible and not loading
+      if (!document.hidden && !isLoading) {
+        refreshIfStale();
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [refreshIfStale, isLoading]);
+
+  // Listen for tab changes and refresh when returning to overview
+  useEffect(() => {
+    const handleTabChange = (event: CustomEvent) => {
+      if (event.detail.tab === 'overview') {
+        // User switched to overview tab, check if data is stale and refresh if needed
+        refreshIfStale();
+      }
+    };
+
+    // Listen for tab change events
+    window.addEventListener('tabchange', handleTabChange as EventListener);
+
+    return () => {
+      window.removeEventListener('tabchange', handleTabChange as EventListener);
+    };
+  }, [refreshIfStale]);
 
   if (isLoading) {
     return (
