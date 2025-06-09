@@ -1,13 +1,11 @@
 "use client";
 
 import Link from 'next/link';
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth-client';
 import { useAuth } from '@/providers/auth-provider';
-import { Search, Plus, User, LogOut } from 'lucide-react';
+import { Plus, User, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -23,7 +21,6 @@ import { formatInitials } from '@/utils/format';
 
 export function DashboardNavbar(): React.JSX.Element {
   const { user, isAuthenticated, refetch } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
 
   const handleLogout = async (): Promise<void> => {
@@ -38,62 +35,18 @@ export function DashboardNavbar(): React.JSX.Element {
     }
   };
 
-  const handleSearch = (e: React.FormEvent): void => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      // TODO: Implement search functionality
-      toast.info(`Searching for: ${searchQuery}`);
-    }
-  };
-
   return (
     <nav className="bg-white dark:bg-gray-950 border-b border-[#e5e4dd] dark:border-gray-800 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Left side - Logo and Navigation */}
-          <div className="flex items-center space-x-8">
+          {/* Left side - Logo */}
+          <div className="flex items-center">
             <Link href="/dashboard" className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-[#008080] rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">C</span>
               </div>
               <span className="text-xl font-bold text-gray-900 dark:text-white">Collavo</span>
             </Link>
-            
-            {/* Quick Navigation */}
-            <div className="hidden md:flex items-center space-x-6">
-              <Link 
-                href="/dashboard" 
-                className="text-gray-700 dark:text-gray-300 hover:text-[#008080] dark:hover:text-[#00FFFF] font-medium transition-colors"
-              >
-                Dashboard
-              </Link>
-              <Link 
-                href="/projects" 
-                className="text-gray-700 dark:text-gray-300 hover:text-[#008080] dark:hover:text-[#00FFFF] font-medium transition-colors"
-              >
-                Projects
-              </Link>
-              <Link 
-                href="/team" 
-                className="text-gray-700 dark:text-gray-300 hover:text-[#008080] dark:hover:text-[#00FFFF] font-medium transition-colors"
-              >
-                Team
-              </Link>
-            </div>
-          </div>
-
-          {/* Center - Search */}
-          <div className="flex-1 max-w-lg mx-8">
-            <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Search projects, tasks, people..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 w-full bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] transition-colors"
-              />
-            </form>
           </div>
 
           {/* Right side - Actions and User */}
