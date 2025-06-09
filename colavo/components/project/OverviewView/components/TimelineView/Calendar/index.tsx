@@ -93,9 +93,9 @@ export function Calendar({ items, onDateClick, onItemClick }: CalendarProps) {
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden">
       {/* Calendar Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             {monthNames[month]} {year}
@@ -104,7 +104,7 @@ export function Calendar({ items, onDateClick, onItemClick }: CalendarProps) {
             variant="outline"
             size="sm"
             onClick={goToToday}
-            className="text-sm"
+            className="text-sm transition-all duration-200 hover:scale-105"
           >
             Today
           </Button>
@@ -114,6 +114,7 @@ export function Calendar({ items, onDateClick, onItemClick }: CalendarProps) {
             variant="outline"
             size="sm"
             onClick={() => navigateMonth('prev')}
+            className="transition-all duration-200 hover:scale-110"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -121,6 +122,7 @@ export function Calendar({ items, onDateClick, onItemClick }: CalendarProps) {
             variant="outline"
             size="sm"
             onClick={() => navigateMonth('next')}
+            className="transition-all duration-200 hover:scale-110"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -129,10 +131,14 @@ export function Calendar({ items, onDateClick, onItemClick }: CalendarProps) {
 
       {/* Day Headers */}
       <div className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700">
-        {dayNames.map((day) => (
+        {dayNames.map((day, index) => (
           <div
             key={day}
-            className="p-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50"
+            className={`p-3 text-center text-sm font-medium bg-gray-50 dark:bg-gray-800 transition-colors duration-200 ${
+              index === 0 || index === 6 
+                ? 'text-blue-600 dark:text-blue-400' 
+                : 'text-gray-700 dark:text-gray-300'
+            }`}
           >
             {day}
           </div>

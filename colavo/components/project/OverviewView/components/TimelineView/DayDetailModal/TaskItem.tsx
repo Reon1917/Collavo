@@ -34,7 +34,7 @@ export function TaskItem({ task }: TaskItemProps) {
   };
 
   return (
-    <div className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800/50">
+    <div className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800/50 hover:shadow-sm transition-all duration-200 hover:scale-[1.01]">
       <div className="flex items-start justify-between mb-2">
         <h4 className="font-medium text-gray-900 dark:text-white text-sm">{task.title}</h4>
         <div className="flex gap-1">
