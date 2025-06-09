@@ -14,6 +14,7 @@ export function OverviewView({ projectId }: OverviewViewProps) {
   const { data, isLoading, refreshData } = useProjectOverviewData(projectId);
   const project = data?.project || null;
   const tasks = data?.tasks || [];
+  const events = data?.events || [];
   const permissions = useProjectPermissions(project);
 
   // Function to handle tab changes by updating URL
@@ -60,6 +61,7 @@ export function OverviewView({ projectId }: OverviewViewProps) {
       <OverviewTab 
         project={project}
         tasks={tasks}
+        events={events}
         permissions={permissions}
         onRefresh={refreshData}
         onTabChange={handleTabChange}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { projects, members, mainTasks, subTasks, user } from '@/db/schema';
+import { projects, members, mainTasks, subTasks, user, events } from '@/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { requireProjectAccess } from '@/lib/auth-helpers';
 
@@ -27,20 +27,23 @@ export async function GET(
     await requireProjectAccess(session.user.id, projectId);
     
     // Batch all overview data in parallel
-    const [projectData, tasksData, membersData] = await Promise.all([
+    const [projectData, tasksData, membersData, eventsData] = await Promise.all([
       getProjectData(projectId, session.user.id),
       getProjectTasks(projectId),
       getProjectMembers(projectId),
+      getProjectEvents(projectId),
     ]);
 
     return NextResponse.json({
       project: projectData,
       tasks: tasksData,
       members: membersData,
+      events: eventsData,
       stats: {
         totalTasks: tasksData.length,
         completedTasks: tasksData.filter((t: any) => t.status === 'completed').length,
         totalMembers: membersData.length,
+        totalEvents: eventsData.length,
         recentActivity: getRecentActivity(tasksData, membersData),
       }
     });
@@ -191,6 +194,25 @@ async function getProjectTasks(projectId: string) {
   );
 
   return tasksWithSubTasks;
+}
+
+async function getProjectEvents(projectId: string) {
+  const projectEvents = await db
+    .select({
+      id: events.id,
+      title: events.title,
+      description: events.description,
+      datetime: events.datetime,
+      location: events.location,
+      createdBy: events.createdBy,
+      createdAt: events.createdAt,
+      updatedAt: events.updatedAt,
+    })
+    .from(events)
+    .where(eq(events.projectId, projectId))
+    .orderBy(desc(events.datetime));
+
+  return projectEvents;
 }
 
 async function getProjectMembers(projectId: string) {

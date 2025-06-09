@@ -5,10 +5,12 @@ interface OverviewData {
   project: any;
   tasks: any[];
   members: any[];
+  events: any[];
   stats: {
     totalTasks: number;
     completedTasks: number;
     totalMembers: number;
+    totalEvents: number;
     recentActivity: {
       recentTasks: any[];
       activeMembers: any[];
@@ -102,6 +104,7 @@ export function useProjectDataFromOverview(projectId: string) {
     project: data?.project || null,
     tasks: data?.tasks || [],
     members: data?.members || [],
+    events: data?.events || [],
     stats: data?.stats || null,
     isLoading,
     error,
