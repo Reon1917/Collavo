@@ -132,7 +132,7 @@ export function MemberCard({ member, permissions, projectId, currentUserId, onMe
                   isOpen={showRemoveDialog}
                   onOpenChange={setShowRemoveDialog}
                   title="Remove Member"
-                  description={`Are you sure you want to remove ${member.userName} from this project? This action cannot be undone and they will lose access to all project resources.`}
+                  description={`Are you sure you want to remove ${member.userName} from this project? This action cannot be undone and will permanently delete all tasks, events, files, and subtasks they created or were assigned to.`}
                   confirmText="Remove Member"
                   cancelText="Cancel"
                   onConfirm={handleRemoveMember}

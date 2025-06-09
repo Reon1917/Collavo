@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { members, permissions, user } from '@/db/schema';
+import { members, permissions, user, mainTasks, subTasks, events, files } from '@/db/schema';
 import { createId } from '@paralleldrive/cuid2';
 import { eq, and } from 'drizzle-orm';
 import { requireProjectAccess, hasPermission } from '@/lib/auth-helpers';
@@ -314,16 +314,49 @@ export async function DELETE(
 
     const member = memberToRemove[0]!;
 
-    // Delete member permissions first (foreign key constraint)
+    // Cascade delete all content created/assigned to this member
+    // We need to do this in the correct order to handle foreign key constraints
+
+    // 1. First, delete or update subtasks assigned to this member
+    // Option A: Delete subtasks assigned to them
+    await db.delete(subTasks)
+      .where(eq(subTasks.assignedId, userId));
+
+    // 2. Delete subtasks created by this member (that aren't already deleted)
+    await db.delete(subTasks)
+      .where(eq(subTasks.createdBy, userId));
+
+    // 3. Delete main tasks created by this member (this will cascade delete remaining subtasks)
+    await db.delete(mainTasks)
+      .where(and(
+        eq(mainTasks.createdBy, userId),
+        eq(mainTasks.projectId, projectId)
+      ));
+
+    // 4. Delete events created by this member
+    await db.delete(events)
+      .where(and(
+        eq(events.createdBy, userId),
+        eq(events.projectId, projectId)
+      ));
+
+    // 5. Delete files added by this member
+    await db.delete(files)
+      .where(and(
+        eq(files.addedBy, userId),
+        eq(files.projectId, projectId)
+      ));
+
+    // 6. Delete member permissions (foreign key constraint)
     await db.delete(permissions)
       .where(eq(permissions.memberId, member.id));
 
-    // Delete member record
+    // 7. Finally, delete member record
     await db.delete(members)
       .where(eq(members.id, member.id));
 
     return NextResponse.json({ 
-      message: 'Member removed successfully',
+      message: 'Member and all their content removed successfully',
       removedUserId: userId 
     });
 
