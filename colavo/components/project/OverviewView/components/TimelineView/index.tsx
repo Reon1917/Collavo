@@ -92,7 +92,7 @@ export function TimelineView({ tasks, events }: TimelineViewProps) {
           title: task.title,
           status: task.status,
           importance: task.importance,
-          dueDate: task.dueDate,
+          dueDate: task.dueDate || null,
           assignedTo: task.assignedTo,
         }))}
         events={selectedDateItems.events.map(event => ({
@@ -102,7 +102,7 @@ export function TimelineView({ tasks, events }: TimelineViewProps) {
           startDate: event.startDate,
           endDate: event.endDate,
           isAllDay: event.isAllDay,
-          location: event.location,
+          location: event.location || null,
         }))}
         isOpen={isModalOpen}
         onClose={handleModalClose}

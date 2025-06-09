@@ -28,8 +28,7 @@ export function CalendarCell({
     onDateClick(date);
   };
 
-  const handleItemClick = (item: CalendarItemType, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleItemClick = (item: CalendarItemType) => {
     onItemClick(item);
   };
 
@@ -59,12 +58,12 @@ export function CalendarCell({
       </div>
       
       {/* Items container */}
-      <div className="space-y-1">
+      <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
         {visibleItems.map((item) => (
           <CalendarItem
             key={item.id}
             item={item}
-            onClick={(e) => handleItemClick(item, e as any)}
+            onClick={() => handleItemClick(item)}
           />
         ))}
         

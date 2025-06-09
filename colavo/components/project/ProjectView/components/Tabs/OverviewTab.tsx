@@ -382,7 +382,7 @@ function TaskPreviewCard({ task, project }: { task: Task; project: Project }) {
               <span className="text-gray-600 dark:text-gray-400 truncate flex-1">{subtask.title}</span>
               {subtask.assignedUserName && (
                 <span className="text-gray-500 dark:text-gray-500 text-xs">
-                  {subtask.assignedUserName === project.currentUserId ? 'You' : subtask.assignedUserName}
+                  {subtask.assignedId === project.currentUserId ? 'You' : subtask.assignedUserName}
                 </span>
               )}
             </div>

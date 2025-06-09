@@ -87,6 +87,11 @@ export function DetailsEditForm({
               ))}
             </SelectContent>
           </Select>
+          {detailsFormData.assignedId && !members.find(m => m.userId === detailsFormData.assignedId) && (
+            <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
+              ⚠️ Assigned user is no longer a project member. Please reassign to an active member.
+            </p>
+          )}
         </div>
       </div>
 

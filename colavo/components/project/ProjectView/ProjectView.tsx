@@ -87,6 +87,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
           <OverviewTab 
             project={project}
             tasks={tasks}
+            events={[]}
             permissions={permissions}
             onRefresh={refreshData}
             onTabChange={setActiveTab}
