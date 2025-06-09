@@ -43,8 +43,7 @@ export async function GET(
       .orderBy(desc(events.datetime));
 
     return NextResponse.json({ events: projectEvents });
-  } catch (error) {
-    console.error('Error fetching events:', error);
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -95,7 +94,7 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to create event' }, { status: 500 });
     }
 
-    const newEvent = newEventResult[0];
+    const newEvent = newEventResult[0]!;
 
     // Get the created event with creator information
     const eventWithCreatorResult = await db
@@ -120,8 +119,7 @@ export async function POST(
     }
 
     return NextResponse.json(eventWithCreatorResult[0], { status: 201 });
-  } catch (error) {
-    console.error('Error creating event:', error);
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 } 

@@ -67,7 +67,7 @@ export function EventsFilters({
           {/* Time Frame Filter with Icons */}
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-600 dark:text-gray-400 hidden sm:block">Filter:</span>
-            <Select value={filterTimeframe} onValueChange={setFilterTimeframe}>
+            <Select value={filterTimeframe} onValueChange={(value) => setFilterTimeframe(value as 'all' | 'upcoming' | 'past' | 'today')}>
               <SelectTrigger className="w-[140px] h-9 bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
                 <div className="flex items-center gap-2">
                   {getTimeFrameIcon(filterTimeframe)}
@@ -111,7 +111,7 @@ export function EventsFilters({
           <div className="flex items-center gap-2">
             <SortAsc className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             <span className="text-sm font-medium text-gray-600 dark:text-gray-400 hidden sm:block">Sort:</span>
-            <Select value={sortBy} onValueChange={setSortBy}>
+            <Select value={sortBy} onValueChange={(value) => setSortBy(value as 'datetime' | 'title' | 'created')}>
               <SelectTrigger className="w-[140px] h-9 bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
                 <SelectValue />
               </SelectTrigger>
@@ -141,7 +141,7 @@ export function EventsFilters({
       {searchQuery && (
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800">
-            Searching: "{searchQuery}"
+            Searching: &quot;{searchQuery}&quot;
             <Button
               variant="ghost"
               size="sm"

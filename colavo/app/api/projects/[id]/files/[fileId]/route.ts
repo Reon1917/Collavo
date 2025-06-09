@@ -97,7 +97,7 @@ export async function PATCH(
 
     return NextResponse.json(fileWithUser[0], { status: 200 });
 
-  } catch (error) {
+  } catch {
     // Log error for debugging (server-side only)
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -159,7 +159,7 @@ export async function DELETE(
       if (fileToDelete[0].uploadThingId) {
         await utapi.deleteFiles([fileToDelete[0].uploadThingId]);
       }
-    } catch (uploadThingError) {
+    } catch {
       // Error deleting from UploadThing, continue with database deletion
       // Continue with database deletion even if UploadThing fails
     }
@@ -185,7 +185,7 @@ export async function DELETE(
       { status: 200 }
     );
 
-  } catch (error) {
+  } catch {
     // Log error for debugging (server-side only)
     return NextResponse.json(
       { error: 'Internal server error' },

@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from '@/components/ui/badge';
 import { Clock, Calendar } from 'lucide-react';
 
 export interface CalendarItem {

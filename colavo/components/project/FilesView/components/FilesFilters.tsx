@@ -97,7 +97,7 @@ export function FilesFilters({
       {searchQuery && (
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800">
-            Searching: "{searchQuery}"
+            Searching: &quot;{searchQuery}&quot;
             <Button
               variant="ghost"
               size="sm"

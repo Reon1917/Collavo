@@ -13,10 +13,6 @@ interface EventDetailsDialogProps {
 
 export function EventDetailsDialog({ 
   event, 
-  project, 
-  canHandleEvents, 
-  onEventUpdated, 
-  onEventDeleted, 
   onClose 
 }: EventDetailsDialogProps) {
   return (

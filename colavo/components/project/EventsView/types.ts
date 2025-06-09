@@ -62,7 +62,6 @@ export function getEventStatusColor(datetime: string): string {
   const eventDate = new Date(datetime);
   const now = new Date();
   const isUpcoming = eventDate > now;
-  const isPast = eventDate < now;
   const isToday = eventDate.toDateString() === now.toDateString();
 
   if (isToday) {

@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import { Crown, User, UserMinus, Loader2 } from 'lucide-react';
+import { Crown, User, UserMinus } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import type { Member, ProjectPermissions } from '../types';

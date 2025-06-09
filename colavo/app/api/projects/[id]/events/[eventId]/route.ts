@@ -95,9 +95,9 @@ export async function PUT(
       return NextResponse.json({ error: 'Failed to retrieve updated event' }, { status: 500 });
     }
 
-    return NextResponse.json(updatedEvent);
-  } catch (error) {
-    console.error('Error updating event:', error);
+        return NextResponse.json(updatedEvent);
+  } catch {
+ 
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -149,9 +149,9 @@ export async function DELETE(
     // Delete the event
     await db.delete(events).where(eq(events.id, eventId));
 
-    return NextResponse.json({ message: 'Event deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting event:', error);
+        return NextResponse.json({ message: 'Event deleted successfully' });
+  } catch {
+ 
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 } 

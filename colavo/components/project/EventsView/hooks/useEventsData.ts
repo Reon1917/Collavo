@@ -63,7 +63,7 @@ export function useEventsData(projectId: string): UseEventsDataReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
       setError(errorMessage);
-      console.error('Error fetching events data:', err);
+
     } finally {
       setIsLoading(false);
     }

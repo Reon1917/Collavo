@@ -13,7 +13,7 @@ import {
   Clock
 } from 'lucide-react';
 import { formatDistanceToNow, isAfter, isBefore, isToday } from 'date-fns';
-import { toast } from 'sonner';
+
 import { EditEventDialog } from './dialogs/EditEventDialog';
 import { EventDetailsDialog } from './dialogs/EventDetailsDialog';
 import { EventDeleteModal } from './dialogs/EventDeleteModal';

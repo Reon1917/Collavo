@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from '@/components/ui/badge';
-import { Clock, MapPin, Calendar } from 'lucide-react';
+import {MapPin, Calendar } from 'lucide-react';
 
 interface EventItemProps {
   event: {

@@ -38,7 +38,7 @@ interface ProjectLink {
   addedByName: string;
   addedByEmail: string;
 }
-
+  
 interface ProjectMember {
   id: string;
   userId: string;
@@ -106,8 +106,8 @@ export function FilesView({ projectId }: FilesViewProps) {
       
       const members = await response.json();
       setProjectMembers(members || []);
-    } catch (error) {
-      console.error('Failed to fetch project members:', error);
+    } catch {
+
       // Don't set error state for members fetch failure, just log it
     }
   }, [projectId]);
@@ -272,7 +272,7 @@ export function FilesView({ projectId }: FilesViewProps) {
               </div>
               <h3 className="text-lg font-medium mb-2">No uploads from {selectedUser?.name}</h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                {selectedUser?.name} hasn't uploaded any files or added any links to this project yet.
+                {selectedUser?.name} hasn&apos;t uploaded any files or added any links to this project yet.
               </p>
             </CardContent>
           </Card>
