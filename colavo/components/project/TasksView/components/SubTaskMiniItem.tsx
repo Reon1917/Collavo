@@ -24,6 +24,9 @@ export function SubTaskMiniItem({
                           project.isLeader || 
                           project.userPermissions.includes('updateTask');
 
+  // Members should always be able to view subtask details (read-only if no edit permissions)
+  const canViewSubtask = true;
+
   const handleSubTaskUpdatedCallback = (updatedSubTask: Partial<SubTask> & { id: string }) => {
     onSubTaskUpdated(updatedSubTask);
   };
@@ -36,9 +39,9 @@ export function SubTaskMiniItem({
     <>
       <div 
         className={`flex items-center gap-2 text-xs p-2 rounded border border-gray-200 dark:border-gray-700 transition-colors ${
-          canUpdateSubtask ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800' : ''
+          canViewSubtask ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800' : ''
         }`}
-        onClick={canUpdateSubtask ? handleOpenDialog : undefined}
+        onClick={canViewSubtask ? handleOpenDialog : undefined}
       >
         <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
           subtask.status === 'completed' ? 'bg-green-500' :
@@ -50,13 +53,13 @@ export function SubTaskMiniItem({
           </span>
           {subtask.assignedUserName && (
             <span className="text-gray-500 dark:text-gray-400 text-xs">
-              {subtask.assignedUserName === project.currentUserId ? 'You' : subtask.assignedUserName}
+              {subtask.assignedId === project.currentUserId ? 'You' : subtask.assignedUserName}
             </span>
           )}
         </div>
-        {canUpdateSubtask && (
-          <span className="text-gray-400 text-xs">Click to edit</span>
-        )}
+        <span className="text-gray-400 text-xs">
+          {canUpdateSubtask ? 'Click to edit' : 'Click to view'}
+        </span>
       </div>
 
       {/* Subtask Details Dialog */}

@@ -10,6 +10,7 @@ import { ContentLoading } from '@/components/ui/content-loading';
 const TasksView = lazy(() => import('@/components/project/TasksView/TasksView').then(m => ({ default: m.TasksView })));
 const MembersView = lazy(() => import('@/components/project/MembersView').then(m => ({ default: m.MembersView })));
 const FilesView = lazy(() => import('@/components/project/FilesView').then(m => ({ default: m.FilesView })));
+const EventsView = lazy(() => import('@/components/project/EventsView').then(m => ({ default: m.EventsView })));
 
 interface ProjectPageProps {
   params: Promise<{ id: string }>;
@@ -52,6 +53,12 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         return (
           <Suspense fallback={<ContentLoading size="md" message="Loading tasks..." />}>
             <TasksView projectId={projectId} />
+          </Suspense>
+        );
+      case 'events':
+        return (
+          <Suspense fallback={<ContentLoading size="md" message="Loading events..." />}>
+            <EventsView projectId={projectId} />
           </Suspense>
         );
       case 'members':

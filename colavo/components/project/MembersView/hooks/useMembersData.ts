@@ -8,6 +8,7 @@ export function useMembersData(projectId: string) {
     userPermissions: [], 
     isLeader: false 
   });
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchMembers = useCallback(async () => {
@@ -49,6 +50,7 @@ export function useMembersData(projectId: string) {
         userPermissions: projectData.userPermissions || [],
         isLeader: projectData.isLeader || false
       });
+      setCurrentUserId(projectData.currentUserId || null);
     } catch {
       // Don't show error toast for permissions, just fail silently
     }
@@ -65,6 +67,7 @@ export function useMembersData(projectId: string) {
   return {
     members,
     permissions,
+    currentUserId,
     isLoading,
     refreshMembers
   };

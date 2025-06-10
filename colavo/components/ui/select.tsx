@@ -40,10 +40,28 @@ const SelectContext = React.createContext<{
 export function Select({ value, onValueChange, children }: SelectProps) {
   const [open, setOpen] = React.useState(false);
   const [displayValue, setDisplayValue] = React.useState<string>('');
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  // Handle clicks outside the select component
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [open]);
 
   return (
     <SelectContext.Provider value={{ value, onValueChange, open, setOpen, displayValue, setDisplayValue }}>
-      <div className="relative">
+      <div ref={containerRef} className="relative">
         {children}
       </div>
     </SelectContext.Provider>
