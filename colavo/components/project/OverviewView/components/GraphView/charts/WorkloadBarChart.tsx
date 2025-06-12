@@ -114,8 +114,7 @@ export function WorkloadBarChart({ project, tasks, size }: WorkloadBarChartProps
             st.status === 'in_progress'
           ).length;
         }, 0);
-      } catch (error) {
-        console.warn('Error calculating workload data:', error);
+      } catch {
         return null;
       }
 

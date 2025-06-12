@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { BarChart3, TrendingUp, Users } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { BarChart3 } from 'lucide-react';
 import { CompletionDonutChart } from './charts/CompletionDonutChart';
 import { ImportancePieChart } from './charts/ImportancePieChart';
 import { WorkloadBarChart } from './charts/WorkloadBarChart';
@@ -31,53 +30,7 @@ interface GraphViewProps {
   tasks?: Task[];
 }
 
-interface ChartCardProps {
-  title: string;
-  subtitle?: string;
-  className?: string;
-  children: React.ReactNode;
-  icon?: React.ReactNode;
-}
 
-function ChartCard({ title, subtitle, className = "", children, icon }: ChartCardProps) {
-  return (
-    <div className={`bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6 ${className}`}>
-      <div className="flex items-center gap-2 mb-4">
-        {icon && <div className="text-[#008080] dark:text-[#00FFFF]">{icon}</div>}
-        <div>
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">{title}</h4>
-          {subtitle && <p className="text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>}
-        </div>
-      </div>
-      <div className="h-full">
-        {children}
-      </div>
-    </div>
-  );
-}
-
-interface StatCardProps {
-  label: string;
-  value: string;
-  color: 'green' | 'yellow' | 'red' | 'blue';
-  trend?: 'up' | 'down' | 'stable';
-}
-
-function StatCard({ label, value, color, trend }: StatCardProps) {
-  const colorClasses = {
-    green: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20',
-    yellow: 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20',
-    red: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
-    blue: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-  };
-
-  return (
-    <div className={`p-4 rounded-lg border border-gray-200 dark:border-gray-700 ${colorClasses[color]}`}>
-      <div className="text-2xl font-bold">{value}</div>
-      <div className="text-sm font-medium">{label}</div>
-    </div>
-  );
-}
 
 export function GraphView({ project, tasks = [] }: GraphViewProps) {
   const [viewMode, setViewMode] = useState<'overview' | 'detailed'>('overview');
@@ -100,14 +53,7 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
   const inProgressPercentage = totalSubTasks > 0 ? Math.round((inProgressSubTasks / totalSubTasks) * 100) : 0;
   const pendingPercentage = totalSubTasks > 0 ? Math.round((pendingSubTasks / totalSubTasks) * 100) : 0;
 
-  const getChartTitle = (chart: string) => {
-    switch (chart) {
-      case 'completion': return 'Task Completion Progress';
-      case 'importance': return 'Task Priority Distribution';
-      case 'workload': return 'Team Workload Analysis';
-      default: return 'Project Analytics';
-    }
-  };
+
 
   if (tasks.length === 0) {
     return (
