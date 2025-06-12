@@ -7,6 +7,7 @@ import {
   Tooltip,
   Legend,
   ChartOptions,
+  TooltipItem,
 } from 'chart.js';
 
 // Register Chart.js components
@@ -119,7 +120,7 @@ export function ImportancePieChart({ tasks, size }: ImportancePieChartProps) {
         padding: 12,
         cornerRadius: 8,
         callbacks: {
-          label: function(context) {
+          label: function(context: TooltipItem<'pie'>) {
             const label = context.label || '';
             const value = context.parsed;
             const percentage = Math.round((value / tasks.length) * 100);
