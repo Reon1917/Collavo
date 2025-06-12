@@ -143,7 +143,7 @@ export function OverviewTab({ project, tasks, events, permissions, onRefresh, on
           }))}
         />
       ) : selectedView === 'graph' ? (
-        <GraphView />
+        <GraphView project={project} tasks={tasks} />
       ) : (
         <>
           {/* Original Overview Content */}
