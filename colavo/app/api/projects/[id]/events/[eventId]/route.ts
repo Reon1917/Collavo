@@ -42,9 +42,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Event does not belong to this project' }, { status: 400 });
     }
 
-    // Check permissions: creator, project leader, or members with handleEvent permission can update events
-    const canUpdate = event.createdBy === session.user.id || 
-                     access.isLeader || 
+    // Check permissions: project leader or members with handleEvent permission can update events
+    const canUpdate = access.isLeader || 
                      access.permissions.includes('handleEvent');
 
     if (!canUpdate) {
@@ -141,9 +140,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Event does not belong to this project' }, { status: 400 });
     }
 
-    // Check permissions: creator, project leader, or members with handleEvent permission can delete events
-    const canDelete = event.createdBy === session.user.id || 
-                     access.isLeader || 
+    // Check permissions: project leader or members with handleEvent permission can delete events
+    const canDelete = access.isLeader || 
                      access.permissions.includes('handleEvent');
 
     if (!canDelete) {

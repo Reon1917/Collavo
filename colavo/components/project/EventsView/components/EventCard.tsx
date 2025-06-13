@@ -68,7 +68,7 @@ export function EventCard({
   };
 
   // Permission checks
-  const canModifyEvent = project.isLeader || canHandleEvents || event.createdBy === project.currentUserId;
+  const canModifyEvent = project.isLeader || canHandleEvents;
 
   const getEventStatusInfo = () => {
     if (isEventToday) {

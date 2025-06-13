@@ -20,7 +20,7 @@ export function TasksHeader({ project, onTaskCreated }: TasksHeaderProps) {
       };
     } else if (project.userPermissions.includes('viewFiles')) {
       return {
-        label: 'Team Member (Full Access)',
+        label: 'Team Member',
         description: 'You can see all tasks in this project'
       };
     } else {
