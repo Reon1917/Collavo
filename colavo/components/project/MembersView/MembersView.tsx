@@ -58,6 +58,7 @@ export function MembersView({ projectId }: MembersViewProps) {
               projectId={projectId}
               currentUserId={currentUserId}
               onMemberRemoved={refreshMembers}
+              onMemberUpdated={refreshMembers}
             />
           ))}
         </div>

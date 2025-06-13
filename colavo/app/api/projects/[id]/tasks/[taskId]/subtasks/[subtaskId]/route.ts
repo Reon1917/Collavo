@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { projects, mainTasks, subTasks, user } from '@/db/schema';
+import { mainTasks, subTasks, user } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { requireProjectAccess } from '@/lib/auth-helpers';
 
@@ -61,13 +61,18 @@ export async function PATCH(
       );
     }
 
-    // Check permissions: user must be the assignee, have updateTask permission, or be project leader
+    // Check permissions based on the new permission system:
+    // - Assignees can update status and notes
+    // - Users with updateTask permission can update status and notes of all subtasks
+    // - Users with handleTask permission can fully edit all subtasks (title, description, assignment, etc.)
     const isAssignee = subtask.assignedId === session.user.id;
-    const canUpdateTasks = access.isLeader || access.permissions.includes('updateTask');
+    const canUpdateStatus = isAssignee || access.isLeader || access.permissions.includes('updateTask');
+    const canEditDetails = access.isLeader || access.permissions.includes('handleTask');
 
-    if (!isAssignee && !canUpdateTasks) {
+    // Check if user has any permission to modify this subtask
+    if (!canUpdateStatus && !canEditDetails) {
       return NextResponse.json(
-        { error: 'You can only update subtasks assigned to you' },
+        { error: 'You do not have permission to update this subtask' },
         { status: 403 }
       );
     }
@@ -114,18 +119,24 @@ export async function PATCH(
       }
     }
 
-    // Regular members can only update status and note of their assigned subtasks
-    // Leaders and users with updateTask permission can update all fields
+    // Update logic based on permissions:
+    // - Assignees without other permissions can only update status and note of their assigned subtasks
+    // - Users with updateTask permission can update status and note of ANY subtask
+    // - Users with handleTask permission can update ALL fields of ANY subtask
     const updateData: any = {
       updatedAt: new Date()
     };
 
-    if (isAssignee && !canUpdateTasks) {
+    if (canUpdateStatus && !canEditDetails && isAssignee) {
       // Regular assignee can only update status and note
       if (status !== undefined) updateData.status = status;
       if (note !== undefined) updateData.note = note?.trim() || null;
-    } else if (canUpdateTasks) {
-      // Leaders and users with updateTask permission can update all fields
+    } else if (canUpdateStatus && !canEditDetails && access.permissions.includes('updateTask')) {
+      // Users with updateTask permission can update status and note of any subtask
+      if (status !== undefined) updateData.status = status;
+      if (note !== undefined) updateData.note = note?.trim() || null;
+    } else if (canEditDetails) {
+      // Leaders and users with handleTask permission can update all fields
       if (title !== undefined) updateData.title = title.trim();
       if (description !== undefined) updateData.description = description?.trim() || null;
       if (status !== undefined) updateData.status = status;
@@ -239,15 +250,13 @@ export async function DELETE(
       );
     }
 
-    // Check permissions: only project leader can delete subtasks
-    const isLeader = await db.select().from(projects).where(and(
-      eq(projects.id, projectId),
-      eq(projects.leaderId, session.user.id)
-    )).then(result => result.length > 0);
+    // Check permissions: project leader or users with handleTask permission can delete subtasks
+    const access = await requireProjectAccess(session.user.id, projectId);
+    const canDeleteSubtask = access.isLeader || access.permissions.includes('handleTask');
 
-    if (!isLeader) {
+    if (!canDeleteSubtask) {
       return NextResponse.json(
-        { error: 'Only project leaders can delete subtasks' },
+        { error: 'You do not have permission to delete subtasks' },
         { status: 403 }
       );
     }

@@ -6,6 +6,7 @@ export function useSubTaskDialog(
   subTask: SubTask,
   currentUserId: string,
   isProjectLeader: boolean,
+  userPermissions: string[],
   isOpen: boolean
 ) {
   const [editMode, setEditMode] = useState<EditMode>('view');
@@ -23,10 +24,13 @@ export function useSubTaskDialog(
     deadline: subTask.deadline ? new Date(subTask.deadline) : undefined
   });
 
-  // Calculate permissions
+  // Calculate permissions based on the new permission system
   const permissions: SubTaskPermissions = {
-    canUpdateStatus: currentUserId === subTask.assignedId || isProjectLeader,
-    canEditDetails: isProjectLeader
+    canUpdateStatus: currentUserId === subTask.assignedId || 
+                    isProjectLeader || 
+                    userPermissions.includes('updateTask'),
+    canEditDetails: isProjectLeader || 
+                   userPermissions.includes('handleTask')
   };
 
   // Reset form data when subtask changes or dialog opens
