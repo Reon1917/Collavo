@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Check, X, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -81,14 +81,14 @@ const getDefaultPermissions = (member: Member): ProjectPermissions => {
     updateTask: member.permissions.includes('updateTask'), // Leader + assigned member by default
     createEvent: false,    // Leader only by default
     handleEvent: false,    // Leader only by default
-    handleFile: member.permissions.includes('handleFile') || true, // All members by default
-    viewFiles: member.permissions.includes('viewFiles') || true,   // All members by default
+    handleFile: member.permissions.includes('handleFile'), // All members by default
+    viewFiles: member.permissions.includes('viewFiles'),   // All members by default
   }
 }
 
 export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: PermissionModalProps) {
-  const [permissions, setPermissions] = useState<ProjectPermissions>(() => {
-    // Initialize with current member permissions
+  // Helper function to get current member permissions
+  const getCurrentPermissions = useCallback((): ProjectPermissions => {
     const defaultPerms = getDefaultPermissions(member)
     const currentPerms = { ...defaultPerms }
     
@@ -103,9 +103,17 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
     if (member.permissions.includes('viewFiles')) currentPerms.viewFiles = true
     
     return currentPerms
-  })
-  
+  }, [member])
+
+  const [permissions, setPermissions] = useState<ProjectPermissions>(getCurrentPermissions())
   const [isSaving, setIsSaving] = useState(false)
+
+  // Reset permissions when modal opens or member changes
+  useEffect(() => {
+    if (isOpen) {
+      setPermissions(getCurrentPermissions())
+    }
+  }, [isOpen, getCurrentPermissions])
 
   const handlePermissionChange = (permission: keyof ProjectPermissions, checked: boolean) => {
     setPermissions((prev) => ({
