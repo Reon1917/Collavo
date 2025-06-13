@@ -11,8 +11,10 @@ import {
   Tooltip,
   Legend,
   ChartOptions,
+  TimeScale,
 } from 'chart.js';
-import { format, differenceInDays, addDays, startOfDay } from 'date-fns';
+import 'chartjs-adapter-date-fns';
+import { format, parseISO, differenceInDays, addDays, startOfDay, endOfDay } from 'date-fns';
 
 // Register Chart.js components
 ChartJS.register(
@@ -21,27 +23,55 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  TimeScale
 );
 
 interface Task {
   id: string;
   title: string;
+  description: string | null;
   importanceLevel: 'low' | 'medium' | 'high' | 'critical';
-  subTasks: Array<{
-    id: string;
-    status: 'pending' | 'in_progress' | 'completed';
-    assignedId: string | null;
-    assignedUserName: string | null;
-  }>;
-  // For Gantt chart, we'll simulate dates based on task creation and status
-  createdAt?: Date;
-  dueDate?: Date;
+  deadline: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  creatorName: string;
+  creatorEmail: string;
+  subTasks: SubTask[];
+}
+
+interface SubTask {
+  id: string;
+  title: string;
+  description: string | null;
+  status: 'pending' | 'in_progress' | 'completed';
+  note: string | null;
+  deadline: string | null;
+  assignedId: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  assignedUserName: string | null;
+  assignedUserEmail: string | null;
 }
 
 interface GanttChartProps {
   tasks: Task[];
   size: 'small' | 'large';
+}
+
+interface GanttItem {
+  id: string;
+  title: string;
+  parentTask: string;
+  startDate: Date;
+  endDate: Date;
+  duration: number;
+  status: 'pending' | 'in_progress' | 'completed';
+  assignedUser: string | null;
+  isOverdue: boolean;
+  type: 'subtask';
 }
 
 export function GanttChart({ tasks, size }: GanttChartProps) {
@@ -70,7 +100,17 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
   const textColor = isDarkMode ? '#F9FAFB' : '#374151';
   const gridColor = isDarkMode ? '#374151' : '#E5E7EB';
 
-  if (tasks.length === 0) {
+  // Get all subtasks with real dates
+  const allSubTasks = tasks.flatMap(task => 
+    task.subTasks.map(subTask => ({
+      ...subTask,
+      parentTask: task.title,
+      parentTaskId: task.id,
+      parentDeadline: task.deadline
+    }))
+  );
+
+  if (allSubTasks.length === 0) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
@@ -79,84 +119,105 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
               <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
             </svg>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-300">No tasks to display</p>
+          <p className="text-sm text-gray-600 dark:text-gray-300">No subtasks to display</p>
         </div>
       </div>
     );
   }
 
-  // Generate timeline data for tasks
-  const today = startOfDay(new Date());
-  const projectStart = today;
-  
-  // Create timeline data for each task
-  const timelineData = tasks.map((task, index) => {
-    // Simulate start and end dates based on task properties
-    const taskStart = addDays(projectStart, index * 1); // Reduced stagger
-    const baseDuration = task.importanceLevel === 'critical' ? 1 : 
-                        task.importanceLevel === 'high' ? 2 : 
-                        task.importanceLevel === 'medium' ? 3 : 4; // Much shorter durations
+  const now = new Date();
+
+  // Transform subtasks into Gantt items with real dates
+  const ganttItems: GanttItem[] = allSubTasks.map(subTask => {
+    // Use real creation date as start date
+    const startDate = startOfDay(parseISO(subTask.createdAt));
     
-    // Adjust duration based on subtask count but keep it very short
-    const subtaskBonus = Math.min(Math.ceil(task.subTasks.length * 0.3), 2); // Max +2 days
-    const duration = baseDuration + subtaskBonus;
-    const taskEnd = addDays(taskStart, duration);
-    
-    // Calculate progress based on completed subtasks
-    const completedSubTasks = task.subTasks.filter(st => st.status === 'completed').length;
-    const totalSubTasks = task.subTasks.length || 1;
-    const progress = (completedSubTasks / totalSubTasks) * 100;
-    
+    // Use real deadline as end date, fallback to parent task deadline, or default to 7 days from creation
+    let endDate: Date;
+    if (subTask.deadline) {
+      endDate = endOfDay(parseISO(subTask.deadline));
+    } else if (subTask.parentDeadline) {
+      endDate = endOfDay(parseISO(subTask.parentDeadline));
+    } else {
+      // Default to 7 days from creation if no deadline is set
+      endDate = endOfDay(addDays(startDate, 7));
+    }
+
+    const duration = Math.max(1, differenceInDays(endDate, startDate));
+    const isOverdue = subTask.status !== 'completed' && endDate < now;
+
     return {
-      taskId: task.id,
-      title: task.title,
-      start: taskStart,
-      end: taskEnd,
+      id: subTask.id,
+      title: `${subTask.parentTask}: ${subTask.title}`,
+      parentTask: subTask.parentTask,
+      startDate,
+      endDate,
       duration,
-      progress,
-      status: completedSubTasks === totalSubTasks ? 'completed' : 
-              task.subTasks.some(st => st.status === 'in_progress') ? 'in_progress' : 'pending',
-      importance: task.importanceLevel,
-      startOffset: differenceInDays(taskStart, projectStart),
+      status: subTask.status,
+      assignedUser: subTask.assignedUserName,
+      isOverdue,
+      type: 'subtask' as const
     };
   });
 
-  // Prepare data for horizontal bar chart
-  const labels = timelineData.map(item => 
-    item.title.length > 20 ? `${item.title.substring(0, 20)}...` : item.title
-  );
+  // Sort by start date to show chronological order
+  ganttItems.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
 
-  const backgroundColors = timelineData.map(item => {
+  // Find project date range
+  const projectStart = ganttItems.length > 0 ? ganttItems[0]!.startDate : new Date();
+  const projectEnd = ganttItems.length > 0 ? 
+    new Date(Math.max(...ganttItems.map(item => item.endDate.getTime()))) : 
+    new Date();
+
+  // Prepare labels for y-axis (task names)
+  const labels = ganttItems.map(item => {
+    const shortTitle = item.title.length > 40 ? `${item.title.substring(0, 40)}...` : item.title;
+    return shortTitle;
+  });
+
+  // Color coding based on status and overdue state
+  const getColor = (item: GanttItem) => {
+    if (item.isOverdue) return '#DC2626'; // Red for overdue
     switch (item.status) {
       case 'completed': return '#059669'; // Green
       case 'in_progress': return '#D97706'; // Amber
-      default: return '#DC2626'; // Red
+      case 'pending': return '#6B7280'; // Gray
+      default: return '#6B7280';
     }
-  });
+  };
 
-  const borderColors = timelineData.map(item => {
+  const getBorderColor = (item: GanttItem) => {
+    if (item.isOverdue) return '#B91C1C';
     switch (item.status) {
       case 'completed': return '#047857';
       case 'in_progress': return '#B45309';
-      default: return '#B91C1C';
+      case 'pending': return '#4B5563';
+      default: return '#4B5563';
     }
-  });
+  };
 
+  // Create timeline data - each bar represents [start_time, end_time] for proper positioning
   const data = {
     labels,
     datasets: [
       {
-        label: 'Task Duration',
-        data: timelineData.map(item => item.duration),
-        backgroundColor: backgroundColors,
-        borderColor: borderColors,
+        label: 'Task Timeline',
+        data: ganttItems.map((item, index) => ({
+          x: [item.startDate.getTime(), item.endDate.getTime()],
+          y: index,
+        })),
+        backgroundColor: ganttItems.map(item => getColor(item)),
+        borderColor: ganttItems.map(item => getBorderColor(item)),
         borderWidth: 1,
-        barThickness: size === 'small' ? 20 : 30,
+        barThickness: size === 'small' ? 16 : 24,
+        categoryPercentage: 0.8,
+        barPercentage: 0.9,
       },
     ],
   };
 
-  const height = size === 'small' ? 200 : 400;
+  const height = size === 'small' ? Math.min(400, Math.max(250, ganttItems.length * 30)) : 
+                                   Math.min(700, Math.max(450, ganttItems.length * 40));
 
   const options: ChartOptions<'bar'> = {
     responsive: true,
@@ -168,7 +229,7 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
       },
       title: {
         display: size === 'large',
-        text: 'Project Timeline',
+        text: 'Project Timeline - Subtasks',
         color: textColor,
         font: {
           family: 'Inter, sans-serif',
@@ -181,6 +242,8 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
         backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF',
         titleColor: textColor,
         bodyColor: textColor,
+        borderColor: isDarkMode ? '#374151' : '#E5E7EB',
+        borderWidth: 1,
         titleFont: {
           family: 'Inter, sans-serif',
           size: 12,
@@ -195,23 +258,33 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
         callbacks: {
           title: function(context) {
             const dataIndex = context[0]?.dataIndex;
-            return dataIndex !== undefined ? timelineData[dataIndex]?.title || 'Task' : 'Task';
+            return dataIndex !== undefined ? ganttItems[dataIndex]?.title || 'Task' : 'Task';
           },
           label: function(context) {
             const dataIndex = context.dataIndex;
-            const task = timelineData[dataIndex];
-            if (!task) return '';
+            const item = ganttItems[dataIndex];
+            if (!item) return '';
             
-            const startDate = new Date(task.start).toLocaleDateString();
-            const endDate = new Date(task.end).toLocaleDateString();
-            const duration = Math.ceil((task.end.getTime() - task.start.getTime()) / (1000 * 60 * 60 * 24));
+            const startDate = format(item.startDate, 'MMM dd, yyyy');
+            const endDate = format(item.endDate, 'MMM dd, yyyy');
+            const statusText = item.status.replace('_', ' ').toUpperCase();
             
-            return [
-              `Duration: ${duration} days`,
+            const lines = [
+              `Status: ${statusText}`,
               `Start: ${startDate}`,
               `End: ${endDate}`,
-              `Progress: ${Math.round(task.progress)}%`
+              `Duration: ${item.duration} days`
             ];
+
+            if (item.assignedUser) {
+              lines.push(`Assigned: ${item.assignedUser}`);
+            }
+
+            if (item.isOverdue) {
+              lines.push('⚠️ OVERDUE');
+            }
+
+            return lines;
           },
         },
       },
@@ -222,8 +295,11 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
         time: {
           unit: 'day',
           displayFormats: {
-            day: 'MMM dd'
-          }
+            day: 'MMM dd',
+            week: 'MMM dd',
+            month: 'MMM yyyy'
+          },
+          tooltipFormat: 'MMM dd, yyyy'
         },
         title: {
           display: size === 'large',
@@ -241,15 +317,18 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
             family: 'Inter, sans-serif',
             size: size === 'small' ? 10 : 11,
           },
+          maxRotation: 45,
         },
         grid: {
           color: gridColor,
         },
+        min: projectStart.getTime(),
+        max: projectEnd.getTime(),
       },
       y: {
         title: {
           display: size === 'large',
-          text: 'Tasks',
+          text: 'Subtasks',
           color: textColor,
           font: {
             family: 'Inter, sans-serif',
@@ -263,11 +342,19 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
           color: textColor,
           font: {
             family: 'Inter, sans-serif',
-            size: size === 'small' ? 10 : 11,
+            size: size === 'small' ? 9 : 10,
           },
+          maxRotation: 0,
           callback: function(value) {
             const index = Number(value);
-            return timelineData[index]?.title || '';
+            const item = ganttItems[index];
+            if (!item) return '';
+            
+            // Show just the subtask title for y-axis
+            const parts = item.title.split(': ');
+            const subtaskTitle = parts.length > 1 ? parts[1] : parts[0];
+            if (!subtaskTitle) return '';
+            return subtaskTitle.length > 25 ? `${subtaskTitle.substring(0, 25)}...` : subtaskTitle;
           },
         },
       },
@@ -278,6 +365,13 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
     },
   };
 
+  // Calculate statistics
+  const completedCount = ganttItems.filter(item => item.status === 'completed').length;
+  const inProgressCount = ganttItems.filter(item => item.status === 'in_progress').length;
+  const pendingCount = ganttItems.filter(item => item.status === 'pending').length;
+  const overdueCount = ganttItems.filter(item => item.isOverdue).length;
+  const totalDuration = differenceInDays(projectEnd, projectStart);
+
   return (
     <div className="relative h-full">
       <div style={{ height: `${height}px`, position: 'relative' }}>
@@ -285,19 +379,25 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
       </div>
 
       {/* Legend for task status */}
-      <div className="mt-4 flex justify-center gap-6 text-xs">
+      <div className="mt-4 flex justify-center gap-4 text-xs flex-wrap">
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 bg-emerald-600 rounded"></div>
-          <span className="text-gray-700 dark:text-gray-300">Completed</span>
+          <span className="text-gray-700 dark:text-gray-300">Completed ({completedCount})</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 bg-amber-600 rounded"></div>
-          <span className="text-gray-700 dark:text-gray-300">In Progress</span>
+          <span className="text-gray-700 dark:text-gray-300">In Progress ({inProgressCount})</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 bg-red-600 rounded"></div>
-          <span className="text-gray-700 dark:text-gray-300">Pending</span>
+          <div className="w-3 h-3 bg-gray-600 rounded"></div>
+          <span className="text-gray-700 dark:text-gray-300">Pending ({pendingCount})</span>
         </div>
+        {overdueCount > 0 && (
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 bg-red-600 rounded"></div>
+            <span className="text-gray-700 dark:text-gray-300">Overdue ({overdueCount})</span>
+          </div>
+        )}
       </div>
 
       {/* Additional info for large size */}
@@ -306,28 +406,32 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Timeline Overview</h4>
             <div className="space-y-1 text-gray-600 dark:text-gray-300">
-              <p>Total Tasks: {tasks.length}</p>
+              <p>Total Subtasks: {ganttItems.length}</p>
               <p>Project Start: {format(projectStart, 'MMM dd, yyyy')}</p>
-              <p>Estimated Duration: {Math.max(...timelineData.map(t => t.startOffset + t.duration))} days</p>
+              <p>Project End: {format(projectEnd, 'MMM dd, yyyy')}</p>
+              <p>Total Duration: {totalDuration} days</p>
             </div>
           </div>
           
           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Progress Summary</h4>
             <div className="space-y-1 text-gray-600 dark:text-gray-300">
-              <p>Completed: {timelineData.filter(t => t.status === 'completed').length}</p>
-              <p>In Progress: {timelineData.filter(t => t.status === 'in_progress').length}</p>
-              <p>Pending: {timelineData.filter(t => t.status === 'pending').length}</p>
+              <p>Completed: {completedCount} ({Math.round((completedCount / ganttItems.length) * 100)}%)</p>
+              <p>In Progress: {inProgressCount} ({Math.round((inProgressCount / ganttItems.length) * 100)}%)</p>
+              <p>Pending: {pendingCount} ({Math.round((pendingCount / ganttItems.length) * 100)}%)</p>
+              {overdueCount > 0 && (
+                <p className="text-red-600 dark:text-red-400">Overdue: {overdueCount}</p>
+              )}
             </div>
           </div>
           
           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Priority Breakdown</h4>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Task Distribution</h4>
             <div className="space-y-1 text-gray-600 dark:text-gray-300">
-              <p>Critical: {tasks.filter(t => t.importanceLevel === 'critical').length}</p>
-              <p>High: {tasks.filter(t => t.importanceLevel === 'high').length}</p>
-              <p>Medium: {tasks.filter(t => t.importanceLevel === 'medium').length}</p>
-              <p>Low: {tasks.filter(t => t.importanceLevel === 'low').length}</p>
+              <p>Main Tasks: {tasks.length}</p>
+              <p>Subtasks: {ganttItems.length}</p>
+              <p>Avg per Task: {Math.round(ganttItems.length / tasks.length * 10) / 10}</p>
+              <p>Assigned: {ganttItems.filter(item => item.assignedUser).length}</p>
             </div>
           </div>
         </div>

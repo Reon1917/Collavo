@@ -18,12 +18,30 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 interface Task {
   id: string;
   title: string;
-  deadline?: string;
-  subTasks: Array<{
-    id: string;
-    status: 'pending' | 'in_progress' | 'completed';
-    deadline?: string;
-  }>;
+  description: string | null;
+  importanceLevel: 'low' | 'medium' | 'high' | 'critical';
+  deadline: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  creatorName: string;
+  creatorEmail: string;
+  subTasks: SubTask[];
+}
+
+interface SubTask {
+  id: string;
+  title: string;
+  description: string | null;
+  status: 'pending' | 'in_progress' | 'completed';
+  note: string | null;
+  deadline: string | null;
+  assignedId: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  assignedUserName: string | null;
+  assignedUserEmail: string | null;
 }
 
 interface DeadlineTimelineChartProps {

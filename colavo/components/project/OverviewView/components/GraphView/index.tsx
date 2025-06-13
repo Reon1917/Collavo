@@ -11,13 +11,30 @@ import { GanttChart } from './charts/GanttChart';
 interface Task {
   id: string;
   title: string;
+  description: string | null;
   importanceLevel: 'low' | 'medium' | 'high' | 'critical';
-  subTasks: Array<{
-    id: string;
-    status: 'pending' | 'in_progress' | 'completed';
-    assignedId: string | null;
-    assignedUserName: string | null;
-  }>;
+  deadline: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  creatorName: string;
+  creatorEmail: string;
+  subTasks: SubTask[];
+}
+
+interface SubTask {
+  id: string;
+  title: string;
+  description: string | null;
+  status: 'pending' | 'in_progress' | 'completed';
+  note: string | null;
+  deadline: string | null;
+  assignedId: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  assignedUserName: string | null;
+  assignedUserEmail: string | null;
 }
 
 interface Project {
@@ -31,8 +48,6 @@ interface GraphViewProps {
   project?: Project;
   tasks?: Task[];
 }
-
-
 
 export function GraphView({ project, tasks = [] }: GraphViewProps) {
   const [viewMode, setViewMode] = useState<'overview' | 'detailed'>('overview');
@@ -55,8 +70,6 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
   const onTrackPercentage = totalSubTasks > 0 ? Math.round(((completedSubTasks + inProgressSubTasks) / totalSubTasks) * 100) : 0;
   const inProgressPercentage = totalSubTasks > 0 ? Math.round((inProgressSubTasks / totalSubTasks) * 100) : 0;
   const pendingPercentage = totalSubTasks > 0 ? Math.round((pendingSubTasks / totalSubTasks) * 100) : 0;
-
-
 
   if (tasks.length === 0) {
     return (
