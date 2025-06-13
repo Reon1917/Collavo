@@ -6,7 +6,6 @@ import { CompletionDonutChart } from './charts/CompletionDonutChart';
 import { ImportancePieChart } from './charts/ImportancePieChart';
 import { WorkloadBarChart } from './charts/WorkloadBarChart';
 import { DeadlineTimelineChart } from './charts/DeadlineTimelineChart';
-import { ActivityHeatmapChart } from './charts/ActivityHeatmapChart';
 import { GanttChart } from './charts/GanttChart';
 
 interface Task {
@@ -37,7 +36,7 @@ interface GraphViewProps {
 
 export function GraphView({ project, tasks = [] }: GraphViewProps) {
   const [viewMode, setViewMode] = useState<'overview' | 'detailed'>('overview');
-  const [selectedChart, setSelectedChart] = useState<'completion' | 'importance' | 'workload' | 'deadline' | 'activity' | 'gantt'>('completion');
+  const [selectedChart, setSelectedChart] = useState<'completion' | 'importance' | 'workload' | 'deadline' | 'gantt'>('completion');
   const [showMoreInsights, setShowMoreInsights] = useState(false);
 
   // Calculate stats for stats cards
@@ -114,14 +113,13 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
             <span className="text-sm text-gray-600 dark:text-gray-300">Chart:</span>
             <select
               value={selectedChart}
-              onChange={(e) => setSelectedChart(e.target.value as 'completion' | 'importance' | 'workload' | 'deadline' | 'activity' | 'gantt')}
+              onChange={(e) => setSelectedChart(e.target.value as 'completion' | 'importance' | 'workload' | 'deadline' | 'gantt')}
               className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#008080]"
             >
               <option value="completion">Task Completion Progress</option>
               <option value="importance">Task Priority Distribution</option>
               <option value="workload">Team Workload Distribution</option>
               <option value="deadline">Deadline Timeline</option>
-              <option value="activity">Activity Heatmap</option>
               <option value="gantt">Gantt Chart</option>
             </select>
           </div>
@@ -222,20 +220,6 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
                   <DeadlineTimelineChart tasks={tasks} size="small" />
                 </div>
 
-                {/* Activity Heatmap */}
-                <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                  <div className="flex items-center space-x-2 mb-3">
-                    <div className="text-teal-600">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-                      </svg>
-                    </div>
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Activity Heatmap</h4>
-                  </div>
-                  <p className="text-xs text-gray-600 dark:text-gray-300 mb-3">Recent team activity patterns</p>
-                  <ActivityHeatmapChart tasks={tasks} size="small" />
-                </div>
-
                 {/* Gantt Chart */}
                 <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 lg:col-span-2">
                   <div className="flex items-center space-x-2 mb-3">
@@ -314,21 +298,6 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
                 </div>
                 <p className="text-gray-600 dark:text-gray-300 mb-6">Upcoming deadlines and urgency breakdown</p>
                 <DeadlineTimelineChart tasks={tasks} size="large" />
-              </>
-            )}
-
-            {selectedChart === 'activity' && (
-              <>
-                <div className="flex items-center space-x-2 mb-6">
-                  <div className="text-teal-600">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Activity Heatmap</h3>
-                </div>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">Team activity patterns and engagement over time</p>
-                <ActivityHeatmapChart tasks={tasks} size="large" />
               </>
             )}
 
