@@ -1,6 +1,7 @@
 "use client";
 
 import { Doughnut } from 'react-chartjs-2';
+import { useState, useEffect } from 'react';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -26,7 +27,31 @@ interface CompletionDonutChartProps {
 }
 
 export function CompletionDonutChart({ tasks, size }: CompletionDonutChartProps) {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Detect theme changes
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+    
+    // Initial check
+    checkTheme();
+    
+    // Watch for theme changes
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
+
   const now = new Date();
+  
+  // Define colors based on theme
+  const textColor = isDarkMode ? '#F9FAFB' : '#374151';
   
   // Calculate completion data with overdue logic
   const totalSubTasks = tasks.reduce((total, task) => total + task.subTasks.length, 0);
@@ -131,7 +156,7 @@ export function CompletionDonutChart({ tasks, size }: CompletionDonutChartProps)
         display: size === 'large',
         position: 'right' as const,
         labels: {
-          color: '#374151',
+          color: textColor,
           font: {
             family: 'Inter, sans-serif',
             size: size === 'small' ? 11 : 12,

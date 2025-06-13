@@ -1,6 +1,7 @@
 "use client";
 
 import { Bar } from 'react-chartjs-2';
+import { useState, useEffect } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -44,6 +45,31 @@ interface GanttChartProps {
 }
 
 export function GanttChart({ tasks, size }: GanttChartProps) {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Detect theme changes
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+    
+    // Initial check
+    checkTheme();
+    
+    // Watch for theme changes
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
+
+  // Define colors based on theme
+  const textColor = isDarkMode ? '#F9FAFB' : '#374151';
+  const gridColor = isDarkMode ? '#374151' : '#E5E7EB';
+
   if (tasks.length === 0) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -133,9 +159,9 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
   const height = size === 'small' ? 200 : 400;
 
   const options: ChartOptions<'bar'> = {
-    indexAxis: 'y' as const,
     responsive: true,
     maintainAspectRatio: false,
+    indexAxis: 'y' as const,
     plugins: {
       legend: {
         display: false,
@@ -143,7 +169,7 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
       title: {
         display: size === 'large',
         text: 'Project Timeline',
-        color: '#374151',
+        color: textColor,
         font: {
           family: 'Inter, sans-serif',
           size: 16,
@@ -152,9 +178,9 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
         padding: 20,
       },
       tooltip: {
-        backgroundColor: '#1F2937',
-        titleColor: '#F9FAFB',
-        bodyColor: '#F9FAFB',
+        backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF',
+        titleColor: textColor,
+        bodyColor: textColor,
         titleFont: {
           family: 'Inter, sans-serif',
           size: 12,
@@ -168,24 +194,23 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
         cornerRadius: 8,
         callbacks: {
           title: function(context) {
-            const index = context[0]?.dataIndex;
-            if (index !== undefined && timelineData[index]) {
-              return timelineData[index].title;
-            }
-            return '';
+            const dataIndex = context[0]?.dataIndex;
+            return dataIndex !== undefined ? timelineData[dataIndex]?.title || 'Task' : 'Task';
           },
           label: function(context) {
-            const index = context.dataIndex;
-            const item = timelineData[index];
-            if (!item) return '';
+            const dataIndex = context.dataIndex;
+            const task = timelineData[dataIndex];
+            if (!task) return '';
+            
+            const startDate = new Date(task.start).toLocaleDateString();
+            const endDate = new Date(task.end).toLocaleDateString();
+            const duration = Math.ceil((task.end.getTime() - task.start.getTime()) / (1000 * 60 * 60 * 24));
             
             return [
-              `Duration: ${item.duration} days`,
-              `Progress: ${Math.round(item.progress)}%`,
-              `Status: ${item.status.replace('_', ' ')}`,
-              `Priority: ${item.importance}`,
-              `Start: ${format(item.start, 'MMM dd, yyyy')}`,
-              `End: ${format(item.end, 'MMM dd, yyyy')}`,
+              `Duration: ${duration} days`,
+              `Start: ${startDate}`,
+              `End: ${endDate}`,
+              `Progress: ${Math.round(task.progress)}%`
             ];
           },
         },
@@ -193,32 +218,39 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
     },
     scales: {
       x: {
-        beginAtZero: true,
+        type: 'time',
+        time: {
+          unit: 'day',
+          displayFormats: {
+            day: 'MMM dd'
+          }
+        },
         title: {
           display: size === 'large',
-          text: 'Duration (Days)',
-          color: '#6B7280',
+          text: 'Timeline',
+          color: textColor,
           font: {
             family: 'Inter, sans-serif',
             size: 12,
+            weight: 'bold',
           },
         },
-        grid: {
-          color: '#E5E7EB',
-        },
         ticks: {
-          color: '#6B7280',
+          color: textColor,
           font: {
             family: 'Inter, sans-serif',
             size: size === 'small' ? 10 : 11,
           },
+        },
+        grid: {
+          color: gridColor,
         },
       },
       y: {
         title: {
           display: size === 'large',
           text: 'Tasks',
-          color: '#6B7280',
+          color: textColor,
           font: {
             family: 'Inter, sans-serif',
             size: 12,
@@ -228,10 +260,14 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
           display: false,
         },
         ticks: {
-          color: '#6B7280',
+          color: textColor,
           font: {
             family: 'Inter, sans-serif',
             size: size === 'small' ? 10 : 11,
+          },
+          callback: function(value) {
+            const index = Number(value);
+            return timelineData[index]?.title || '';
           },
         },
       },

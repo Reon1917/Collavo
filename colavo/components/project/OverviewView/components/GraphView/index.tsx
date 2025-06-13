@@ -82,48 +82,51 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
 
   return (
     <div className="space-y-6">
-      {/* View Mode Toggle */}
+      {/* View Mode Toggle and Chart Selector */}
       <div className="flex items-center justify-between">
-        <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-          <button
-            onClick={() => setViewMode('overview')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-              viewMode === 'overview'
-                ? 'bg-[#008080] text-white shadow-sm'
-                : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-            }`}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => setViewMode('detailed')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-              viewMode === 'detailed'
-                ? 'bg-[#008080] text-white shadow-sm'
-                : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-            }`}
-          >
-            Detailed
-          </button>
-        </div>
-
-        {/* Chart Selector for Detailed View */}
-        {viewMode === 'detailed' && (
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600 dark:text-gray-300">Chart:</span>
-            <select
-              value={selectedChart}
-              onChange={(e) => setSelectedChart(e.target.value as 'completion' | 'importance' | 'workload' | 'deadline' | 'gantt')}
-              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#008080]"
+        <div className="flex items-center">
+          {/* View Mode Toggle */}
+          <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('overview')}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                viewMode === 'overview'
+                  ? 'bg-[#008080] text-white shadow-sm'
+                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+              }`}
             >
-              <option value="completion">Task Completion Progress</option>
-              <option value="importance">Task Priority Distribution</option>
-              <option value="workload">Team Workload Distribution</option>
-              <option value="deadline">Deadline Timeline</option>
-              <option value="gantt">Gantt Chart</option>
-            </select>
+              Overview
+            </button>
+            <button
+              onClick={() => setViewMode('detailed')}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                viewMode === 'detailed'
+                  ? 'bg-[#008080] text-white shadow-sm'
+                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              Detailed
+            </button>
           </div>
-        )}
+
+          {/* Chart Selector for Detailed View - immediately to the right */}
+          {viewMode === 'detailed' && (
+            <div className="flex items-center space-x-2 ml-3">
+              <span className="text-sm text-gray-600 dark:text-gray-300">Chart:</span>
+              <select
+                value={selectedChart}
+                onChange={(e) => setSelectedChart(e.target.value as 'completion' | 'importance' | 'workload' | 'deadline' | 'gantt')}
+                className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#008080]"
+              >
+                <option value="completion">Task Completion Progress</option>
+                <option value="importance">Task Priority Distribution</option>
+                <option value="workload">Team Workload Distribution</option>
+                <option value="deadline">Deadline Timeline</option>
+                <option value="gantt">Gantt Chart</option>
+              </select>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Charts Grid */}

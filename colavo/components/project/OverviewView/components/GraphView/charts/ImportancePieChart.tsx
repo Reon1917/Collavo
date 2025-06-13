@@ -1,6 +1,7 @@
 "use client";
 
 import { Pie } from 'react-chartjs-2';
+import { useState, useEffect } from 'react';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -23,6 +24,30 @@ interface ImportancePieChartProps {
 }
 
 export function ImportancePieChart({ tasks, size }: ImportancePieChartProps) {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Detect theme changes
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+    
+    // Initial check
+    checkTheme();
+    
+    // Watch for theme changes
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
+
+  // Define colors based on theme
+  const textColor = isDarkMode ? '#F9FAFB' : '#374151';
+
   // Calculate importance distribution
   const criticalTasks = tasks.filter(task => task.importanceLevel === 'critical').length;
   const highTasks = tasks.filter(task => task.importanceLevel === 'high').length;
@@ -95,7 +120,7 @@ export function ImportancePieChart({ tasks, size }: ImportancePieChartProps) {
         display: size === 'large',
         position: 'right' as const,
         labels: {
-          color: '#374151',
+          color: textColor,
           font: {
             family: 'Inter, sans-serif',
             size: size === 'small' ? 11 : 12,

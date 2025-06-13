@@ -1,6 +1,7 @@
 "use client";
 
 import { Bar } from 'react-chartjs-2';
+import { useState, useEffect } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -44,6 +45,31 @@ interface WorkloadBarChartProps {
 }
 
 export function WorkloadBarChart({ project, tasks, size }: WorkloadBarChartProps) {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Detect theme changes
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+    
+    // Initial check
+    checkTheme();
+    
+    // Watch for theme changes
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
+
+  // Define colors based on theme
+  const textColor = isDarkMode ? '#F9FAFB' : '#374151';
+  const gridColor = isDarkMode ? '#374151' : '#E5E7EB';
+
   // Early return for no data
   if (!project?.members || project.members.length === 0) {
     return (
@@ -191,21 +217,21 @@ export function WorkloadBarChart({ project, tasks, size }: WorkloadBarChartProps
       legend: {
         display: size === 'large',
         position: 'top' as const,
-                  labels: {
-            color: '#1F2937',
-            font: {
-              family: 'Inter, sans-serif',
-              size: 11,
-              weight: 'bold',
-            },
+        labels: {
+          color: textColor,
+          font: {
+            family: 'Inter, sans-serif',
+            size: 11,
+            weight: 'bold',
+          },
           padding: 16,
           usePointStyle: true,
         },
       },
       tooltip: {
-        backgroundColor: '#1F2937',
-        titleColor: '#F9FAFB',
-        bodyColor: '#F9FAFB',
+        backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF',
+        titleColor: textColor,
+        bodyColor: textColor,
         titleFont: {
           family: 'Inter, sans-serif',
           size: 12,
@@ -233,7 +259,7 @@ export function WorkloadBarChart({ project, tasks, size }: WorkloadBarChartProps
         title: {
           display: size === 'large',
           text: 'Number of Tasks',
-          color: '#1F2937',
+          color: textColor,
           font: {
             family: 'Inter, sans-serif',
             size: 11,
@@ -241,7 +267,7 @@ export function WorkloadBarChart({ project, tasks, size }: WorkloadBarChartProps
           },
         },
         ticks: {
-          color: '#1F2937',
+          color: textColor,
           font: {
             family: 'Inter, sans-serif',
             size: size === 'small' ? 10 : 11,
@@ -249,13 +275,13 @@ export function WorkloadBarChart({ project, tasks, size }: WorkloadBarChartProps
           stepSize: 1,
         },
         grid: {
-          color: '#E5E7EB',
+          color: gridColor,
         },
       },
       y: {
         stacked: true,
         ticks: {
-          color: '#FFFFFF',
+          color: textColor,
           font: {
             family: 'Inter, sans-serif',
             size: size === 'small' ? 10 : 11,

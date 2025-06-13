@@ -1,6 +1,7 @@
 "use client";
 
 import { Bar } from 'react-chartjs-2';
+import { useState, useEffect } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -31,6 +32,31 @@ interface DeadlineTimelineChartProps {
 }
 
 export function DeadlineTimelineChart({ tasks, size }: DeadlineTimelineChartProps) {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Detect theme changes
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+    
+    // Initial check
+    checkTheme();
+    
+    // Watch for theme changes
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
+
+  // Define colors based on theme
+  const textColor = isDarkMode ? '#F9FAFB' : '#374151';
+  const gridColor = isDarkMode ? '#374151' : '#E5E7EB';
+
   const now = new Date();
   const oneWeek = 7 * 24 * 60 * 60 * 1000;
   const oneMonth = 30 * 24 * 60 * 60 * 1000;
@@ -97,9 +123,9 @@ export function DeadlineTimelineChart({ tasks, size }: DeadlineTimelineChartProp
         display: false,
       },
       tooltip: {
-        backgroundColor: '#1F2937',
-        titleColor: '#F9FAFB',
-        bodyColor: '#F9FAFB',
+        backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF',
+        titleColor: textColor,
+        bodyColor: textColor,
         callbacks: {
           label: function(context) {
             const value = context.parsed.y;
@@ -113,16 +139,16 @@ export function DeadlineTimelineChart({ tasks, size }: DeadlineTimelineChartProp
         beginAtZero: true,
         ticks: {
           stepSize: 1,
-          color: '#6B7280',
+          color: textColor,
           font: { size: size === 'small' ? 10 : 11 },
         },
         grid: {
-          color: '#E5E7EB',
+          color: gridColor,
         },
       },
       x: {
         ticks: {
-          color: '#6B7280',
+          color: textColor,
           font: { size: size === 'small' ? 10 : 11 },
         },
         grid: {

@@ -84,14 +84,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
     return total + task.subTasks.filter(st => st.status === 'completed').length;
   }, 0);
   
-  // Calculate average completion percentage of main tasks
-  const averageCompletionPercentage = tasks.length > 0 ? Math.round(
-    tasks.reduce((total, task) => {
-      if (task.subTasks.length === 0) return total;
-      const completionRate = (task.subTasks.filter(st => st.status === 'completed').length / task.subTasks.length) * 100;
-      return total + completionRate;
-    }, 0) / tasks.length
-  ) : 0;
+
 
   // Count only upcoming events (future events)
   const now = new Date();
