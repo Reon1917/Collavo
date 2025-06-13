@@ -15,6 +15,7 @@ export function OverviewView({ projectId }: OverviewViewProps) {
   const project = data?.project || null;
   const tasks = data?.tasks || [];
   const events = data?.events || [];
+  const files = data?.files || [];
   const permissions = useProjectPermissions(project);
 
   // Refs to track refresh state and prevent duplicates
@@ -137,6 +138,7 @@ export function OverviewView({ projectId }: OverviewViewProps) {
         project={project}
         tasks={tasks}
         events={events}
+        files={files}
         permissions={permissions}
         onRefresh={refreshData}
         onTabChange={handleTabChange}

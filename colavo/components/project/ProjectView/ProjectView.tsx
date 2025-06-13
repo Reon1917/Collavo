@@ -88,6 +88,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
             project={project}
             tasks={tasks}
             events={[]}
+            files={[]}
             permissions={permissions}
             onRefresh={refreshData}
             onTabChange={setActiveTab}

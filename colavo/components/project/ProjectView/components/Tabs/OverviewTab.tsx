@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from '@/components/ui/badge';
-import { CheckSquare, Plus, UserPlus, Edit, Trash2, CheckCircle, Crown } from 'lucide-react';
+import { CheckSquare, Plus, UserPlus, Edit, Trash2, CheckCircle, Crown, FileIcon, ExternalLink, Eye } from 'lucide-react';
 import { CreateTaskForm } from '@/components/project/TasksView/components/forms/CreateTaskForm';
 import { Project, Task } from '@/hooks/shared/useProjectData';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -11,12 +11,14 @@ import { ProjectDeleteDialog } from '../dialogs/ProjectDeleteDialog';
 import { ViewSelector } from '@/components/project/OverviewView/components/ViewSelector';
 import { TimelineView } from '@/components/project/OverviewView/components/TimelineView';
 import { GraphView } from '@/components/project/OverviewView/components/GraphView';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useState } from 'react';
 
 interface OverviewTabProps {
   project: Project;
   tasks: Task[];
   events: any[];
+  files: any[];
   permissions: {
     canAddMembers: boolean;
     canCreateTasks: boolean;
@@ -27,9 +29,10 @@ interface OverviewTabProps {
   onTabChange: (tab: string) => void;
 }
 
-export function OverviewTab({ project, tasks, events, permissions, onRefresh, onTabChange }: OverviewTabProps) {
+export function OverviewTab({ project, tasks, events, files, permissions, onRefresh, onTabChange }: OverviewTabProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
   const [selectedView, setSelectedView] = useState<'overview' | 'timeline' | 'graph'>('overview');
 
   // Format user permissions for display (excluding role)
@@ -90,6 +93,10 @@ export function OverviewTab({ project, tasks, events, permissions, onRefresh, on
     }, 0) / tasks.length
   ) : 0;
 
+  // Count only upcoming events (future events)
+  const now = new Date();
+  const upcomingEventsCount = events.filter(event => new Date(event.datetime) > now).length;
+
   return (
     <div className="space-y-6">
       {/* View Selector at the top */}
@@ -146,15 +153,11 @@ export function OverviewTab({ project, tasks, events, permissions, onRefresh, on
         <GraphView project={project} tasks={tasks} />
       ) : (
         <>
-          {/* Original Overview Content */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {/* Updated Overview Content */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
               <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{project.members.length}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Team Members</div>
-            </div>
-            <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
-              <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{tasks.length}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Total Main Tasks</div>
             </div>
             <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
               <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{totalSubTasks}</div>
@@ -169,13 +172,13 @@ export function OverviewTab({ project, tasks, events, permissions, onRefresh, on
               <div className="text-sm text-gray-600 dark:text-gray-400">Sub-tasks Completed</div>
             </div>
             <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
-              <div className="text-3xl font-bold text-[#008080] dark:text-[#00FFFF] mb-1">{averageCompletionPercentage}%</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Tasks Completed</div>
+              <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{upcomingEventsCount}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Upcoming Events</div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
-            <div className="xl:col-span-3 space-y-6">
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
+            <div className="xl:col-span-2 space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Recent Tasks</h2>
                 {tasks.length > 0 && (
@@ -188,29 +191,69 @@ export function OverviewTab({ project, tasks, events, permissions, onRefresh, on
                 )}
               </div>
               
-              {tasks.length > 0 ? (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {tasks.slice(0, 6).map((task) => (
-                    <TaskPreviewCard key={task.id} task={task} project={project} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 bg-gray-50 dark:bg-gray-900/20 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700">
-                  <CheckSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No tasks yet</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
-                    {permissions.canCreateTasks 
-                      ? "Get started by creating your first task."
-                      : "Tasks will appear here once they're created."
-                    }
-                  </p>
-                </div>
-              )}
+              <div className="min-h-[400px]">
+                {tasks.length > 0 ? (
+                  <div className="space-y-4">
+                    {tasks.slice(0, 2).map((task) => (
+                      <TaskPreviewCard key={task.id} task={task} project={project} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 bg-gray-50 dark:bg-gray-900/20 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700">
+                    <CheckSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No tasks yet</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                      {permissions.canCreateTasks 
+                        ? "Get started by creating your first task."
+                        : "Tasks will appear here once they're created."
+                      }
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="xl:col-span-2 space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Recent Files</h2>
+                {files.length > 0 && (
+                  <button 
+                    onClick={() => onTabChange('files')}
+                    className="text-sm text-[#008080] hover:text-[#006666] font-medium flex items-center gap-1"
+                  >
+                    View all {files.length} files →
+                  </button>
+                )}
+              </div>
+              
+              <div className="min-h-[400px]">
+                {files.length > 0 ? (
+                  <div className="space-y-4">
+                    {files.slice(0, 3).map((file) => (
+                      <FilePreviewCard key={file.id} file={file} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 bg-gray-50 dark:bg-gray-900/20 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700">
+                    <Plus className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No files yet</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                      Upload files or add links to get started.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="space-y-4">
-              <div className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-4">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Your Access</h3>
+              <div 
+                className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-4 hover:shadow-sm hover:border-gray-200 dark:hover:border-gray-700 transition-all cursor-pointer"
+                onClick={() => setIsPermissionsDialogOpen(true)}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Your Access</h3>
+                  <Eye className="h-4 w-4 text-gray-400" />
+                </div>
                 <div className="space-y-2">
                   {userPermissions.length > 0 ? (
                     userPermissions.slice(0, 4).map((permission, index) => (
@@ -324,6 +367,31 @@ export function OverviewTab({ project, tasks, events, permissions, onRefresh, on
         </>
       )}
 
+      {/* Permissions Dialog */}
+      <Dialog open={isPermissionsDialogOpen} onOpenChange={setIsPermissionsDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Your Permissions</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {userPermissions.length > 0 ? (
+              userPermissions.map((permission, index) => (
+                <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    {permission}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                No specific permissions assigned
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <ProjectEditDialog 
         project={project}
         isOpen={isEditDialogOpen}
@@ -393,6 +461,45 @@ function TaskPreviewCard({ task, project }: { task: Task; project: Project }) {
             </p>
           )}
         </div>
+      )}
+    </div>
+  );
+}
+
+function FilePreviewCard({ file }: { file: any }) {
+  const isLink = !file.uploadThingId;
+  const fileSize = file.size ? `${Math.round(file.size / 1024)}KB` : null;
+  
+  return (
+    <div className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-4 hover:shadow-sm hover:border-gray-200 dark:hover:border-gray-700 transition-all">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-start gap-3 flex-1 min-w-0">
+          <div className="flex-shrink-0">
+            {isLink ? (
+              <ExternalLink className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            ) : (
+              <FileIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium text-gray-900 dark:text-white truncate mb-1">{file.name}</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Added by {file.addedByName} • {new Date(file.addedAt).toLocaleDateString()}
+            </p>
+            {fileSize && (
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{fileSize}</p>
+            )}
+          </div>
+        </div>
+        <Badge variant="outline" className="text-xs ml-2">
+          {isLink ? 'Link' : 'File'}
+        </Badge>
+      </div>
+      
+      {file.description && (
+        <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+          {file.description}
+        </p>
       )}
     </div>
   );

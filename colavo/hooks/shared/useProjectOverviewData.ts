@@ -6,11 +6,13 @@ interface OverviewData {
   tasks: any[];
   members: any[];
   events: any[];
+  files: any[];
   stats: {
     totalTasks: number;
     completedTasks: number;
     totalMembers: number;
     totalEvents: number;
+    totalFiles: number;
     recentActivity: {
       recentTasks: any[];
       activeMembers: any[];
@@ -128,6 +130,7 @@ export function useProjectDataFromOverview(projectId: string) {
     tasks: data?.tasks || [],
     members: data?.members || [],
     events: data?.events || [],
+    files: data?.files || [],
     stats: data?.stats || null,
     isLoading,
     error,
