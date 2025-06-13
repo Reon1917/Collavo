@@ -13,8 +13,10 @@ import {
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface Task {
+  deadline?: string | null;
   subTasks: Array<{
     status: 'pending' | 'in_progress' | 'completed';
+    deadline?: string | null;
   }>;
 }
 
@@ -24,17 +26,38 @@ interface CompletionDonutChartProps {
 }
 
 export function CompletionDonutChart({ tasks, size }: CompletionDonutChartProps) {
-  // Calculate completion data
+  const now = new Date();
+  
+  // Calculate completion data with overdue logic
   const totalSubTasks = tasks.reduce((total, task) => total + task.subTasks.length, 0);
   const completedSubTasks = tasks.reduce((total, task) => {
     return total + task.subTasks.filter(st => st.status === 'completed').length;
   }, 0);
-  const inProgressSubTasks = tasks.reduce((total, task) => {
-    return total + task.subTasks.filter(st => st.status === 'in_progress').length;
-  }, 0);
-  const pendingSubTasks = tasks.reduce((total, task) => {
-    return total + task.subTasks.filter(st => st.status === 'pending').length;
-  }, 0);
+  
+  // Calculate overdue, in progress, and pending separately
+  let overdueSubTasks = 0;
+  let inProgressSubTasks = 0;
+  let pendingSubTasks = 0;
+  
+  tasks.forEach(task => {
+    task.subTasks.forEach(subTask => {
+      if (subTask.status === 'completed') {
+        return; // Already counted in completedSubTasks
+      }
+      
+      // Check if task is overdue (past deadline and not completed)
+      const deadline = subTask.deadline || task.deadline;
+      const isOverdue = deadline && new Date(deadline) < now;
+      
+      if (isOverdue) {
+        overdueSubTasks++;
+      } else if (subTask.status === 'in_progress') {
+        inProgressSubTasks++;
+      } else if (subTask.status === 'pending') {
+        pendingSubTasks++;
+      }
+    });
+  });
 
   if (totalSubTasks === 0) {
     return (
@@ -51,21 +74,47 @@ export function CompletionDonutChart({ tasks, size }: CompletionDonutChartProps)
 
   const completionPercentage = Math.round((completedSubTasks / totalSubTasks) * 100);
 
+  // Only include categories that have data
+  const labels: string[] = [];
+  const dataValues: number[] = [];
+  const backgroundColors: string[] = [];
+  const borderColors: string[] = [];
+
+  if (completedSubTasks > 0) {
+    labels.push('Completed');
+    dataValues.push(completedSubTasks);
+    backgroundColors.push('#059669'); // Emerald green
+    borderColors.push('#047857');
+  }
+
+  if (inProgressSubTasks > 0) {
+    labels.push('In Progress');
+    dataValues.push(inProgressSubTasks);
+    backgroundColors.push('#D97706'); // Amber
+    borderColors.push('#B45309');
+  }
+
+  if (pendingSubTasks > 0) {
+    labels.push('Pending');
+    dataValues.push(pendingSubTasks);
+    backgroundColors.push('#6B7280'); // Gray
+    borderColors.push('#4B5563');
+  }
+
+  if (overdueSubTasks > 0) {
+    labels.push('Overdue');
+    dataValues.push(overdueSubTasks);
+    backgroundColors.push('#DC2626'); // Red
+    borderColors.push('#B91C1C');
+  }
+
   const data = {
-    labels: ['Completed', 'In Progress', 'Pending'],
+    labels,
     datasets: [
       {
-        data: [completedSubTasks, inProgressSubTasks, pendingSubTasks],
-        backgroundColor: [
-          '#059669', // Emerald green for completed
-          '#D97706', // Amber for in progress
-          '#DC2626', // Red for pending
-        ],
-        borderColor: [
-          '#047857',
-          '#B45309',
-          '#B91C1C',
-        ],
+        data: dataValues,
+        backgroundColor: backgroundColors,
+        borderColor: borderColors,
         borderWidth: 1,
         cutout: '70%', // Makes it a donut chart
       },
@@ -148,24 +197,47 @@ export function CompletionDonutChart({ tasks, size }: CompletionDonutChartProps)
 
       {/* Simple legend for small size */}
       {size === 'small' && (
-        <div className="mt-3 flex justify-center gap-4 text-xs">
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 bg-emerald-600 rounded-full"></div>
-            <span className="text-gray-700 dark:text-gray-300">
-              {completedSubTasks}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 bg-amber-600 rounded-full"></div>
-            <span className="text-gray-700 dark:text-gray-300">
-              {inProgressSubTasks}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 bg-red-600 rounded-full"></div>
-            <span className="text-gray-700 dark:text-gray-300">
-              {pendingSubTasks}
-            </span>
+        <div className="mt-3 flex justify-center gap-3 text-xs flex-wrap">
+          {completedSubTasks > 0 && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 bg-emerald-600 rounded-full"></div>
+              <span className="text-gray-700 dark:text-gray-300">
+                {completedSubTasks}
+              </span>
+            </div>
+          )}
+          {inProgressSubTasks > 0 && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 bg-amber-600 rounded-full"></div>
+              <span className="text-gray-700 dark:text-gray-300">
+                {inProgressSubTasks}
+              </span>
+            </div>
+          )}
+          {pendingSubTasks > 0 && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 bg-gray-600 rounded-full"></div>
+              <span className="text-gray-700 dark:text-gray-300">
+                {pendingSubTasks}
+              </span>
+            </div>
+          )}
+          {overdueSubTasks > 0 && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 bg-red-600 rounded-full"></div>
+              <span className="text-gray-700 dark:text-gray-300">
+                {overdueSubTasks}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Overdue warning for small size */}
+      {size === 'small' && overdueSubTasks > 0 && (
+        <div className="mt-2 text-center">
+          <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400">
+            ⚠️ {overdueSubTasks} overdue task{overdueSubTasks !== 1 ? 's' : ''}
           </div>
         </div>
       )}
