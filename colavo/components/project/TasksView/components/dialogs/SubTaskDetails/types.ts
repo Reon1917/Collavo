@@ -4,6 +4,7 @@ export interface SubTaskDetailsDialogProps {
   subTask: SubTask;
   currentUserId: string;
   isProjectLeader: boolean;
+  userPermissions: string[];
   projectId: string;
   mainTaskId: string;
   mainTaskDeadline: string | null;

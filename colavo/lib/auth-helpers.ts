@@ -152,23 +152,16 @@ export async function hasPermission(userId: string, projectId: string, permissio
 }
 
 /**
- * Require specific permission or throw error
- */
-export async function requirePermission(userId: string, projectId: string, permission: string): Promise<void> {
-  const hasAccess = await hasPermission(userId, projectId, permission);
-  if (!hasAccess) {
-    throw new Error(`Insufficient permissions: ${permission} required`);
-  }
-}
-
-/**
- * Require project access or throw error
+ * Require project access and throw error if access is denied
+ * Used as a centralized access control for API routes
  */
 export async function requireProjectAccess(userId: string, projectId: string): Promise<ProjectAccess> {
   const access = await checkProjectAccess(projectId, userId);
+  
   if (!access.hasAccess) {
     throw new Error('Project not found or access denied');
   }
+  
   return access;
 }
 

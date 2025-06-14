@@ -77,16 +77,15 @@ export async function PATCH(
       );
     }
 
-    // Check permissions: user must be project leader, have updateTask permission, or be the task creator
+    // Check permissions: user must be project leader or have handleTask permission
     const isLeader = await db.select().from(projects).where(and(
       eq(projects.id, projectId),
       eq(projects.leaderId, session.user.id)
     )).then(result => result.length > 0);
 
-    const hasUpdatePermission = await checkPermission(session.user.id, projectId, 'updateTask');
-    const isCreator = task.createdBy === session.user.id;
+    const hasHandlePermission = await checkPermission(session.user.id, projectId, 'handleTask');
 
-    if (!isLeader && !hasUpdatePermission && !isCreator) {
+    if (!isLeader && !hasHandlePermission) {
       return NextResponse.json(
         { error: 'You do not have permission to update this task' },
         { status: 403 }
@@ -249,16 +248,15 @@ export async function DELETE(
       );
     }
 
-    // Check permissions: user must be project leader, have updateTask permission, or be the task creator
+    // Check permissions: user must be project leader or have handleTask permission
     const isLeader = await db.select().from(projects).where(and(
       eq(projects.id, projectId),
       eq(projects.leaderId, session.user.id)
     )).then(result => result.length > 0);
 
-    const hasUpdatePermission = await checkPermission(session.user.id, projectId, 'updateTask');
-    const isCreator = task.createdBy === session.user.id;
+    const hasHandlePermission = await checkPermission(session.user.id, projectId, 'handleTask');
 
-    if (!isLeader && !hasUpdatePermission && !isCreator) {
+    if (!isLeader && !hasHandlePermission) {
       return NextResponse.json(
         { error: 'You do not have permission to delete this task' },
         { status: 403 }

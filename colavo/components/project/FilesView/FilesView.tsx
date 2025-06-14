@@ -53,6 +53,8 @@ interface ProjectMember {
 export function FilesView({ projectId }: FilesViewProps) {
   const [allItems, setAllItems] = useState<ProjectFile[]>([]);
   const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([]);
+  const [userPermissions, setUserPermissions] = useState<string[]>([]);
+  const [isLeader, setIsLeader] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isAddLinkModalOpen, setIsAddLinkModalOpen] = useState(false);
@@ -112,11 +114,28 @@ export function FilesView({ projectId }: FilesViewProps) {
     }
   }, [projectId]);
 
+  const fetchProjectData = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}/overview`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch project data');
+      }
+      
+      const data = await response.json();
+      setUserPermissions(data.project?.userPermissions || []);
+      setIsLeader(data.project?.isLeader || false);
+    } catch {
+      // Don't set error state for project data fetch failure, just log it
+    }
+  }, [projectId]);
+
   useEffect(() => {
     if (projectId) {
-      Promise.all([fetchFiles(), fetchProjectMembers()]);
+      Promise.all([fetchFiles(), fetchProjectMembers(), fetchProjectData()]);
     }
-  }, [projectId, fetchFiles, fetchProjectMembers]);
+  }, [projectId, fetchFiles, fetchProjectMembers, fetchProjectData]);
 
   const handleFileUploaded = (newFile: ProjectFile) => {
     setAllItems(prevItems => [newFile, ...prevItems]);
@@ -163,8 +182,12 @@ export function FilesView({ projectId }: FilesViewProps) {
   };
 
   const handleRefresh = () => {
-    Promise.all([fetchFiles(), fetchProjectMembers()]);
+    Promise.all([fetchFiles(), fetchProjectMembers(), fetchProjectData()]);
   };
+
+  // Permission checks
+  const canManageFiles = isLeader || userPermissions.includes('handleFile');
+  const canViewFiles = isLeader || userPermissions.includes('viewFiles');
 
   if (isLoading) {
     return (
@@ -200,6 +223,34 @@ export function FilesView({ projectId }: FilesViewProps) {
     );
   }
 
+  // Check if user has permission to view files
+  if (!canViewFiles) {
+    return (
+      <div className="space-y-6">
+        <header className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Files & Resources</h1>
+            <p className="text-gray-600 dark:text-gray-400">Manage project files and external links</p>
+          </div>
+        </header>
+        
+        <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+          <CardContent className="pt-6">
+            <div className="text-center py-12">
+              <FileIcon className="h-16 w-16 text-amber-600 dark:text-amber-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-amber-900 dark:text-amber-100 mb-2">
+                Insufficient permissions to view files
+              </h3>
+              <p className="text-amber-700 dark:text-amber-300">
+                You don&apos;t have permission to view files and links in this project. Contact the project leader for access.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // Check if selected user has uploaded anything
   const selectedUser = availableUsers.find(user => user.name === filterByUser);
   const selectedUserHasUploads = selectedUser && allItems.some(item => 
@@ -224,22 +275,26 @@ export function FilesView({ projectId }: FilesViewProps) {
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
-            onClick={() => setIsUploadModalOpen(true)}
-          >
-            <Upload className="h-4 w-4" />
-            Upload File
-          </Button>
-          <Button 
-            variant="outline"
-            className="flex items-center gap-2"
-            onClick={() => setIsAddLinkModalOpen(true)}
-          >
-            <Plus className="h-4 w-4" />
-            Add Link
-          </Button>
+          {canManageFiles && (
+            <>
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
+                onClick={() => setIsUploadModalOpen(true)}
+              >
+                <Upload className="h-4 w-4" />
+                Upload File
+              </Button>
+              <Button 
+                variant="outline"
+                className="flex items-center gap-2"
+                onClick={() => setIsAddLinkModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+                Add Link
+              </Button>
+            </>
+          )}
         </div>
       </header>
 
@@ -288,7 +343,7 @@ export function FilesView({ projectId }: FilesViewProps) {
               <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
                 {allItems.length === 0 
                   ? "Upload files or add links to Google Docs, Canva presentations, and other project resources."
-                  : "Try adjusting your search or filter criteria to find what you're looking for."
+                  : "Try adjusting your search or filter criteria to find what you&apos;re looking for."
                 }
               </p>
               {allItems.length === 0 && (
@@ -342,7 +397,7 @@ export function FilesView({ projectId }: FilesViewProps) {
                         : "No files match your current filters"
                       }
                     </p>
-                    {allItems.filter(item => item.uploadThingId !== null).length === 0 && (
+                    {allItems.filter(item => item.uploadThingId !== null).length === 0 && canManageFiles && (
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -362,8 +417,10 @@ export function FilesView({ projectId }: FilesViewProps) {
                       key={file.id} 
                       file={file}
                       onClick={() => window.open(file.url, '_blank', 'noopener,noreferrer')}
-                      onEdit={handleEditFile}
-                      onDelete={handleDeleteFile}
+                      {...(canManageFiles && {
+                        onEdit: handleEditFile,
+                        onDelete: handleDeleteFile
+                      })}
                     />
                   ))}
                 </div>
@@ -396,7 +453,7 @@ export function FilesView({ projectId }: FilesViewProps) {
                         : "No links match your current filters"
                       }
                     </p>
-                    {allItems.filter(item => item.uploadThingId === null).length === 0 && (
+                    {allItems.filter(item => item.uploadThingId === null).length === 0 && canManageFiles && (
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -416,8 +473,10 @@ export function FilesView({ projectId }: FilesViewProps) {
                       key={link.id} 
                       link={link}
                       onClick={() => window.open(link.url, '_blank', 'noopener,noreferrer')}
-                      onEdit={handleEditLink}
-                      onDelete={handleDeleteLink}
+                      {...(canManageFiles && {
+                        onEdit: handleEditLink,
+                        onDelete: handleDeleteLink
+                      })}
                     />
                   ))}
                 </div>

@@ -22,7 +22,8 @@ export function SubTaskMiniItem({
   // Check if user can update this subtask
   const canUpdateSubtask = subtask.assignedId === project.currentUserId || 
                           project.isLeader || 
-                          project.userPermissions.includes('updateTask');
+                          project.userPermissions.includes('updateTask') ||
+                          project.userPermissions.includes('handleTask');
 
   // Members should always be able to view subtask details (read-only if no edit permissions)
   const canViewSubtask = true;
@@ -67,6 +68,7 @@ export function SubTaskMiniItem({
         subTask={subtask}
         currentUserId={project.currentUserId}
         isProjectLeader={project.isLeader}
+        userPermissions={project.userPermissions}
         projectId={project.id}
         mainTaskId={task.id}
         mainTaskDeadline={task.deadline}

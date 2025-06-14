@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Check, X } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { Check, X, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -14,198 +14,330 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { toast } from "sonner"
 
-interface Permissions {
-  viewTasks: boolean
-  createTasks: boolean
-  assignTasks: boolean
-  editProjectDetails: boolean
-  inviteMembers: boolean
-  deleteProject: boolean
+// Define the 8 permissions as per requirements
+interface ProjectPermissions {
+  addMember: boolean        // Add new members to the project and remove members
+  createTask: boolean       // Create tasks (main tasks and sub tasks)
+  handleTask: boolean       // Manage Tasks - Edit/Deleting task details
+  updateTask: boolean       // Updating sub-task's status and add/edit notes
+  createEvent: boolean      // Creating new event
+  handleEvent: boolean      // Manage Events - Edit/delete event details
+  handleFile: boolean       // Manage Files - Add/delete files and links
+  viewFiles: boolean        // View files/links
+}
+
+interface Member {
+  id: string
+  userId: string
+  userName: string
+  userEmail: string
+  userImage?: string
+  role: string
+  permissions: string[]
 }
 
 interface PermissionModalProps {
   isOpen: boolean
   onClose: () => void
-  onSave?: (memberId: string, permissions: Permissions, role: string) => void
-  member: {
-    id: string
-    name: string
-    role: string
-    avatar: string
+  onSave?: (memberId: string, permissions: ProjectPermissions) => void
+  member: Member
+  projectId: string
+}
+
+// Helper function to get initials
+const getInitials = (name: string) => {
+  return name
+    .split(' ')
+    .map(word => word.charAt(0))
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+}
+
+// Default permissions based on role and requirements
+const getDefaultPermissions = (member: Member): ProjectPermissions => {
+  if (member.role === 'leader') {
+    // Leaders have all permissions by default
+    return {
+      addMember: true,
+      createTask: true,
+      handleTask: true,
+      updateTask: true,
+      createEvent: true,
+      handleEvent: true,
+      handleFile: true,
+      viewFiles: true,
+    }
+  }
+  
+  // Members have limited permissions by default
+  return {
+    addMember: false,      // Leader only by default
+    createTask: false,     // Leader only by default
+    handleTask: false,     // Leader only by default
+    updateTask: member.permissions.includes('updateTask'), // Leader + assigned member by default
+    createEvent: false,    // Leader only by default
+    handleEvent: false,    // Leader only by default
+    handleFile: member.permissions.includes('handleFile'), // All members by default
+    viewFiles: member.permissions.includes('viewFiles'),   // All members by default
   }
 }
 
-export function PermissionModal({ isOpen, onClose, onSave, member }: PermissionModalProps) {
-  const [permissions, setPermissions] = useState({
-    viewTasks: true,
-    createTasks: true,
-    assignTasks: member.role !== 'viewer',
-    editProjectDetails: member.role === 'leader',
-    inviteMembers: member.role === 'leader',
-    deleteProject: false,
-  })
+export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: PermissionModalProps) {
+  // Helper function to get current member permissions
+  const getCurrentPermissions = useCallback((): ProjectPermissions => {
+    const defaultPerms = getDefaultPermissions(member)
+    const currentPerms = { ...defaultPerms }
+    
+    // Override with actual permissions from member data
+    if (member.permissions.includes('addMember')) currentPerms.addMember = true
+    if (member.permissions.includes('createTask')) currentPerms.createTask = true
+    if (member.permissions.includes('handleTask')) currentPerms.handleTask = true
+    if (member.permissions.includes('updateTask')) currentPerms.updateTask = true
+    if (member.permissions.includes('createEvent')) currentPerms.createEvent = true
+    if (member.permissions.includes('handleEvent')) currentPerms.handleEvent = true
+    if (member.permissions.includes('handleFile')) currentPerms.handleFile = true
+    if (member.permissions.includes('viewFiles')) currentPerms.viewFiles = true
+    
+    return currentPerms
+  }, [member])
 
-  const handlePermissionChange = (permission: keyof typeof permissions, checked: boolean) => {
+  const [permissions, setPermissions] = useState<ProjectPermissions>(getCurrentPermissions())
+  const [isSaving, setIsSaving] = useState(false)
+
+  // Reset permissions when modal opens or member changes
+  useEffect(() => {
+    if (isOpen) {
+      setPermissions(getCurrentPermissions())
+    }
+  }, [isOpen, getCurrentPermissions])
+
+  const handlePermissionChange = (permission: keyof ProjectPermissions, checked: boolean) => {
     setPermissions((prev) => ({
       ...prev,
       [permission]: checked,
     }))
   }
 
-  const [selectedRole, setSelectedRole] = useState(member.role)
-
-  const handleSave = () => {
-    // TODO: Replace with actual API call to save permissions
-    // await updateMemberPermissions(member.id, permissions, selectedRole);
+  const handleSave = async () => {
+    setIsSaving(true)
     
-    if (onSave) {
-      onSave(member.id, permissions, selectedRole);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/members/${member.id}/permissions`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          permissions,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        toast.error(errorData.error || 'Failed to update permissions')
+        return
+      }
+
+      // Permission update successful
+      toast.success('Permissions updated successfully')
+      
+      if (onSave) {
+        onSave(member.id, permissions)
+      }
+      
+      onClose()
+    } catch (error) {
+      toast.error('Failed to update permissions')
+    } finally {
+      setIsSaving(false)
     }
-    onClose()
+  }
+
+  // Don't show modal for leaders
+  if (member.role === 'leader') {
+    return null
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold">
-              {member.avatar}
+          <DialogTitle className="flex items-center gap-3">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={member.userImage} alt={member.userName} />
+              <AvatarFallback className="bg-[#008080] text-white">
+                {getInitials(member.userName)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <span>Permissions for {member.userName}</span>
+              <p className="text-sm text-muted-foreground font-normal">
+                {member.userEmail}
+              </p>
             </div>
-            <span>Permissions for {member.name}</span>
           </DialogTitle>
-          <DialogDescription>Configure what this team member can access and modify in the project.</DialogDescription>
+          <DialogDescription>
+            Configure what this team member can access and modify in the project.
+          </DialogDescription>
         </DialogHeader>
         
-        <div className="grid gap-4 py-2">
-          {/* Role Selection */}
-          <div className="mb-4">
-            <Label htmlFor="role" className="block mb-2 font-medium">
-              Member Role
-            </Label>
-            <div className="grid grid-cols-3 gap-2">
-              <Button
-                type="button"
-                variant={selectedRole === 'viewer' ? 'default' : 'outline'}
-                onClick={() => setSelectedRole('viewer')}
-                className="justify-center"
-              >
-                Viewer
-              </Button>
-              <Button
-                type="button"
-                variant={selectedRole === 'member' ? 'default' : 'outline'}
-                onClick={() => setSelectedRole('member')}
-                className="justify-center"
-              >
-                Member
-              </Button>
-              <Button
-                type="button"
-                variant={selectedRole === 'leader' ? 'default' : 'outline'}
-                onClick={() => setSelectedRole('leader')}
-                className="justify-center"
-              >
-                Leader
-              </Button>
-            </div>
-          </div>
-          
-          <Separator />
-          
+        <div className="grid gap-4 py-4">
           <div className="grid gap-4">
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="viewTasks" className="font-medium">
-                  View Tasks
+                <Label htmlFor="addMember" className="font-medium">
+                  Manage Members
                 </Label>
-                <p className="text-sm text-muted-foreground">Allow member to view project tasks</p>
+                <p className="text-sm text-muted-foreground">
+                  Add new members to the project and remove members
+                </p>
               </div>
               <Switch
-                id="viewTasks"
-                checked={permissions.viewTasks}
-                onCheckedChange={(checked) => handlePermissionChange("viewTasks", checked)}
+                id="addMember"
+                checked={permissions.addMember}
+                onCheckedChange={(checked) => handlePermissionChange("addMember", checked)}
               />
             </div>
+            
             <Separator />
+            
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="createTasks" className="font-medium">
+                <Label htmlFor="createTask" className="font-medium">
                   Create Tasks
                 </Label>
-                <p className="text-sm text-muted-foreground">Allow member to create new tasks in the project</p>
+                <p className="text-sm text-muted-foreground">
+                  Create main tasks and sub tasks
+                </p>
               </div>
               <Switch
-                id="createTasks"
-                checked={permissions.createTasks}
-                onCheckedChange={(checked) => handlePermissionChange("createTasks", checked)}
+                id="createTask"
+                checked={permissions.createTask}
+                onCheckedChange={(checked) => handlePermissionChange("createTask", checked)}
               />
             </div>
+            
             <Separator />
+            
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="assignTasks" className="font-medium">
-                  Assign Tasks
+                <Label htmlFor="handleTask" className="font-medium">
+                  Manage Tasks
                 </Label>
-                <p className="text-sm text-muted-foreground">Allow member to assign tasks to other team members</p>
+                <p className="text-sm text-muted-foreground">
+                  Edit and delete task details like deadline or assigned member
+                </p>
               </div>
               <Switch
-                id="assignTasks"
-                checked={permissions.assignTasks}
-                onCheckedChange={(checked) => handlePermissionChange("assignTasks", checked)}
+                id="handleTask"
+                checked={permissions.handleTask}
+                onCheckedChange={(checked) => handlePermissionChange("handleTask", checked)}
               />
             </div>
+            
             <Separator />
+            
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="editProjectDetails" className="font-medium">
-                  Edit Project Details
+                <Label htmlFor="updateTask" className="font-medium">
+                  Update Sub-tasks
                 </Label>
-                <p className="text-sm text-muted-foreground">Allow member to modify project information and settings</p>
+                <p className="text-sm text-muted-foreground">
+                  Update sub-task status and add/edit short notes
+                </p>
               </div>
               <Switch
-                id="editProjectDetails"
-                checked={permissions.editProjectDetails}
-                onCheckedChange={(checked) => handlePermissionChange("editProjectDetails", checked)}
+                id="updateTask"
+                checked={permissions.updateTask}
+                onCheckedChange={(checked) => handlePermissionChange("updateTask", checked)}
               />
             </div>
+            
             <Separator />
+            
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="inviteMembers" className="font-medium">
-                  Invite Members
+                <Label htmlFor="createEvent" className="font-medium">
+                  Create Events
                 </Label>
-                <p className="text-sm text-muted-foreground">Allow member to invite new people to the project</p>
+                <p className="text-sm text-muted-foreground">
+                  Create new events with title, description, date, time, and location
+                </p>
               </div>
               <Switch
-                id="inviteMembers"
-                checked={permissions.inviteMembers}
-                onCheckedChange={(checked) => handlePermissionChange("inviteMembers", checked)}
+                id="createEvent"
+                checked={permissions.createEvent}
+                onCheckedChange={(checked) => handlePermissionChange("createEvent", checked)}
               />
             </div>
+            
             <Separator />
+            
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="deleteProject" className="font-medium text-red-600">
-                  Delete Project
+                <Label htmlFor="handleEvent" className="font-medium">
+                  Manage Events
                 </Label>
-                <p className="text-sm text-muted-foreground">Allow member to delete this project (use with caution)</p>
+                <p className="text-sm text-muted-foreground">
+                  Edit and delete event details
+                </p>
               </div>
               <Switch
-                id="deleteProject"
-                checked={permissions.deleteProject}
-                onCheckedChange={(checked) => handlePermissionChange("deleteProject", checked)}
+                id="handleEvent"
+                checked={permissions.handleEvent}
+                onCheckedChange={(checked) => handlePermissionChange("handleEvent", checked)}
+              />
+            </div>
+            
+            <Separator />
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="handleFile" className="font-medium">
+                  Manage Files
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Add and delete files and links
+                </p>
+              </div>
+              <Switch
+                id="handleFile"
+                checked={permissions.handleFile}
+                onCheckedChange={(checked) => handlePermissionChange("handleFile", checked)}
+              />
+            </div>
+            
+            <Separator />
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="viewFiles" className="font-medium">
+                  View Files
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  View and download files and links
+                </p>
+              </div>
+              <Switch
+                id="viewFiles"
+                checked={permissions.viewFiles}
+                onCheckedChange={(checked) => handlePermissionChange("viewFiles", checked)}
               />
             </div>
           </div>
         </div>
+        
         <DialogFooter className="flex justify-between sm:justify-between">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={isSaving}>
             <X className="mr-2 h-4 w-4" />
             Cancel
           </Button>
-          <Button onClick={handleSave}>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             <Check className="mr-2 h-4 w-4" />
             Save Permissions
           </Button>

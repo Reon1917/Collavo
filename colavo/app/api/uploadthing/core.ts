@@ -22,7 +22,7 @@ const authenticateUser = async (req: Request) => {
       name: session.user.name,
       email: session.user.email
     };
-  } catch {
+  } catch (error) {
     // Authentication failed
     throw new UploadThingError("Authentication failed. Please log in.");
   }
@@ -77,7 +77,7 @@ export const ourFileRouter = {
         if (!hasUploadPermission) {
           throw new UploadThingError("Insufficient permissions to upload files to this project.");
         }
-      } catch {
+      } catch (error) {
         // Permission check failed
         throw new UploadThingError("Unable to verify permissions. Access denied.");
       }

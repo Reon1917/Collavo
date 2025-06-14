@@ -15,6 +15,7 @@ export function SubTaskDetailsDialog({
   subTask,
   currentUserId,
   isProjectLeader,
+  userPermissions,
   projectId,
   mainTaskId,
   mainTaskDeadline,
@@ -38,7 +39,7 @@ export function SubTaskDetailsDialog({
     resetStatusForm,
     resetDetailsForm,
     handleDialogClose
-  } = useSubTaskDialog(subTask, currentUserId, isProjectLeader, isOpen);
+  } = useSubTaskDialog(subTask, currentUserId, isProjectLeader, userPermissions, isOpen);
 
   const {
     isLoading,

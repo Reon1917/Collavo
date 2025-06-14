@@ -92,7 +92,7 @@ export function TaskCard({
   };
 
   // Permission checks
-  const canModifyTask = project.isLeader || project.userPermissions.includes('updateTask') || task.createdBy === project.currentUserId;
+  const canModifyTask = project.isLeader || project.userPermissions.includes('handleTask');
   const canCreateSubtasks = project.isLeader || project.userPermissions.includes('createTask');
   const canViewAllTasks = project.isLeader || project.userPermissions.includes('viewFiles');
 

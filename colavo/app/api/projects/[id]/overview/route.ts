@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { projects, members, mainTasks, subTasks, user, events } from '@/db/schema';
+import { projects, members, mainTasks, subTasks, user, events, files } from '@/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { requireProjectAccess } from '@/lib/auth-helpers';
 
@@ -27,11 +27,12 @@ export async function GET(
     await requireProjectAccess(session.user.id, projectId);
     
     // Batch all overview data in parallel
-    const [projectData, tasksData, membersData, eventsData] = await Promise.all([
+    const [projectData, tasksData, membersData, eventsData, filesData] = await Promise.all([
       getProjectData(projectId, session.user.id),
       getProjectTasks(projectId),
       getProjectMembers(projectId),
       getProjectEvents(projectId),
+      getProjectFiles(projectId),
     ]);
 
     return NextResponse.json({
@@ -39,11 +40,13 @@ export async function GET(
       tasks: tasksData,
       members: membersData,
       events: eventsData,
+      files: filesData,
       stats: {
         totalTasks: tasksData.length,
         completedTasks: tasksData.filter((t: any) => t.status === 'completed').length,
         totalMembers: membersData.length,
         totalEvents: eventsData.length,
+        totalFiles: filesData.length,
         recentActivity: getRecentActivity(tasksData, membersData),
       }
     });
@@ -232,6 +235,29 @@ async function getProjectMembers(projectId: string) {
     .orderBy(desc(members.joinedAt));
 
   return projectMembers;
+}
+
+async function getProjectFiles(projectId: string) {
+  const projectFiles = await db
+    .select({
+      id: files.id,
+      name: files.name,
+      description: files.description,
+      url: files.url,
+      uploadThingId: files.uploadThingId,
+      size: files.size,
+      mimeType: files.mimeType,
+      addedAt: files.addedAt,
+      addedBy: files.addedBy,
+      addedByName: user.name,
+      addedByEmail: user.email,
+    })
+    .from(files)
+    .innerJoin(user, eq(user.id, files.addedBy))
+    .where(eq(files.projectId, projectId))
+    .orderBy(desc(files.addedAt));
+
+  return projectFiles;
 }
 
 function getRecentActivity(tasks: any[], members: any[]) {
