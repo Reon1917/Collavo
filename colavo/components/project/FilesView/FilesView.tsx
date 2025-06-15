@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileIcon, Plus, Upload, RefreshCw } from 'lucide-react';
+import { FolderIcon, Plus, Link, RefreshCw, FileText, ExternalLink } from 'lucide-react';
 import { ContentLoading } from '@/components/ui/content-loading';
 import { FileUploadModal } from './FileUploadModal';
 import { FileEditModal } from './FileEditModal';
@@ -205,7 +205,7 @@ export function FilesView({ projectId }: FilesViewProps) {
               Refresh
             </Button>
             <Button disabled variant="outline">
-              <Upload className="h-4 w-4 mr-2" />
+              <Link className="h-4 w-4 mr-2" />
               Upload File
             </Button>
             <Button disabled variant="outline">
@@ -237,7 +237,7 @@ export function FilesView({ projectId }: FilesViewProps) {
         <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
           <CardContent className="pt-6">
             <div className="text-center py-12">
-              <FileIcon className="h-16 w-16 text-amber-600 dark:text-amber-400 mx-auto mb-4" />
+              <FolderIcon className="h-16 w-16 text-amber-600 dark:text-amber-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-amber-900 dark:text-amber-100 mb-2">
                 Insufficient permissions to view files
               </h3>
@@ -260,15 +260,15 @@ export function FilesView({ projectId }: FilesViewProps) {
 
   return (
     <div className="space-y-6">
-      <header className="flex justify-between items-center">
+      <header className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Files & Resources</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage project files and external links</p>
+          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">Files & Resources</h1>
+          <p className="text-muted-foreground">Manage project files and external links</p>
         </div>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 hover:bg-primary/10"
             onClick={handleRefresh}
             disabled={isLoading}
           >
@@ -279,15 +279,15 @@ export function FilesView({ projectId }: FilesViewProps) {
             <>
               <Button 
                 variant="outline" 
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 hover:bg-primary/10"
                 onClick={() => setIsUploadModalOpen(true)}
               >
-                <Upload className="h-4 w-4" />
+                <Link className="h-4 w-4" />
                 Upload File
               </Button>
               <Button 
                 variant="outline"
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 hover:bg-primary/10"
                 onClick={() => setIsAddLinkModalOpen(true)}
               >
                 <Plus className="h-4 w-4" />
@@ -299,19 +299,21 @@ export function FilesView({ projectId }: FilesViewProps) {
       </header>
 
       {/* Filters Section */}
-      <FilesFilters
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        filterByUser={filterByUser}
-        setFilterByUser={setFilterByUser}
-        availableUsers={availableUsers}
-      />
+      <div className="mb-8">
+        <FilesFilters
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          filterByUser={filterByUser}
+          setFilterByUser={setFilterByUser}
+          availableUsers={availableUsers}
+        />
+      </div>
 
       {/* Files and Resources List */}
-      <section>
+      <section className="mt-8">
         {error && (
-          <Card className="mb-4">
-            <CardContent className="p-4">
+          <Card className="mb-4 border-[2px] border-dashed border-red-300 dark:border-red-700 bg-red-50/50 dark:bg-red-950/20 [border-spacing:4px]">
+            <CardContent className="p-3">
               <div className="text-red-600 dark:text-red-400 text-sm">
                 {error}
               </div>
@@ -320,27 +322,27 @@ export function FilesView({ projectId }: FilesViewProps) {
         )}
 
         {showNoUploadsMessage ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                <FileIcon className="h-8 w-8 text-gray-400" />
+          <Card className="border-[2px] border-dashed border-primary/40 bg-primary/5 dark:bg-primary/10 [border-spacing:4px]">
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 mx-auto mb-3 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center">
+                <FolderIcon className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-lg font-medium mb-2">No uploads from {selectedUser?.name}</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+              <h3 className="text-base font-medium mb-1">No uploads from {selectedUser?.name}</h3>
+              <p className="text-muted-foreground mb-4 max-w-md mx-auto text-sm">
                 {selectedUser?.name} hasn&apos;t uploaded any files or added any links to this project yet.
               </p>
             </CardContent>
           </Card>
         ) : filteredFiles.length === 0 && filteredLinks.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                <FileIcon className="h-8 w-8 text-gray-400" />
+          <Card className="border-[2px] border-dashed border-primary/40 bg-primary/5 dark:bg-primary/10 [border-spacing:4px]">
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 mx-auto mb-3 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center">
+                <FolderIcon className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-lg font-medium mb-2">
+              <h3 className="text-base font-medium mb-1">
                 {allItems.length === 0 ? "No files or links yet" : "No results found"}
               </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+              <p className="text-muted-foreground mb-4 max-w-md mx-auto text-sm">
                 {allItems.length === 0 
                   ? "Upload files or add links to Google Docs, Canva presentations, and other project resources."
                   : "Try adjusting your search or filter criteria to find what you&apos;re looking for."
@@ -350,15 +352,17 @@ export function FilesView({ projectId }: FilesViewProps) {
                 <div className="flex gap-2 justify-center">
                   <Button 
                     variant="outline" 
-                    className="flex items-center gap-2"
+                    size="sm"
+                    className="flex items-center gap-2 hover:bg-primary/10"
                     onClick={() => setIsUploadModalOpen(true)}
                   >
-                    <Upload className="h-4 w-4" />
+                    <Link className="h-4 w-4" />
                     Upload File
                   </Button>
                   <Button 
                     variant="outline"
-                    className="flex items-center gap-2"
+                    size="sm"
+                    className="flex items-center gap-2 hover:bg-primary/10"
                     onClick={() => setIsAddLinkModalOpen(true)}
                   >
                     <Plus className="h-4 w-4" />
@@ -370,28 +374,28 @@ export function FilesView({ projectId }: FilesViewProps) {
           </Card>
         ) : (
           /* Responsive Layout: Two columns on large screens, single column on small */
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Files Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Upload className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-2">
+                <FileText className="h-4 w-4 text-primary" />
+                <h2 className="text-base font-semibold">
                   Files ({filteredFiles.length})
                 </h2>
                 {allItems.filter(item => item.uploadThingId !== null).length !== filteredFiles.length && (
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                  <span className="text-sm text-muted-foreground">
                     of {allItems.filter(item => item.uploadThingId !== null).length}
                   </span>
                 )}
               </div>
               
               {filteredFiles.length === 0 ? (
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <div className="w-12 h-12 mx-auto mb-3 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                      <Upload className="h-6 w-6 text-gray-400" />
+                <Card className="border-[2px] border-dashed border-primary/40 bg-primary/5 dark:bg-primary/10 [border-spacing:4px]">
+                  <CardContent className="p-4 text-center">
+                    <div className="w-10 h-10 mx-auto mb-2 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center">
+                      <FileText className="h-5 w-5 text-primary" />
                     </div>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
+                    <p className="text-muted-foreground text-sm mb-3">
                       {allItems.filter(item => item.uploadThingId !== null).length === 0 
                         ? "No files uploaded yet"
                         : "No files match your current filters"
@@ -401,17 +405,17 @@ export function FilesView({ projectId }: FilesViewProps) {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 hover:bg-primary/10"
                         onClick={() => setIsUploadModalOpen(true)}
                       >
-                        <Upload className="h-4 w-4" />
+                        <Link className="h-4 w-4" />
                         Upload File
                       </Button>
                     )}
                   </CardContent>
                 </Card>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {filteredFiles.map((file) => (
                     <FileCard 
                       key={file.id} 
@@ -428,26 +432,26 @@ export function FilesView({ projectId }: FilesViewProps) {
             </div>
 
             {/* Links Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Plus className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-2">
+                <ExternalLink className="h-4 w-4 text-primary" />
+                <h2 className="text-base font-semibold">
                   Links ({filteredLinks.length})
                 </h2>
                 {allItems.filter(item => item.uploadThingId === null).length !== filteredLinks.length && (
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                  <span className="text-sm text-muted-foreground">
                     of {allItems.filter(item => item.uploadThingId === null).length}
                   </span>
                 )}
               </div>
               
               {filteredLinks.length === 0 ? (
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <div className="w-12 h-12 mx-auto mb-3 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
-                      <Plus className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                <Card className="border-[2px] border-dashed border-primary/40 bg-primary/5 dark:bg-primary/10 [border-spacing:4px]">
+                  <CardContent className="p-4 text-center">
+                    <div className="w-10 h-10 mx-auto mb-2 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center">
+                      <ExternalLink className="h-5 w-5 text-primary" />
                     </div>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
+                    <p className="text-muted-foreground text-sm mb-3">
                       {allItems.filter(item => item.uploadThingId === null).length === 0 
                         ? "No links added yet"
                         : "No links match your current filters"
@@ -457,7 +461,7 @@ export function FilesView({ projectId }: FilesViewProps) {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 hover:bg-primary/10"
                         onClick={() => setIsAddLinkModalOpen(true)}
                       >
                         <Plus className="h-4 w-4" />
@@ -467,7 +471,7 @@ export function FilesView({ projectId }: FilesViewProps) {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {filteredLinks.map((link) => (
                     <LinkCard 
                       key={link.id} 
