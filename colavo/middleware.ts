@@ -24,11 +24,6 @@ export async function middleware(request: NextRequest) {
     '/forgot-password',
   ]);
   
-  // Check if the current path is a public route
-  if (publicRoutes.has(pathname)) {
-    return NextResponse.next();
-  }
-
   try {
     if (isDev) {
       console.log('[Middleware] Checking auth for path:', pathname);
@@ -47,7 +42,20 @@ export async function middleware(request: NextRequest) {
       });
     }
     
-    // If no valid session, redirect to login
+    // Handle public routes
+    if (publicRoutes.has(pathname)) {
+      // If user is authenticated and on a public route, redirect to dashboard
+      if (session?.user) {
+        if (isDev) {
+          console.log('[Middleware] Authenticated user on public route, redirecting to dashboard');
+        }
+        return NextResponse.redirect(new URL('/dashboard', request.url));
+      }
+      // If not authenticated, allow access to public routes
+      return NextResponse.next();
+    }
+    
+    // For protected routes, check authentication
     if (!session?.user) {
       if (isDev) {
         console.log('[Middleware] No valid session, redirecting to login');
