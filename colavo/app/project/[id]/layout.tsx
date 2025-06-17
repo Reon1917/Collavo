@@ -3,6 +3,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Home, Users, FileText, FolderOpen, Calendar, ChevronRight } from 'lucide-react';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 import { ChatButton } from '@/components/project/chat-button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -17,7 +18,30 @@ interface Project {
   description?: string;
 }
 
-function SimpleBreadcrumb({ projectName, currentSection }: { projectName: string | undefined; currentSection: string | undefined }) {
+interface SimpleBreadcrumbProps {
+  projectName: string;
+}
+
+function SimpleBreadcrumb({ projectName }: SimpleBreadcrumbProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get('tab') || 'overview';
+
+  const getTabLabel = (tab: string) => {
+    switch (tab) {
+      case 'tasks':
+        return 'Tasks';
+      case 'events':
+        return 'Events';
+      case 'members':
+        return 'Members';
+      case 'files':
+        return 'Files';
+      default:
+        return 'Overview';
+    }
+  };
+
   return (
     <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-3">
       <Link 
@@ -39,14 +63,14 @@ function SimpleBreadcrumb({ projectName, currentSection }: { projectName: string
       <ChevronRight className="h-4 w-4 mx-2.5 text-gray-400 dark:text-gray-600" />
       
       <span className="font-semibold text-[#008080] dark:text-[#00FFFF]">
-        {projectName || 'Project'}
+        {projectName}
       </span>
 
-      {currentSection && (
+      {currentTab && currentTab !== 'overview' && (
         <>
           <ChevronRight className="h-4 w-4 mx-2.5 text-gray-400 dark:text-gray-600" />
-          <span className="font-semibold text-[#008080] dark:text-[#00FFFF] capitalize">
-            {currentSection}
+          <span className="font-semibold text-[#008080] dark:text-[#00FFFF]">
+            {getTabLabel(currentTab)}
           </span>
         </>
       )}
@@ -96,7 +120,7 @@ function ProjectHeader({ projectId }: { projectId: string }) {
     <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
       <div className="container mx-auto px-6 py-7">
         {/* Add breadcrumb navigation above project header */}
-        <SimpleBreadcrumb projectName={project?.name} currentSection={currentSection} />
+        <SimpleBreadcrumb projectName={project?.name || `Project ${projectId}`} />
         
         <div className="flex items-center justify-between mt-3">
           <div className="flex items-center gap-4">
