@@ -266,15 +266,6 @@ export function FilesView({ projectId }: FilesViewProps) {
           <p className="text-muted-foreground">Manage project files and external links</p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2 hover:bg-primary/10"
-            onClick={handleRefresh}
-            disabled={isLoading}
-          >
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
           {canManageFiles && (
             <>
               <Button 

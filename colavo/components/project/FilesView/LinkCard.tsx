@@ -72,23 +72,23 @@ export function LinkCard({ link, onClick, onEdit, onDelete }: LinkCardProps) {
 
   return (
     <Card 
-      className="hover:shadow-md transition-all duration-200 cursor-pointer group border-gray-200 dark:border-gray-700 hover:border-purple-200 dark:hover:border-purple-800"
+      className="bg-white dark:bg-gray-900/50 hover:shadow-md transition-all duration-200 cursor-pointer group border border-gray-200 dark:border-gray-700 hover:border-primary/50 dark:hover:border-primary/50 h-[140px]"
       onClick={handleClick}
     >
-      <CardContent className="p-4">
-        <div className="flex items-start gap-4">
+      <CardContent className="p-4 h-full">
+        <div className="flex items-start gap-4 h-full">
           {/* Link Icon */}
           <div className="flex-shrink-0">
-            <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
-              <LinkIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            <div className="w-8 h-8 bg-primary/10 dark:bg-primary/20 rounded-lg flex items-center justify-center">
+              <LinkIcon className="h-5 w-5 text-primary dark:text-primary" />
             </div>
           </div>
 
           {/* Link Details */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2 mb-2">
+          <div className="flex-1 min-w-0 flex flex-col justify-between h-full">
+            <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-gray-900 dark:text-white truncate group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                <h3 className="font-medium text-gray-900 dark:text-white truncate group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
                   {link.name}
                 </h3>
                 {link.description && (
@@ -97,7 +97,7 @@ export function LinkCard({ link, onClick, onEdit, onDelete }: LinkCardProps) {
                   </p>
                 )}
                 <div className="flex items-center gap-1 mt-2">
-                  <ExternalLink className="h-3 w-3 text-gray-400" />
+                  <ExternalLink className="h-3 w-3 text-primary/60" />
                   <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
                     {getDomainFromUrl(link.url)}
                   </span>
@@ -146,7 +146,7 @@ export function LinkCard({ link, onClick, onEdit, onDelete }: LinkCardProps) {
             </div>
 
             {/* Link Metadata */}
-            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mt-auto">
               {/* Added By */}
               <div className="flex items-center gap-1">
                 <User className="h-3 w-3" />
