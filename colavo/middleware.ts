@@ -24,14 +24,42 @@ export async function middleware(request: NextRequest) {
     '/forgot-password',
   ]);
   
-  // Check if the current path is a public route
+  // Handle public routes FIRST - no auth check needed
   if (publicRoutes.has(pathname)) {
+    if (isDev) {
+      console.log('[Middleware] Public route accessed:', pathname);
+    }
+    
+    // For public routes, only check auth if we want to redirect authenticated users
+    // Use a non-throwing approach to avoid breaking public access
+    try {
+      const session = await auth.api.getSession({
+        headers: request.headers
+      });
+      
+      // If user is authenticated and on a public route, redirect to dashboard
+      if (session?.user) {
+        if (isDev) {
+          console.log('[Middleware] Authenticated user on public route, redirecting to dashboard');
+        }
+        return NextResponse.redirect(new URL('/dashboard', request.url));
+      }
+    } catch (error) {
+      // If auth check fails on public routes, just log and continue
+      // This ensures public routes remain accessible even if auth service is down
+      if (isDev) {
+        console.log('[Middleware] Auth check failed on public route, allowing access anyway:', error);
+      }
+    }
+    
+    // Allow access to public routes regardless of auth status
     return NextResponse.next();
   }
-
+  
+  // For protected routes, perform auth check
   try {
     if (isDev) {
-      console.log('[Middleware] Checking auth for path:', pathname);
+      console.log('[Middleware] Checking auth for protected path:', pathname);
     }
     
     // Use better-auth's built-in session verification
@@ -67,8 +95,8 @@ export async function middleware(request: NextRequest) {
     return response;
     
   } catch (error) {
-    console.error('[Middleware] Auth error:', error);
-    // On error, redirect to login
+    console.error('[Middleware] Auth error on protected route:', error);
+    // On error for protected routes, redirect to login
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(loginUrl);
