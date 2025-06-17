@@ -85,12 +85,6 @@ export function FilesFilters({
             </Badge>
           )}
         </div>
-
-        {/* Right Side - Stats */}
-        <div className="flex items-center gap-2 text-sm text-primary">
-          <Filter className="w-4 h-4" />
-          <span>{availableUsers.length} member{availableUsers.length !== 1 ? 's' : ''}</span>
-        </div>
       </div>
 
       {/* Search active indicator */}
