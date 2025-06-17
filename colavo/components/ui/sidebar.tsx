@@ -98,11 +98,11 @@ export const DesktopSidebar = ({
     <>
       <motion.div
         className={cn(
-          "h-screen px-4 py-4 hidden md:flex md:flex-col bg-white dark:bg-gray-900 w-[300px] shrink-0 border-r border-gray-200 dark:border-gray-700 fixed top-0 left-0 z-40",
+          "h-screen px-2 py-6 hidden md:flex md:flex-col bg-white dark:bg-gray-900 w-[300px] shrink-0 border-r border-gray-200 dark:border-gray-700 fixed top-0 left-0 z-40",
           className
         )}
         animate={{
-          width: animate ? (open ? "300px" : "60px") : "300px",
+          width: animate ? (open ? "300px" : "72px") : "300px",
         }}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
@@ -235,16 +235,16 @@ export const SidebarLink = ({
     <Link
       href={link.href}
       className={cn(
-        "flex items-center justify-start gap-2 group/sidebar py-3 px-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#008080]/20 dark:focus:ring-[#00FFFF]/20",
+        "flex items-center justify-start gap-3 group/sidebar py-3 px-4 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#008080]/20 dark:focus:ring-[#00FFFF]/20 relative overflow-hidden",
         isActive 
-          ? "text-[#008080] dark:text-[#00FFFF] bg-[#008080]/10 dark:bg-[#00FFFF]/10 border border-[#008080]/20 dark:border-[#00FFFF]/20" 
-          : "text-gray-700 dark:text-gray-300 hover:text-[#008080] dark:hover:text-[#00FFFF] hover:bg-[#008080]/10 dark:hover:bg-[#00FFFF]/10",
+          ? "text-[#008080] dark:text-[#00FFFF] bg-[#008080]/10 dark:bg-[#00FFFF]/10 border border-[#008080]/20 dark:border-[#00FFFF]/20 shadow-sm" 
+          : "text-gray-700 dark:text-gray-300 hover:text-[#008080] dark:hover:text-[#00FFFF] hover:bg-[#008080]/5 dark:hover:bg-[#00FFFF]/5",
         className
       )}
       {...props}
     >
       <div className={cn(
-        "transition-colors duration-200",
+        "flex items-center justify-center w-10 h-10 transition-all duration-300",
         isActive 
           ? "text-[#008080] dark:text-[#00FFFF]" 
           : "text-gray-500 dark:text-gray-400 group-hover/sidebar:text-[#008080] dark:group-hover/sidebar:text-[#00FFFF]"
@@ -256,14 +256,20 @@ export const SidebarLink = ({
         animate={{
           display: animate ? (open ? "inline-block" : "none") : "inline-block",
           opacity: animate ? (open ? 1 : 0) : 1,
+          x: animate ? (open ? 0 : -10) : 0,
         }}
+        transition={{ duration: 0.2 }}
         className={cn(
-          "font-medium group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block !p-0 !m-0",
+          "font-medium whitespace-pre inline-block !p-0 !m-0 transition-all duration-300",
           isActive ? "text-[#008080] dark:text-[#00FFFF]" : ""
         )}
       >
         <span>{link.label}</span>
       </motion.span>
+
+      {isActive && (
+        <div className="absolute inset-0 bg-gradient-to-r from-[#008080]/5 to-[#008080]/10 dark:from-[#00FFFF]/5 dark:to-[#00FFFF]/10 pointer-events-none" />
+      )}
     </Link>
   );
 };
