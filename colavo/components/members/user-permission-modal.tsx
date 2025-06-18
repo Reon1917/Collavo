@@ -150,7 +150,7 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
       }
       
       onClose()
-    } catch (error) {
+    } catch {
       toast.error('Failed to update permissions')
     } finally {
       setIsSaving(false)

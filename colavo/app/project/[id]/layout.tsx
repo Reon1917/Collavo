@@ -3,7 +3,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Home, Users, FileText, FolderOpen, Calendar, ChevronRight } from 'lucide-react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 import { ChatButton } from '@/components/project/chat-button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -23,7 +23,6 @@ interface SimpleBreadcrumbProps {
 }
 
 function SimpleBreadcrumb({ projectName }: SimpleBreadcrumbProps) {
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentTab = searchParams.get('tab') || 'overview';
 
@@ -81,7 +80,6 @@ function SimpleBreadcrumb({ projectName }: SimpleBreadcrumbProps) {
 function ProjectHeader({ projectId }: { projectId: string }) {
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentSection, setCurrentSection] = useState<string | undefined>();
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -109,12 +107,7 @@ function ProjectHeader({ projectId }: { projectId: string }) {
     fetchProject();
   }, [projectId]);
 
-  // Get current section from URL
-  useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const tab = searchParams.get('tab');
-    setCurrentSection(tab || undefined);
-  }, []);
+
 
   return (
     <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">

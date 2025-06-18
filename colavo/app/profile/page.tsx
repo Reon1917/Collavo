@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, Users, FolderOpen, CheckSquare, Clock, Calendar, Award, User, Lock, LogOut, Trash2 } from 'lucide-react';
+import { ArrowLeft, User, Lock, LogOut, Trash2 } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { toast } from 'sonner';
 
@@ -50,15 +50,7 @@ export default function ProfilePage() {
     return null; // Will redirect in useEffect
   }
 
-  // Mock stats - these would come from your database in a real app
-  const stats = {
-    totalProjects: 0,
-    activeProjects: 0,
-    completedTasks: 0,
-    pendingTasks: 0,
-    teamMembers: 0,
-    hoursLogged: 0,
-  };
+
 
   return (
     <div className="min-h-screen bg-[#f9f8f0] dark:bg-gray-950">

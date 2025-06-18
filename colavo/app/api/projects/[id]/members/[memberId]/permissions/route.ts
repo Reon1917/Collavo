@@ -178,7 +178,7 @@ export async function PUT(
       permissions: grantedPermissions
     });
 
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

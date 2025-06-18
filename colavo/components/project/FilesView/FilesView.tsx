@@ -181,9 +181,7 @@ export function FilesView({ projectId }: FilesViewProps) {
     setIsDeleteModalOpen(true);
   };
 
-  const handleRefresh = () => {
-    Promise.all([fetchFiles(), fetchProjectMembers(), fetchProjectData()]);
-  };
+
 
   // Permission checks
   const canManageFiles = isLeader || userPermissions.includes('handleFile');
