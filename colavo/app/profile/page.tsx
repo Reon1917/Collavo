@@ -20,7 +20,6 @@ export default function ProfilePage() {
     try {
       await authClient.signOut();
       await refetch();
-      router.push('/');
       toast.success('Logged out successfully');
     } catch {
       toast.error('Error logging out');
