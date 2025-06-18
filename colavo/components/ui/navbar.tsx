@@ -41,30 +41,14 @@ export function Navbar() {
     <nav className="bg-white dark:bg-gray-950 border-b border-[#e5e4dd] dark:border-gray-800 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Left side - Logo and Navigation */}
-          <div className="flex items-center space-x-8">
+          {/* Left side - Logo */}
+          <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-[#008080] rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">C</span>
               </div>
               <span className="text-xl font-bold text-gray-900 dark:text-white">Collavo</span>
             </Link>
-            
-            {/* Quick Navigation */}
-            <div className="hidden md:flex items-center space-x-6">
-              <Link 
-                href="/#features" 
-                className="text-gray-700 dark:text-gray-300 hover:text-[#008080] dark:hover:text-[#00FFFF] font-medium transition-colors"
-              >
-                Features
-              </Link>
-              <Link 
-                href="/#how-it-works" 
-                className="text-gray-700 dark:text-gray-300 hover:text-[#008080] dark:hover:text-[#00FFFF] font-medium transition-colors"
-              >
-                How It Works
-              </Link>
-            </div>
           </div>
 
           {/* Right side - Actions and User */}
@@ -113,13 +97,10 @@ export function Navbar() {
             ) : (
               <div className="flex items-center space-x-2">
                 <Button variant="ghost" asChild>
-                  <Link href="/login">
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Sign In
-                  </Link>
+                  <Link href="/login">Sign In</Link>
                 </Button>
                 <Button asChild className="bg-[#008080] hover:bg-[#008080]/90 dark:bg-[#008080] dark:hover:bg-[#008080]/70">
-                  <Link href="/signup">Get Started</Link>
+                  <Link href="/signup">Sign Up</Link>
                 </Button>
               </div>
             )}
@@ -142,21 +123,6 @@ export function Navbar() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-[#e5e4dd] dark:border-gray-800 py-4">
             <div className="flex flex-col space-y-4">
-              <Link 
-                href="/#features" 
-                className="text-gray-700 dark:text-gray-300 hover:text-[#008080] dark:hover:text-[#00FFFF] font-medium transition-colors py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Features
-              </Link>
-              <Link 
-                href="/#how-it-works" 
-                className="text-gray-700 dark:text-gray-300 hover:text-[#008080] dark:hover:text-[#00FFFF] font-medium transition-colors py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                How It Works
-              </Link>
-              
               {isAuthenticated && user ? (
                 <>
                   <div className="border-t border-[#e5e4dd] dark:border-gray-800 pt-4">
@@ -205,7 +171,7 @@ export function Navbar() {
                     </Link>
                   </Button>
                   <Button className="bg-[#008080] hover:bg-[#008080]/90 dark:bg-[#008080] dark:hover:bg-[#008080]/70 text-white" asChild>
-                    <Link href="/signup">Get Started</Link>
+                    <Link href="/signup">Sign Up</Link>
                   </Button>
                 </>
               )}
