@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { ChangePasswordModal } from '@/components/ui/change-password-modal';
 import Link from 'next/link';
 import { ArrowLeft, User, Lock, LogOut, Trash2 } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
@@ -17,6 +18,7 @@ export default function ProfilePage() {
   const { user, isAuthenticated, isLoading, refetch } = useAuth();
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleSignOut = async () => {
@@ -159,6 +161,7 @@ export default function ProfilePage() {
                   <Button 
                     variant="outline" 
                     className="h-auto py-4 px-6 border-[#008080] dark:border-[#00FFFF] text-[#008080] dark:text-[#00FFFF] hover:bg-[#008080]/10 dark:hover:bg-[#00FFFF]/10 transition-colors rounded-lg"
+                    onClick={() => setShowChangePasswordModal(true)}
                   >
                     <div className="flex flex-col items-center space-y-2">
                       <Lock className="h-5 w-5" />
@@ -192,6 +195,12 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={showChangePasswordModal}
+        onOpenChange={setShowChangePasswordModal}
+      />
 
       {/* Delete Account Confirmation Dialog */}
       <ConfirmationDialog
