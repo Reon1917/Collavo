@@ -4,7 +4,7 @@ import { db } from '@/db';
 import { members, permissions, user, mainTasks, subTasks, events, files } from '@/db/schema';
 import { createId } from '@paralleldrive/cuid2';
 import { eq, and } from 'drizzle-orm';
-import { requireProjectAccess, hasPermission } from '@/lib/auth-helpers';
+import { requireProjectAccess, hasPermission, checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
 
 // GET /api/projects/[id]/members - List project members
 export async function GET(
@@ -103,12 +103,13 @@ export async function POST(
 
     const { id: projectId } = await params;
 
-    // Check if user has addMember permission
-    const canAddMembers = await hasPermission(session.user.id, projectId, 'addMember');
-    if (!canAddMembers) {
+    // Check if user has addMember permission with detailed error info
+    const permissionCheck = await checkPermissionDetailed(session.user.id, projectId, 'addMember');
+    if (!permissionCheck.hasPermission) {
+      const statusCode = permissionCheck.errorType === 'INVALID_PROJECT' ? 404 : 403;
       return NextResponse.json(
-        { error: 'Insufficient permissions to add members' },
-        { status: 403 }
+        createPermissionErrorResponse(permissionCheck),
+        { status: statusCode }
       );
     }
 

@@ -4,7 +4,7 @@ import { db } from '@/db';
 import { files, user } from '@/db/schema';
 import { createId } from '@paralleldrive/cuid2';
 import { eq, desc } from 'drizzle-orm';
-import { requireProjectAccess, hasPermission } from '@/lib/auth-helpers';
+import { requireProjectAccess, hasPermission, checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
 
 // GET /api/projects/[id]/files - List project files
 export async function GET(
@@ -108,11 +108,12 @@ export async function POST(
     // Check if user has access to project and can handle files
     await requireProjectAccess(session.user.id, projectId);
     
-    const hasHandleFilesPermission = await hasPermission(session.user.id, projectId, 'handleFile');
-    if (!hasHandleFilesPermission) {
+    const permissionCheck = await checkPermissionDetailed(session.user.id, projectId, 'handleFile');
+    if (!permissionCheck.hasPermission) {
+      const statusCode = permissionCheck.errorType === 'INVALID_PROJECT' ? 404 : 403;
       return NextResponse.json(
-        { error: 'Insufficient permissions to upload files' },
-        { status: 403 }
+        createPermissionErrorResponse(permissionCheck),
+        { status: statusCode }
       );
     }
 

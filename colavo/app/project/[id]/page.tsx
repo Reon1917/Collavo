@@ -4,6 +4,7 @@ import { use, useEffect, lazy, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { OverviewView } from '@/components/project/OverviewView';
 import { useTabPreloader } from '@/hooks/shared/useTabPreloader';
+import { useProjectData } from '@/hooks/shared/useProjectData';
 import { ContentLoading } from '@/components/ui/content-loading';
 
 // Lazy load heavy components
@@ -23,6 +24,9 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   const pathname = usePathname();
 
   const activeTab = searchParams.get('tab') || 'overview';
+
+  // Get project data and permission refresh function
+  const { refreshPermissions } = useProjectData(projectId);
 
   // Preload other tab data in background
   useTabPreloader({ 
@@ -64,7 +68,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       case 'members':
         return (
           <Suspense fallback={<ContentLoading size="md" message="Loading members..." />}>
-            <MembersView projectId={projectId} />
+            <MembersView projectId={projectId} onPermissionRefresh={refreshPermissions} />
           </Suspense>
         );
       case 'files':
