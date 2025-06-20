@@ -51,7 +51,7 @@ export const auth = betterAuth({
     enabled: true,
     autoSignIn: true,
     requireEmailVerification: false, // Set to true in production
-    sendResetPassword: async ({ user, url, token }, request) => {
+    sendResetPassword: async ({ user, token }) => {
       // Create a proper reset URL that points to our reset password page
       const baseUrl = envConfig.BETTER_AUTH_URL || 
         (envConfig.NODE_ENV === "production" 
@@ -63,7 +63,9 @@ export const auth = betterAuth({
       
       // For now, we'll just log the reset URL
       // In production, you would send this via email
+      // eslint-disable-next-line no-console
       console.log(`Password reset link for ${user.email}: ${resetUrl}`);
+      // eslint-disable-next-line no-console
       console.log(`Reset token: ${token}`);
       
       // TODO: Implement actual email sending

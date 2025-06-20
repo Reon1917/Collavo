@@ -12,7 +12,8 @@ import { ViewSelector } from '@/components/project/OverviewView/components/ViewS
 import { TimelineView } from '@/components/project/OverviewView/components/TimelineView';
 import { GraphView } from '@/components/project/OverviewView/components/GraphView';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { toast } from 'sonner';
 
 interface OverviewTabProps {
   project: Project;
@@ -223,7 +224,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
                 {files.length > 0 ? (
                   <div className="space-y-4">
                     {files.slice(0, 3).map((file) => (
-                      <FilePreviewCard key={file.id} file={file} />
+                      <FilePreviewCard key={file.id} file={file} projectId={project.id} />
                     ))}
                   </div>
                 ) : (
@@ -459,12 +460,42 @@ function TaskPreviewCard({ task, project }: { task: Task; project: Project }) {
   );
 }
 
-function FilePreviewCard({ file }: { file: any }) {
+function FilePreviewCard({ file, projectId }: { file: any; projectId: string }) {
   const isLink = !file.uploadThingId;
   const fileSize = file.size ? `${Math.round(file.size / 1024)}KB` : null;
   
+  // Permission validation for file/link access
+  const handleClick = useCallback(async () => {
+    try {
+      // Validate current permissions before allowing access
+      const response = await fetch(`/api/projects/${projectId}/overview`);
+      if (!response.ok) {
+        toast.error('Permission denied');
+        return;
+      }
+      
+      const data = await response.json();
+      const currentPermissions = data.project?.userPermissions || [];
+      const currentIsLeader = data.project?.isLeader || false;
+      
+      // Check if user still has permission to view files
+      if (!currentIsLeader && !currentPermissions.includes('viewFiles')) {
+        toast.error(`You no longer have permission to access this ${isLink ? 'link' : 'file'}`);
+        return;
+      }
+      
+      // If permission check passes, open the file/link
+      window.open(file.url, '_blank', 'noopener,noreferrer');
+    } catch {
+      toast.error('Failed to verify permissions');
+    }
+  }, [file.url, projectId, isLink]);
+  
   return (
-    <div className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-4 hover:shadow-sm hover:border-gray-200 dark:hover:border-gray-700 transition-all">
+    <div 
+      className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-4 hover:shadow-sm hover:border-gray-200 dark:hover:border-gray-700 transition-all cursor-pointer group"
+      onClick={handleClick}
+    >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-start gap-3 flex-1 min-w-0">
           <div className="flex-shrink-0">
@@ -475,7 +506,7 @@ function FilePreviewCard({ file }: { file: any }) {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-gray-900 dark:text-white truncate mb-1">{file.name}</h3>
+            <h3 className="font-medium text-gray-900 dark:text-white truncate mb-1 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">{file.name}</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               Added by {file.addedByName} • {new Date(file.addedAt).toLocaleDateString()}
             </p>
@@ -496,4 +527,4 @@ function FilePreviewCard({ file }: { file: any }) {
       )}
     </div>
   );
-} 
+}

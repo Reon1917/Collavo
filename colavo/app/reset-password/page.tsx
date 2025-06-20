@@ -1,18 +1,17 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Eye, EyeOff, Lock, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
-import { authClient } from '@/lib/auth-client';
+// Removed authClient import as we're using fetch API directly
 import { toast } from 'sonner';
 
 export default function ResetPasswordPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [newPassword, setNewPassword] = useState('');
@@ -93,6 +92,7 @@ export default function ResetPasswordPage() {
         toast.success('Password reset successfully!');
       }
     } catch (error: any) {
+      // eslint-disable-next-line no-console
       console.error('Password reset error:', error);
       toast.error('Failed to reset password. Please try again.');
     } finally {
@@ -189,7 +189,8 @@ export default function ResetPasswordPage() {
                   onChange={(e) => {
                     setNewPassword(e.target.value);
                     if (errors.newPassword) {
-                      const { newPassword, ...rest } = errors;
+                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                      const { newPassword: _, ...rest } = errors;
                       setErrors(rest);
                     }
                   }}
@@ -232,7 +233,8 @@ export default function ResetPasswordPage() {
                   onChange={(e) => {
                     setConfirmPassword(e.target.value);
                     if (errors.confirmPassword) {
-                      const { confirmPassword, ...rest } = errors;
+                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                      const { confirmPassword: _, ...rest } = errors;
                       setErrors(rest);
                     }
                   }}

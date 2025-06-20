@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
     );
 
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Session check error:', error);
     return NextResponse.json(
       { error: 'Session validation failed' },

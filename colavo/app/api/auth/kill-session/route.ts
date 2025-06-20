@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
     return response;
 
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Kill session error:', error);
     
     // Even if there's an error, return success and clear cookies

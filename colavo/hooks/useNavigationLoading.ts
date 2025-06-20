@@ -1,23 +1,14 @@
-import { useEffect, useState } from 'react';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useNavigationStore } from '@/lib/stores/navigation-store';
 
 export const useNavigationLoading = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const [isLoading] = useState(false);
 
-  useEffect(() => {
-    const handleStart = () => setIsLoading(true);
-    const handleComplete = () => setIsLoading(false);
-
-    // Listen for route changes (if using app router with client navigation)
-    // This is a basic implementation - you might need to adjust based on your routing setup
-    
-    return () => {
-      // Clean up listeners if needed
-    };
-  }, []);
-
+  // Simple hook that returns loading state
+  // Currently not implementing actual navigation loading detection
+  // Can be extended in the future if needed
+  
   return isLoading;
 };
 

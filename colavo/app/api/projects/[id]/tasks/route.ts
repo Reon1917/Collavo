@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { mainTasks, subTasks, user } from '@/db/schema';
 import { createId } from '@paralleldrive/cuid2';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { requireProjectAccess, checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
 
 // GET /api/projects/[id]/tasks - List project main tasks
@@ -26,7 +26,7 @@ export async function GET(
     const { id: projectId } = await params;
     
     // Use centralized access control
-    const access = await requireProjectAccess(session.user.id, projectId);
+    await requireProjectAccess(session.user.id, projectId);
 
     // All project members can see all tasks
     const projectTasks = await db

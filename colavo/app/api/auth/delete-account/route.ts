@@ -13,7 +13,7 @@ import {
   files,
   verification
 } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { UTApi } from 'uploadthing/server';
 
 const utapi = new UTApi();
@@ -56,6 +56,7 @@ export async function DELETE(request: NextRequest) {
         await utapi.deleteFiles(uploadThingIds);
       } catch (error) {
         // Log error but continue with database deletion
+        // eslint-disable-next-line no-console
         console.error('Failed to delete some files from UploadThing:', error);
       }
     }
@@ -158,6 +159,7 @@ export async function DELETE(request: NextRequest) {
     });
 
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Account deletion error:', error);
     return NextResponse.json(
       { error: 'Internal server error during account deletion' },

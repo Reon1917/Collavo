@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Reset password API error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -57,7 +58,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Call better-auth's resetPassword method
-    const result = await auth.api.resetPassword({
+    await auth.api.resetPassword({
       body: { token, newPassword },
       headers: request.headers,
     });
@@ -68,6 +69,7 @@ export async function PATCH(request: NextRequest) {
     });
 
   } catch (error: any) {
+    // eslint-disable-next-line no-console
     console.error('Password reset error:', error);
     
     // Handle specific better-auth errors

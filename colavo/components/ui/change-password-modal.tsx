@@ -89,6 +89,7 @@ export function ChangePasswordModal({
       resetForm();
       onOpenChange(false);
     } catch (error: any) {
+      // eslint-disable-next-line no-console
       console.error('Password change error:', error);
       
       // Handle specific error cases
@@ -120,7 +121,7 @@ export function ChangePasswordModal({
             Change Password
           </DialogTitle>
           <DialogDescription className="text-gray-600 dark:text-gray-400">
-            Update your account password. You'll remain signed in on this device.
+            Update your account password. You&apos;ll remain signed in on this device.
           </DialogDescription>
         </DialogHeader>
 
@@ -138,7 +139,8 @@ export function ChangePasswordModal({
                                  onChange={(e) => {
                    setCurrentPassword(e.target.value);
                    if (errors.currentPassword) {
-                     const { currentPassword, ...rest } = errors;
+                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                     const { currentPassword: _, ...rest } = errors;
                      setErrors(rest);
                    }
                  }}
@@ -178,7 +180,8 @@ export function ChangePasswordModal({
                                  onChange={(e) => {
                    setNewPassword(e.target.value);
                    if (errors.newPassword) {
-                     const { newPassword, ...rest } = errors;
+                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                     const { newPassword: _, ...rest } = errors;
                      setErrors(rest);
                    }
                  }}
@@ -220,7 +223,8 @@ export function ChangePasswordModal({
                                  onChange={(e) => {
                    setConfirmPassword(e.target.value);
                    if (errors.confirmPassword) {
-                     const { confirmPassword, ...rest } = errors;
+                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                     const { confirmPassword: _, ...rest } = errors;
                      setErrors(rest);
                    }
                  }}
@@ -250,7 +254,7 @@ export function ChangePasswordModal({
           {/* Forgot Password Link */}
           <div className="text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Can't remember your current password?{' '}
+              Can&apos;t remember your current password?{' '}
               <Link 
                 href="/forgot-password" 
                 className="text-[#008080] hover:text-[#008080]/80 dark:text-[#00FFFF] dark:hover:text-[#00FFFF]/80 font-medium transition-colors"
