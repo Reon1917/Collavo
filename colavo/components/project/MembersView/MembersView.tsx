@@ -7,7 +7,7 @@ import { useMembersData } from './hooks';
 import { MembersHeader, MemberCard, EmptyState } from './components';
 import type { MembersViewProps } from './types';
 
-export function MembersView({ projectId }: MembersViewProps) {
+export function MembersView({ projectId, onPermissionRefresh }: MembersViewProps) {
   const { members, permissions, currentUserId, isLoading, refreshMembers } = useMembersData(projectId);
 
   if (isLoading) {
@@ -42,6 +42,8 @@ export function MembersView({ projectId }: MembersViewProps) {
         onMemberAdded={refreshMembers}
       />
 
+
+
       {members.length === 0 ? (
         <EmptyState 
           projectId={projectId}
@@ -59,6 +61,7 @@ export function MembersView({ projectId }: MembersViewProps) {
               currentUserId={currentUserId}
               onMemberRemoved={refreshMembers}
               onMemberUpdated={refreshMembers}
+              onPermissionRefresh={onPermissionRefresh}
             />
           ))}
         </div>

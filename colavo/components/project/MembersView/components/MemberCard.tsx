@@ -7,6 +7,7 @@ import { Crown, User, UserMinus, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { PermissionModal } from '@/components/members/user-permission-modal';
+import { makePermissionAwareRequest } from '@/utils/permissions';
 import type { Member, ProjectPermissions } from '../types';
 
 interface MemberCardProps {
@@ -16,6 +17,7 @@ interface MemberCardProps {
   currentUserId?: string | null;
   onMemberRemoved?: () => void;
   onMemberUpdated?: () => void;
+  onPermissionRefresh?: (() => void) | undefined;
 }
 
 const getInitials = (name: string) => {
@@ -27,7 +29,7 @@ const getInitials = (name: string) => {
     .slice(0, 2);
 };
 
-export function MemberCard({ member, permissions, projectId, currentUserId, onMemberRemoved, onMemberUpdated }: MemberCardProps) {
+export function MemberCard({ member, permissions, projectId, currentUserId, onMemberRemoved, onMemberUpdated, onPermissionRefresh }: MemberCardProps) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [showPermissionModal, setShowPermissionModal] = useState(false);
@@ -56,27 +58,32 @@ export function MemberCard({ member, permissions, projectId, currentUserId, onMe
 
     setIsRemoving(true);
     try {
-      const response = await fetch(`/api/projects/${projectId}/members`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: member.userId,
+      await makePermissionAwareRequest(
+        () => fetch(`/api/projects/${projectId}/members`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: member.userId,
+          }),
         }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        toast.error(errorData.error || 'Failed to remove member');
-        return;
-      }
+        onPermissionRefresh
+      );
 
       toast.success(`${member.userName} has been removed from the project`);
       onMemberRemoved?.();
       setShowRemoveDialog(false);
-    } catch {
-      toast.error('Failed to remove member');
+    } catch (error) {
+      // Permission-aware error handling already done by makePermissionAwareRequest
+      // Only show generic error if it's not a permission-related issue
+      if (error instanceof Error && 
+          !error.message.includes('permission') &&
+          !error.message.includes('access to this project') &&
+          !error.message.includes('Project not found') &&
+          !error.message.includes('revoked')) {
+        toast.error('Failed to remove member');
+      }
     } finally {
       setIsRemoving(false);
     }

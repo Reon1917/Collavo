@@ -3,7 +3,7 @@ import { db } from '@/db';
 import { events, user } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
-import { requireProjectAccess } from '@/lib/auth-helpers';
+import { requireProjectAccess, checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
 
 export async function GET(
   request: NextRequest,
@@ -63,8 +63,15 @@ export async function POST(
 
     const { id: projectId } = await params;
     
-    // Ensure user has access to this project
-    await requireProjectAccess(session.user.id, projectId);
+    // Check if user has createEvent permission
+    const permissionCheck = await checkPermissionDetailed(session.user.id, projectId, 'createEvent');
+    if (!permissionCheck.hasPermission) {
+      const statusCode = permissionCheck.errorType === 'INVALID_PROJECT' ? 404 : 403;
+      return NextResponse.json(
+        createPermissionErrorResponse(permissionCheck),
+        { status: statusCode }
+      );
+    }
 
     const body = await request.json();
     const { title, description, datetime, location } = body;

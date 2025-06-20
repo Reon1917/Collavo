@@ -144,6 +144,57 @@ export async function checkProjectAccess(projectId: string, userId: string): Pro
 }
 
 /**
+ * Enhanced permission check with detailed error information
+ */
+export interface PermissionCheckResult {
+  hasPermission: boolean;
+  errorType?: 'NO_ACCESS' | 'PERMISSION_REVOKED' | 'INVALID_PROJECT';
+  errorMessage?: string;
+  requiredPermission?: string;
+  currentPermissions?: string[];
+}
+
+/**
+ * Enhanced permission check that returns detailed error information
+ */
+export async function checkPermissionDetailed(
+  userId: string, 
+  projectId: string, 
+  permission: string
+): Promise<PermissionCheckResult> {
+  const access = await checkProjectAccess(projectId, userId);
+  
+  if (!access.hasAccess) {
+    return {
+      hasPermission: false,
+      errorType: access.project ? 'NO_ACCESS' : 'INVALID_PROJECT',
+      errorMessage: access.project ? 
+        'You no longer have access to this project' : 
+        'Project not found',
+      requiredPermission: permission,
+      currentPermissions: []
+    };
+  }
+  
+  const hasRequiredPermission = access.permissions.includes(permission);
+  
+  if (!hasRequiredPermission) {
+    return {
+      hasPermission: false,
+      errorType: 'PERMISSION_REVOKED',
+      errorMessage: `Your permission to ${permission} has been revoked`,
+      requiredPermission: permission,
+      currentPermissions: access.permissions
+    };
+  }
+  
+  return {
+    hasPermission: true,
+    currentPermissions: access.permissions
+  };
+}
+
+/**
  * Check if user has a specific permission for a project
  */
 export async function hasPermission(userId: string, projectId: string, permission: string): Promise<boolean> {
@@ -163,6 +214,20 @@ export async function requireProjectAccess(userId: string, projectId: string): P
   }
   
   return access;
+}
+
+/**
+ * Create standardized permission error response for API routes
+ */
+export function createPermissionErrorResponse(result: PermissionCheckResult) {
+  return {
+    error: result.errorMessage,
+    errorType: result.errorType,
+    requiredPermission: result.requiredPermission,
+    currentPermissions: result.currentPermissions || [],
+    // Frontend can use this to trigger permission refresh
+    shouldRefreshPermissions: result.errorType === 'PERMISSION_REVOKED'
+  };
 }
 
 /**

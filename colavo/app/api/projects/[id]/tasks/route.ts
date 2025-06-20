@@ -4,7 +4,7 @@ import { db } from '@/db';
 import { mainTasks, subTasks, user } from '@/db/schema';
 import { createId } from '@paralleldrive/cuid2';
 import { eq, and } from 'drizzle-orm';
-import { requireProjectAccess, hasPermission } from '@/lib/auth-helpers';
+import { requireProjectAccess, checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
 
 // GET /api/projects/[id]/tasks - List project main tasks
 export async function GET(
@@ -173,11 +173,12 @@ export async function POST(
     const { id: projectId } = await params;
 
     // Check if user has createTask permission
-    const canCreateTasks = await hasPermission(session.user.id, projectId, 'createTask');
-    if (!canCreateTasks) {
+    const permissionCheck = await checkPermissionDetailed(session.user.id, projectId, 'createTask');
+    if (!permissionCheck.hasPermission) {
+      const statusCode = permissionCheck.errorType === 'INVALID_PROJECT' ? 404 : 403;
       return NextResponse.json(
-        { error: 'Insufficient permissions to create tasks' },
-        { status: 403 }
+        createPermissionErrorResponse(permissionCheck),
+        { status: statusCode }
       );
     }
 

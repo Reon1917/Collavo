@@ -3,7 +3,7 @@ import { db } from '@/db';
 import { events, user } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
-import { requireProjectAccess } from '@/lib/auth-helpers';
+import { checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
 
 export async function PUT(
   request: NextRequest,
@@ -19,9 +19,6 @@ export async function PUT(
     }
 
     const { id: projectId, eventId } = await params;
-    
-    // Ensure user has access to this project
-    const access = await requireProjectAccess(session.user.id, projectId);
 
     // Get the event to check ownership and project association
     const [event] = await db
@@ -42,12 +39,14 @@ export async function PUT(
       return NextResponse.json({ error: 'Event does not belong to this project' }, { status: 400 });
     }
 
-    // Check permissions: project leader or members with handleEvent permission can update events
-    const canUpdate = access.isLeader || 
-                     access.permissions.includes('handleEvent');
-
-    if (!canUpdate) {
-      return NextResponse.json({ error: 'You do not have permission to update this event' }, { status: 403 });
+    // Check if user has handleEvent permission for updating events
+    const permissionCheck = await checkPermissionDetailed(session.user.id, projectId, 'handleEvent');
+    if (!permissionCheck.hasPermission) {
+      const statusCode = permissionCheck.errorType === 'INVALID_PROJECT' ? 404 : 403;
+      return NextResponse.json(
+        createPermissionErrorResponse(permissionCheck),
+        { status: statusCode }
+      );
     }
 
     const body = await request.json();
@@ -117,9 +116,6 @@ export async function DELETE(
     }
 
     const { id: projectId, eventId } = await params;
-    
-    // Ensure user has access to this project
-    const access = await requireProjectAccess(session.user.id, projectId);
 
     // Get the event to check ownership and project association
     const [event] = await db
@@ -140,12 +136,14 @@ export async function DELETE(
       return NextResponse.json({ error: 'Event does not belong to this project' }, { status: 400 });
     }
 
-    // Check permissions: project leader or members with handleEvent permission can delete events
-    const canDelete = access.isLeader || 
-                     access.permissions.includes('handleEvent');
-
-    if (!canDelete) {
-      return NextResponse.json({ error: 'You do not have permission to delete this event' }, { status: 403 });
+    // Check if user has handleEvent permission for deleting events
+    const permissionCheck = await checkPermissionDetailed(session.user.id, projectId, 'handleEvent');
+    if (!permissionCheck.hasPermission) {
+      const statusCode = permissionCheck.errorType === 'INVALID_PROJECT' ? 404 : 403;
+      return NextResponse.json(
+        createPermissionErrorResponse(permissionCheck),
+        { status: statusCode }
+      );
     }
 
     // Delete the event

@@ -100,11 +100,30 @@ export function useProjectData(projectId: string) {
     fetchProjectData();
   }, [fetchProjectData]);
 
+  // Force refresh permissions only (lighter than full data refresh)
+  const refreshPermissions = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}`);
+      if (response.ok) {
+        const projectData = await response.json();
+        setProject(prevProject => prevProject ? {
+          ...prevProject,
+          userPermissions: projectData.userPermissions,
+          isLeader: projectData.isLeader,
+          userRole: projectData.userRole
+        } : projectData);
+      }
+    } catch {
+      // Silent fail - will be caught by next full refresh
+    }
+  }, [projectId]);
+
   return {
     project,
     tasks,
     isLoading,
-    refreshData
+    refreshData,
+    refreshPermissions
   };
 }
 

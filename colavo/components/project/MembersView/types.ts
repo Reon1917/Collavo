@@ -16,4 +16,5 @@ export interface ProjectPermissions {
 
 export interface MembersViewProps {
   projectId: string;
+  onPermissionRefresh?: () => void;
 } 
