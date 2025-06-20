@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useUploadThing } from '@/utils/uploadthing';
 import { Loader2, X, Upload, FileText, FileSpreadsheet, File, Presentation } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface FileUploadModalProps {
   isOpen: boolean;
@@ -64,6 +65,12 @@ export function FileUploadModal({
 
       if (!response.ok) {
         const errorData = await response.json();
+        // If it's a permission error, show toast and close modal
+        if (response.status === 403 || response.status === 404) {
+          toast.error(errorData.error || 'Permission denied');
+          handleClose();
+          return;
+        }
         throw new Error(errorData.error || 'Failed to save file');
       }
 

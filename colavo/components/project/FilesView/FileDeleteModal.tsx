@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2, Trash2, AlertTriangle } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface FileDeleteModalProps {
   isOpen: boolean;
@@ -53,6 +54,12 @@ export function FileDeleteModal({
 
       if (!response.ok) {
         const errorData = await response.json();
+        // If it's a permission error, show toast and close modal
+        if (response.status === 403 || response.status === 404) {
+          toast.error(errorData.error || 'Permission denied');
+          handleClose();
+          return;
+        }
         throw new Error(errorData.error || 'Failed to delete file');
       }
       
