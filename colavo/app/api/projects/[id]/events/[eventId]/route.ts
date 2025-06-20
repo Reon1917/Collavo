@@ -3,7 +3,7 @@ import { db } from '@/db';
 import { events, user } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
-import { requireProjectAccess, checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
+import { checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
 
 export async function PUT(
   request: NextRequest,
@@ -19,9 +19,6 @@ export async function PUT(
     }
 
     const { id: projectId, eventId } = await params;
-    
-    // Ensure user has access to this project
-    const access = await requireProjectAccess(session.user.id, projectId);
 
     // Get the event to check ownership and project association
     const [event] = await db
@@ -119,9 +116,6 @@ export async function DELETE(
     }
 
     const { id: projectId, eventId } = await params;
-    
-    // Ensure user has access to this project
-    const access = await requireProjectAccess(session.user.id, projectId);
 
     // Get the event to check ownership and project association
     const [event] = await db

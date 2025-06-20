@@ -4,7 +4,7 @@ import { db } from '@/db';
 import { mainTasks, subTasks, user } from '@/db/schema';
 import { createId } from '@paralleldrive/cuid2';
 import { eq, and } from 'drizzle-orm';
-import { requireProjectAccess, hasPermission, checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
+import { requireProjectAccess, checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
 
 // GET /api/projects/[id]/tasks - List project main tasks
 export async function GET(

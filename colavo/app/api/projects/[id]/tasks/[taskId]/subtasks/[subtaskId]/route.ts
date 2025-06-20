@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { mainTasks, subTasks, user } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { requireProjectAccess } from '@/lib/auth-helpers';
+import { checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
 
 // PATCH /api/projects/[id]/tasks/[taskId]/subtasks/[subtaskId] - Update subtask
 export async function PATCH(
@@ -23,9 +23,6 @@ export async function PATCH(
     }
 
     const { id: projectId, taskId: mainTaskId, subtaskId } = await params;
-
-    // Use centralized access control
-    const access = await requireProjectAccess(session.user.id, projectId);
 
     // Verify subtask exists and belongs to the main task and project
     const existingSubTask = await db
@@ -61,19 +58,24 @@ export async function PATCH(
       );
     }
 
-    // Check permissions based on the new permission system:
-    // - Assignees can update status and notes
-    // - Users with updateTask permission can update status and notes of all subtasks
-    // - Users with handleTask permission can fully edit all subtasks (title, description, assignment, etc.)
+    // Check permissions - user needs updateTask (basic) or handleTask (full) permission
     const isAssignee = subtask.assignedId === session.user.id;
-    const canUpdateStatus = isAssignee || access.isLeader || access.permissions.includes('updateTask');
-    const canEditDetails = access.isLeader || access.permissions.includes('handleTask');
-
-    // Check if user has any permission to modify this subtask
+    
+    // Check for handleTask permission (full edit capability)
+    const handleTaskCheck = await checkPermissionDetailed(session.user.id, projectId, 'handleTask');
+    const canEditDetails = handleTaskCheck.hasPermission;
+    
+    // Check for updateTask permission (status/note updates)
+    const updateTaskCheck = await checkPermissionDetailed(session.user.id, projectId, 'updateTask');
+    const canUpdateStatus = updateTaskCheck.hasPermission || isAssignee;
+    
+    // Must have at least updateTask permission or be assignee
     if (!canUpdateStatus && !canEditDetails) {
+      // Return permission error for updateTask (the minimum required)
+      const statusCode = updateTaskCheck.errorType === 'INVALID_PROJECT' ? 404 : 403;
       return NextResponse.json(
-        { error: 'You do not have permission to update this subtask' },
-        { status: 403 }
+        createPermissionErrorResponse(updateTaskCheck),
+        { status: statusCode }
       );
     }
 
@@ -127,22 +129,30 @@ export async function PATCH(
       updatedAt: new Date()
     };
 
-    if (canUpdateStatus && !canEditDetails && isAssignee) {
-      // Regular assignee can only update status and note
-      if (status !== undefined) updateData.status = status;
-      if (note !== undefined) updateData.note = note?.trim() || null;
-    } else if (canUpdateStatus && !canEditDetails && access.permissions.includes('updateTask')) {
-      // Users with updateTask permission can update status and note of any subtask
-      if (status !== undefined) updateData.status = status;
-      if (note !== undefined) updateData.note = note?.trim() || null;
-    } else if (canEditDetails) {
-      // Leaders and users with handleTask permission can update all fields
+    if (canEditDetails) {
+      // Users with handleTask permission can update all fields
       if (title !== undefined) updateData.title = title.trim();
       if (description !== undefined) updateData.description = description?.trim() || null;
       if (status !== undefined) updateData.status = status;
       if (note !== undefined) updateData.note = note?.trim() || null;
       if (deadline !== undefined) updateData.deadline = deadlineDate;
       if (assignedId !== undefined) updateData.assignedId = assignedId;
+    } else {
+      // Assignees and users with updateTask permission can only update status and note
+      if (status !== undefined) updateData.status = status;
+      if (note !== undefined) updateData.note = note?.trim() || null;
+      
+      // Don't allow editing other fields without handleTask permission
+      if (title !== undefined || description !== undefined || deadline !== undefined || assignedId !== undefined) {
+        const handlePermissionError = createPermissionErrorResponse({
+          hasPermission: false,
+          errorType: 'PERMISSION_REVOKED',
+          errorMessage: 'Your permission to handleTask has been revoked',
+          requiredPermission: 'handleTask',
+          currentPermissions: updateTaskCheck.currentPermissions || []
+        });
+        return NextResponse.json(handlePermissionError, { status: 403 });
+      }
     }
 
     // Update subtask
@@ -250,14 +260,13 @@ export async function DELETE(
       );
     }
 
-    // Check permissions: project leader or users with handleTask permission can delete subtasks
-    const access = await requireProjectAccess(session.user.id, projectId);
-    const canDeleteSubtask = access.isLeader || access.permissions.includes('handleTask');
-
-    if (!canDeleteSubtask) {
+    // Check if user has handleTask permission to delete subtasks
+    const permissionCheck = await checkPermissionDetailed(session.user.id, projectId, 'handleTask');
+    if (!permissionCheck.hasPermission) {
+      const statusCode = permissionCheck.errorType === 'INVALID_PROJECT' ? 404 : 403;
       return NextResponse.json(
-        { error: 'You do not have permission to delete subtasks' },
-        { status: 403 }
+        createPermissionErrorResponse(permissionCheck),
+        { status: statusCode }
       );
     }
 

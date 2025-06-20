@@ -220,8 +220,6 @@ export async function requireProjectAccess(userId: string, projectId: string): P
  * Create standardized permission error response for API routes
  */
 export function createPermissionErrorResponse(result: PermissionCheckResult) {
-  const statusCode = result.errorType === 'INVALID_PROJECT' ? 404 : 403;
-  
   return {
     error: result.errorMessage,
     errorType: result.errorType,
