@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/providers/auth-provider";
 import { LoadingWrapper } from "@/components/ui/loading-wrapper";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { SessionKiller } from "@/components/ui/session-killer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,9 +38,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <LoadingWrapper>
-              {children}
-            </LoadingWrapper>
+            <SessionKiller>
+              <LoadingWrapper>
+                {children}
+              </LoadingWrapper>
+            </SessionKiller>
           </AuthProvider>
         </ThemeProvider>
       </body>
