@@ -144,14 +144,10 @@ export async function PATCH(
       
       // Don't allow editing other fields without handleTask permission
       if (title !== undefined || description !== undefined || deadline !== undefined || assignedId !== undefined) {
-        const handlePermissionError = createPermissionErrorResponse({
-          hasPermission: false,
-          errorType: 'PERMISSION_REVOKED',
-          errorMessage: 'Your permission to handleTask has been revoked',
-          requiredPermission: 'handleTask',
-          currentPermissions: updateTaskCheck.currentPermissions || []
-        });
-        return NextResponse.json(handlePermissionError, { status: 403 });
+        return NextResponse.json(
+          createPermissionErrorResponse(handleTaskCheck),
+          { status: 403 }
+        );
       }
     }
 

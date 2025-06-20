@@ -76,8 +76,12 @@ export function MemberCard({ member, permissions, projectId, currentUserId, onMe
       setShowRemoveDialog(false);
     } catch (error) {
       // Permission-aware error handling already done by makePermissionAwareRequest
-      // Only show generic error if it's not a permission issue
-      if (error instanceof Error && !error.message.includes('permission')) {
+      // Only show generic error if it's not a permission-related issue
+      if (error instanceof Error && 
+          !error.message.includes('permission') &&
+          !error.message.includes('access to this project') &&
+          !error.message.includes('Project not found') &&
+          !error.message.includes('revoked')) {
         toast.error('Failed to remove member');
       }
     } finally {
