@@ -25,14 +25,13 @@ export async function GET(
 
     const { id: projectId } = await params;
     
-    // Check if user has access to project and can view files
-    await requireProjectAccess(session.user.id, projectId);
-    
-    const hasViewFilesPermission = await hasPermission(session.user.id, projectId, 'viewFiles');
-    if (!hasViewFilesPermission) {
+    // Check if user has viewFiles permission
+    const permissionCheck = await checkPermissionDetailed(session.user.id, projectId, 'viewFiles');
+    if (!permissionCheck.hasPermission) {
+      const statusCode = permissionCheck.errorType === 'INVALID_PROJECT' ? 404 : 403;
       return NextResponse.json(
-        { error: 'Insufficient permissions to view files' },
-        { status: 403 }
+        createPermissionErrorResponse(permissionCheck),
+        { status: statusCode }
       );
     }
 
