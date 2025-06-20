@@ -51,6 +51,28 @@ export const auth = betterAuth({
     enabled: true,
     autoSignIn: true,
     requireEmailVerification: false, // Set to true in production
+    sendResetPassword: async ({ user, url, token }, request) => {
+      // Create a proper reset URL that points to our reset password page
+      const baseUrl = envConfig.BETTER_AUTH_URL || 
+        (envConfig.NODE_ENV === "production" 
+          ? "https://collavo-alpha.vercel.app" 
+          : "http://localhost:3000"
+        );
+      
+      const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+      
+      // For now, we'll just log the reset URL
+      // In production, you would send this via email
+      console.log(`Password reset link for ${user.email}: ${resetUrl}`);
+      console.log(`Reset token: ${token}`);
+      
+      // TODO: Implement actual email sending
+      // await sendEmail({
+      //   to: user.email,
+      //   subject: "Reset your password",
+      //   text: `Click the link to reset your password: ${resetUrl}`,
+      // });
+    },
   },
   socialProviders: {
     google: {
@@ -66,6 +88,10 @@ export const auth = betterAuth({
       ? "https://collavo-alpha.vercel.app" 
       : "http://localhost:3000"
     ),
+  trustedOrigins: [
+    "http://localhost:3000",
+    "https://collavo-alpha.vercel.app"
+  ],
   // Additional security configurations
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days in seconds

@@ -22,6 +22,14 @@ export async function middleware(request: NextRequest) {
     '/login',
     '/signup',
     '/forgot-password',
+    '/reset-password',
+  ]);
+
+  // Routes that authenticated users should be redirected away from
+  const authRedirectRoutes = new Set([
+    '/',
+    '/login',
+    '/signup',
   ]);
   
   // Handle public routes FIRST - no auth check needed
@@ -30,25 +38,27 @@ export async function middleware(request: NextRequest) {
       console.log('[Middleware] Public route accessed:', pathname);
     }
     
-    // For public routes, only check auth if we want to redirect authenticated users
-    // Use a non-throwing approach to avoid breaking public access
-    try {
-      const session = await auth.api.getSession({
-        headers: request.headers
-      });
-      
-      // If user is authenticated and on a public route, redirect to dashboard
-      if (session?.user) {
-        if (isDev) {
-          console.log('[Middleware] Authenticated user on public route, redirecting to dashboard');
+    // For certain public routes, redirect authenticated users to dashboard
+    // But allow access to forgot-password and reset-password even when authenticated
+    if (authRedirectRoutes.has(pathname)) {
+      try {
+        const session = await auth.api.getSession({
+          headers: request.headers
+        });
+        
+        // If user is authenticated and on a route they should be redirected from, redirect to dashboard
+        if (session?.user) {
+          if (isDev) {
+            console.log('[Middleware] Authenticated user on auth redirect route, redirecting to dashboard');
+          }
+          return NextResponse.redirect(new URL('/dashboard', request.url));
         }
-        return NextResponse.redirect(new URL('/dashboard', request.url));
-      }
-    } catch (error) {
-      // If auth check fails on public routes, just log and continue
-      // This ensures public routes remain accessible even if auth service is down
-      if (isDev) {
-        console.log('[Middleware] Auth check failed on public route, allowing access anyway:', error);
+      } catch (error) {
+        // If auth check fails on public routes, just log and continue
+        // This ensures public routes remain accessible even if auth service is down
+        if (isDev) {
+          console.log('[Middleware] Auth check failed on public route, allowing access anyway:', error);
+        }
       }
     }
     
