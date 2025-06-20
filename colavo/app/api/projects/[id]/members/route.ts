@@ -271,10 +271,10 @@ export async function DELETE(
     const { id: projectId } = await params;
 
     // Check if user has addMember permission (same permission for adding/removing)
-    const canManageMembers = await hasPermission(session.user.id, projectId, 'addMember');
-    if (!canManageMembers) {
+    const permissionCheck = await checkPermissionDetailed(session.user.id, projectId, 'addMember');
+    if (!permissionCheck.hasPermission) {
       return NextResponse.json(
-        { error: 'Insufficient permissions to remove members' },
+        createPermissionErrorResponse(permissionCheck),
         { status: 403 }
       );
     }

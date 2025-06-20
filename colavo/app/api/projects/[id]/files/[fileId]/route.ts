@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { files, user } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { hasPermission } from '@/lib/auth-helpers';
+import { checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
 import { UTApi } from 'uploadthing/server';
 
 const utapi = new UTApi();
@@ -28,11 +28,12 @@ export async function PATCH(
     const { id: projectId, fileId } = await params;
     
     // Check if user has permission to handle files
-    const hasHandleFilesPermission = await hasPermission(session.user.id, projectId, 'handleFile');
-    if (!hasHandleFilesPermission) {
+    const permissionCheck = await checkPermissionDetailed(session.user.id, projectId, 'handleFile');
+    if (!permissionCheck.hasPermission) {
+      const statusCode = permissionCheck.errorType === 'INVALID_PROJECT' ? 404 : 403;
       return NextResponse.json(
-        { error: 'Insufficient permissions to edit files' },
-        { status: 403 }
+        createPermissionErrorResponse(permissionCheck),
+        { status: statusCode }
       );
     }
 
@@ -126,11 +127,12 @@ export async function DELETE(
     const { id: projectId, fileId } = await params;
     
     // Check if user has permission to handle files
-    const hasHandleFilesPermission = await hasPermission(session.user.id, projectId, 'handleFile');
-    if (!hasHandleFilesPermission) {
+    const permissionCheck = await checkPermissionDetailed(session.user.id, projectId, 'handleFile');
+    if (!permissionCheck.hasPermission) {
+      const statusCode = permissionCheck.errorType === 'INVALID_PROJECT' ? 404 : 403;
       return NextResponse.json(
-        { error: 'Insufficient permissions to delete files' },
-        { status: 403 }
+        createPermissionErrorResponse(permissionCheck),
+        { status: statusCode }
       );
     }
 
