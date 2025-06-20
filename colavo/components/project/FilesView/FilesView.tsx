@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { FolderIcon, Plus, Link, RefreshCw, FileText, ExternalLink } from 'lucide-react';
+import { FolderIcon, Plus, Link, FileText, ExternalLink } from 'lucide-react';
 import { ContentLoading } from '@/components/ui/content-loading';
 import { FileUploadModal } from './FileUploadModal';
 import { FileEditModal } from './FileEditModal';
@@ -15,6 +15,7 @@ import { LinkCard } from './LinkCard';
 import { FilesFilters } from './components/FilesFilters';
 import { useFilesFilters } from './hooks/useFilesFilters';
 import type { FilesViewProps } from './types';
+import { toast } from 'sonner';
 
 interface ProjectFile {
   id: string;
@@ -76,6 +77,23 @@ export function FilesView({ projectId }: FilesViewProps) {
     availableUsers,
   } = useFilesFilters(allItems, projectMembers);
 
+  const fetchProjectData = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}/overview`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch project data');
+      }
+      
+      const data = await response.json();
+      setUserPermissions(data.project?.userPermissions || []);
+      setIsLeader(data.project?.isLeader || false);
+    } catch {
+      // Don't set error state for project data fetch failure, just log it
+    }
+  }, [projectId]);
+
   const fetchFiles = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -85,7 +103,13 @@ export function FilesView({ projectId }: FilesViewProps) {
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch files');
+        // If permission error, just show error message
+        if (response.status === 403 || response.status === 404) {
+          setError(errorData.error || 'Permission denied');
+        } else {
+          throw new Error(errorData.error || 'Failed to fetch files');
+        }
+        return;
       }
       
       const data = await response.json();
@@ -111,23 +135,6 @@ export function FilesView({ projectId }: FilesViewProps) {
     } catch {
 
       // Don't set error state for members fetch failure, just log it
-    }
-  }, [projectId]);
-
-  const fetchProjectData = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/projects/${projectId}/overview`);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch project data');
-      }
-      
-      const data = await response.json();
-      setUserPermissions(data.project?.userPermissions || []);
-      setIsLeader(data.project?.isLeader || false);
-    } catch {
-      // Don't set error state for project data fetch failure, just log it
     }
   }, [projectId]);
 
@@ -181,7 +188,59 @@ export function FilesView({ projectId }: FilesViewProps) {
     setIsDeleteModalOpen(true);
   };
 
+  // Add permission validation for file access
+  const handleFileClick = useCallback(async (file: ProjectFile) => {
+    try {
+      // Validate current permissions before allowing access
+      const response = await fetch(`/api/projects/${projectId}/overview`);
+      if (!response.ok) {
+        toast.error('Permission denied');
+        return;
+      }
+      
+      const data = await response.json();
+      const currentPermissions = data.project?.userPermissions || [];
+      const currentIsLeader = data.project?.isLeader || false;
+      
+      // Check if user still has permission to view files
+      if (!currentIsLeader && !currentPermissions.includes('viewFiles')) {
+        toast.error('You no longer have permission to access this file');
+        return;
+      }
+      
+      // If permission check passes, open the file
+      window.open(file.url, '_blank', 'noopener,noreferrer');
+    } catch {
+      toast.error('Failed to verify permissions');
+    }
+  }, [projectId]);
 
+  // Add permission validation for link access
+  const handleLinkClick = useCallback(async (link: ProjectLink) => {
+    try {
+      // Validate current permissions before allowing access
+      const response = await fetch(`/api/projects/${projectId}/overview`);
+      if (!response.ok) {
+        toast.error('Permission denied');
+        return;
+      }
+      
+      const data = await response.json();
+      const currentPermissions = data.project?.userPermissions || [];
+      const currentIsLeader = data.project?.isLeader || false;
+      
+      // Check if user still has permission to view files
+      if (!currentIsLeader && !currentPermissions.includes('viewFiles')) {
+        toast.error('You no longer have permission to access this link');
+        return;
+      }
+      
+      // If permission check passes, open the link
+      window.open(link.url, '_blank', 'noopener,noreferrer');
+    } catch {
+      toast.error('Failed to verify permissions');
+    }
+  }, [projectId]);
 
   // Permission checks
   const canManageFiles = isLeader || userPermissions.includes('handleFile');
@@ -198,10 +257,6 @@ export function FilesView({ projectId }: FilesViewProps) {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button disabled variant="outline">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
             <Button disabled variant="outline">
               <Link className="h-4 w-4 mr-2" />
               Upload File
@@ -409,7 +464,7 @@ export function FilesView({ projectId }: FilesViewProps) {
                     <FileCard 
                       key={file.id} 
                       file={file}
-                      onClick={() => window.open(file.url, '_blank', 'noopener,noreferrer')}
+                      onClick={() => handleFileClick(file)}
                       {...(canManageFiles && {
                         onEdit: handleEditFile,
                         onDelete: handleDeleteFile
@@ -465,7 +520,7 @@ export function FilesView({ projectId }: FilesViewProps) {
                     <LinkCard 
                       key={link.id} 
                       link={link}
-                      onClick={() => window.open(link.url, '_blank', 'noopener,noreferrer')}
+                      onClick={() => handleLinkClick(link)}
                       {...(canManageFiles && {
                         onEdit: handleEditLink,
                         onDelete: handleDeleteLink

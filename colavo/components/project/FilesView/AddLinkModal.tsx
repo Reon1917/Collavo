@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2, Link, Plus } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface AddLinkModalProps {
   isOpen: boolean;
@@ -95,6 +96,13 @@ export function AddLinkModal({
 
       if (!response.ok) {
         const errorData = await response.json();
+        // If it's a permission error, show toast and close modal
+        if (response.status === 403 || response.status === 404) {
+          setIsAdding(false); // Reset loading state first
+          toast.error(errorData.error || 'Permission denied');
+          handleClose();
+          return;
+        }
         throw new Error(errorData.error || 'Failed to add link');
       }
 

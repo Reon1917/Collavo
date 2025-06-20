@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useUploadThing } from '@/utils/uploadthing';
 import { Loader2, X, Upload, FileText, FileSpreadsheet, File, Presentation } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface FileUploadModalProps {
   isOpen: boolean;
@@ -64,6 +65,12 @@ export function FileUploadModal({
 
       if (!response.ok) {
         const errorData = await response.json();
+        // If it's a permission error, show toast and force close modal
+        if (response.status === 403 || response.status === 404) {
+          toast.error(errorData.error || 'Permission denied');
+          handleClose(true); // Force close even if uploading
+          return;
+        }
         throw new Error(errorData.error || 'Failed to save file');
       }
 
@@ -89,9 +96,9 @@ export function FileUploadModal({
     setUploadError(null);
   };
 
-  const handleClose = () => {
-    // Only allow closing if no file is selected or we're not uploading
-    if (!selectedFile || !isUploading) {
+  const handleClose = (force = false) => {
+    // Only allow closing if no file is selected or we're not uploading, or if forced
+    if (force || !selectedFile || !isUploading) {
       handleReset();
       onOpenChange(false);
     }
@@ -192,7 +199,7 @@ export function FileUploadModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={() => handleClose()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -308,7 +315,7 @@ export function FileUploadModal({
             <Button
               type="button"
               variant="outline"
-              onClick={handleClose}
+              onClick={() => handleClose()}
               disabled={isUploading}
               className="flex-1"
             >
