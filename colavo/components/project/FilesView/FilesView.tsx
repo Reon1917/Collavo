@@ -210,7 +210,7 @@ export function FilesView({ projectId }: FilesViewProps) {
       
       // If permission check passes, open the file
       window.open(file.url, '_blank', 'noopener,noreferrer');
-    } catch (error) {
+    } catch {
       toast.error('Failed to verify permissions');
     }
   }, [projectId]);
@@ -237,7 +237,7 @@ export function FilesView({ projectId }: FilesViewProps) {
       
       // If permission check passes, open the link
       window.open(link.url, '_blank', 'noopener,noreferrer');
-    } catch (error) {
+    } catch {
       toast.error('Failed to verify permissions');
     }
   }, [projectId]);

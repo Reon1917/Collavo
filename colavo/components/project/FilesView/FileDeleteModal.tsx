@@ -56,6 +56,7 @@ export function FileDeleteModal({
         const errorData = await response.json();
         // If it's a permission error, show toast and close modal
         if (response.status === 403 || response.status === 404) {
+          setIsDeleting(false); // Reset loading state first
           toast.error(errorData.error || 'Permission denied');
           handleClose();
           return;

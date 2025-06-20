@@ -90,6 +90,7 @@ export function FileEditModal({
         const errorData = await response.json();
         // If it's a permission error, show toast and close modal
         if (response.status === 403 || response.status === 404) {
+          setIsUpdating(false); // Reset loading state first
           toast.error(errorData.error || 'Permission denied');
           handleClose();
           return;
