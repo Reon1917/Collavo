@@ -41,15 +41,8 @@ export function TaskCard({
   const [showCreateSubTaskDialog, setShowCreateSubTaskDialog] = useState(false);
   const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
   
-  // Filter subtasks based on user permissions
-  const visibleSubTasks = task.subTasks.filter(subtask => {
-    // Leaders and users with viewFiles permission can see all subtasks
-    if (project.isLeader || project.userPermissions.includes('viewFiles')) {
-      return true;
-    }
-    // Regular members can only see subtasks assigned to them
-    return subtask.assignedId === project.currentUserId;
-  });
+  // All project members can see all subtasks
+  const visibleSubTasks = task.subTasks;
 
   const totalSubTasks = visibleSubTasks.length;
   const completedSubTasks = visibleSubTasks.filter(st => st.status === 'completed').length;
@@ -94,7 +87,7 @@ export function TaskCard({
   // Permission checks
   const canModifyTask = project.isLeader || project.userPermissions.includes('handleTask');
   const canCreateSubtasks = project.isLeader || project.userPermissions.includes('createTask');
-  const canViewAllTasks = project.isLeader || project.userPermissions.includes('viewFiles');
+  const canViewAllTasks = true; // All members can view all tasks
 
   return (
     <>

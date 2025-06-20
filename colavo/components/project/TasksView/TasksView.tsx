@@ -68,7 +68,7 @@ export function TasksView({ projectId }: TasksViewProps) {
     );
   }
 
-  const canViewAllTasks = project.isLeader || project.userPermissions.includes('viewFiles');
+  const canViewAllTasks = true; // All members can view all tasks
 
   return (
     <div className="space-y-6">

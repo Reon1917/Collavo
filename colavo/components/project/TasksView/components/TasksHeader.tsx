@@ -18,15 +18,10 @@ export function TasksHeader({ project, onTaskCreated }: TasksHeaderProps) {
         label: 'Project Leader',
         description: 'You can see and manage all tasks in this project'
       };
-    } else if (project.userPermissions.includes('viewFiles')) {
-      return {
-        label: 'Team Member',
-        description: 'You can see all tasks in this project'
-      };
     } else {
       return {
         label: 'Team Member',
-        description: 'You can only see tasks where you are assigned'
+        description: 'You can see all tasks in this project'
       };
     }
   };
