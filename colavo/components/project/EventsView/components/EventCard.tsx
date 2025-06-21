@@ -84,11 +84,11 @@ export function EventCard({
 
   return (
     <>
-      <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow duration-200 h-full flex flex-col">
-        <CardHeader className="pb-3 flex-shrink-0">
+      <Card className="bg-white dark:bg-gray-900/50 hover:shadow-md transition-all duration-200 cursor-pointer group border border-gray-200 dark:border-gray-700 hover:border-primary/50 dark:hover:border-primary/50 h-full flex flex-col">
+        <CardHeader className="pb-4 flex-shrink-0">
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-3">
                 <Badge 
                   variant="outline" 
                   className={`text-xs font-medium border ${getEventStatusColor(event.datetime)}`}
@@ -96,7 +96,7 @@ export function EventCard({
                   {statusInfo.text}
                 </Badge>
               </div>
-              <CardTitle className="text-base font-semibold text-gray-900 dark:text-white line-clamp-2 mb-1">
+              <CardTitle className="text-base font-semibold text-gray-900 dark:text-white line-clamp-2 mb-2 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
                 {event.title}
               </CardTitle>
               {event.description && (
@@ -108,9 +108,9 @@ export function EventCard({
             {canModifyEvent && (
               <DropdownMenu>
                 <DropdownMenuTrigger 
-                  className="h-7 w-7 p-0 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center flex-shrink-0 ml-2"
+                  className="h-8 w-8 p-0 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center flex-shrink-0 ml-3 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                  <MoreVertical className="h-3.5 w-3.5" />
+                  <MoreVertical className="h-4 w-4" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={handleEditEvent}>
@@ -131,30 +131,44 @@ export function EventCard({
         </CardHeader>
 
         <CardContent className="pt-0 flex-1 flex flex-col">
-          {/* Event DateTime */}
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
-            <Calendar className="h-4 w-4 flex-shrink-0" />
-            <span className="font-medium">{date}</span>
-            <Clock className="h-4 w-4 flex-shrink-0 ml-2" />
-            <span>{time}</span>
-          </div>
-
-          {/* Location */}
-          {event.location && (
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
-              <MapPin className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate">{event.location}</span>
+          {/* Event Details Section - Fixed Height */}
+          <div className="space-y-4 flex-1">
+            {/* Date and Time - Always present */}
+            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
+              <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 mb-2">
+                <Calendar className="h-4 w-4 flex-shrink-0 text-[#008080] dark:text-[#00FFFF]" />
+                <span className="font-medium">{date}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <Clock className="h-4 w-4 flex-shrink-0 text-[#008080] dark:text-[#00FFFF]" />
+                <span>{time}</span>
+              </div>
             </div>
-          )}
 
-          {/* Creator */}
-          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500 mb-4">
-            <User className="h-4 w-4 flex-shrink-0" />
-            <span className="truncate">Created by {event.creatorName}</span>
+            {/* Location - Conditional but consistent spacing */}
+            <div className="min-h-[52px] flex items-center">
+              {event.location ? (
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 w-full">
+                  <MapPin className="h-4 w-4 flex-shrink-0 text-[#008080] dark:text-[#00FFFF]" />
+                  <span className="truncate">{event.location}</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-sm text-gray-400 dark:text-gray-500 w-full">
+                  <MapPin className="h-4 w-4 flex-shrink-0" />
+                  <span className="italic">No location specified</span>
+                </div>
+              )}
+            </div>
+
+            {/* Creator - Always present */}
+            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500">
+              <User className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">Created by {event.creatorName}</span>
+            </div>
           </div>
 
-          {/* Time indicator */}
-          <div className="mt-auto">
+          {/* Bottom Section - Fixed Height */}
+          <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800">
             <div className="flex items-center justify-between">
               <span className={`text-sm font-medium ${statusInfo.color}`}>
                 {isPast ? `${formatDistanceToNow(eventDate)} ago` : 
@@ -165,7 +179,7 @@ export function EventCard({
                 variant="outline"
                 size="sm"
                 onClick={handleViewDetails}
-                className="text-xs"
+                className="text-xs h-7 px-3 border-[#008080] dark:border-[#00FFFF] text-[#008080] dark:text-[#00FFFF] hover:bg-[#008080]/10 dark:hover:bg-[#00FFFF]/10 transition-colors"
               >
                 View Details
               </Button>

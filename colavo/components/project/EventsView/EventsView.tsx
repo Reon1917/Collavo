@@ -110,16 +110,17 @@ export function EventsView({ projectId }: EventsViewProps) {
           onEventCreated={handleEventCreated} 
         />
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredAndSortedEvents.map((event) => (
-            <EventCard 
-              key={event.id} 
-              event={event} 
-              project={project}
-              canHandleEvents={canHandleEvents}
-              onEventUpdated={handleEventUpdated}
-              onEventDeleted={handleEventDeleted}
-            />
+            <div key={event.id} className="h-full">
+              <EventCard 
+                event={event} 
+                project={project}
+                canHandleEvents={canHandleEvents}
+                onEventUpdated={handleEventUpdated}
+                onEventDeleted={handleEventDeleted}
+              />
+            </div>
           ))}
         </div>
       )}
