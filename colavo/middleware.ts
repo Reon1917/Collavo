@@ -22,6 +22,14 @@ export async function middleware(request: NextRequest) {
     '/login',
     '/signup',
     '/forgot-password',
+    '/reset-password',
+  ]);
+
+  // Routes that authenticated users should be redirected away from
+  const authRedirectRoutes = new Set([
+    '/',
+    '/login',
+    '/signup',
   ]);
   
   // Handle public routes FIRST - no auth check needed
@@ -30,25 +38,54 @@ export async function middleware(request: NextRequest) {
       console.log('[Middleware] Public route accessed:', pathname);
     }
     
-    // For public routes, only check auth if we want to redirect authenticated users
-    // Use a non-throwing approach to avoid breaking public access
-    try {
-      const session = await auth.api.getSession({
-        headers: request.headers
-      });
-      
-      // If user is authenticated and on a public route, redirect to dashboard
-      if (session?.user) {
-        if (isDev) {
-          console.log('[Middleware] Authenticated user on public route, redirecting to dashboard');
+    // For certain public routes, kill session if user is authenticated (logout)
+    // But allow access to forgot-password and reset-password even when authenticated
+    if (authRedirectRoutes.has(pathname)) {
+      try {
+        const session = await auth.api.getSession({
+          headers: request.headers
+        });
+        
+        // If user is authenticated and on a route they should be logged out from, kill the session
+        if (session?.user) {
+          if (isDev) {
+            console.log('[Middleware] Authenticated user on auth redirect route, killing session and allowing access');
+          }
+          
+          // Kill the session by calling signOut
+          try {
+            await auth.api.signOut({
+              headers: request.headers
+            });
+            if (isDev) {
+              console.log('[Middleware] Session killed successfully');
+            }
+          } catch (signOutError) {
+            if (isDev) {
+              console.log('[Middleware] Error killing session:', signOutError);
+            }
+          }
+          
+          // Create response with cleared session cookies
+          const response = NextResponse.next();
+          
+          // Clear auth cookies
+          response.cookies.delete('better-auth.session_token');
+          response.cookies.delete('better-auth.csrf_token');
+          
+          // Add cache control headers to prevent caching
+          response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+          response.headers.set('Pragma', 'no-cache');
+          response.headers.set('Expires', '0');
+          
+          return response;
         }
-        return NextResponse.redirect(new URL('/dashboard', request.url));
-      }
-    } catch (error) {
-      // If auth check fails on public routes, just log and continue
-      // This ensures public routes remain accessible even if auth service is down
-      if (isDev) {
-        console.log('[Middleware] Auth check failed on public route, allowing access anyway:', error);
+      } catch (error) {
+        // If auth check fails on public routes, just log and continue
+        // This ensures public routes remain accessible even if auth service is down
+        if (isDev) {
+          console.log('[Middleware] Auth check failed on public route, allowing access anyway:', error);
+        }
       }
     }
     
@@ -89,9 +126,15 @@ export async function middleware(request: NextRequest) {
       console.log('[Middleware] Valid session found, allowing access');
     }
     
-    // User has valid session, continue with optional response headers
+    // User has valid session, continue with cache control headers
     const response = NextResponse.next();
     response.headers.set('x-pathname', pathname);
+    
+    // Add cache control headers to prevent caching of authenticated pages
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    
     return response;
     
   } catch (error) {

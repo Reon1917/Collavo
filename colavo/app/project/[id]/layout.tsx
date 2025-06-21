@@ -188,14 +188,14 @@ export default function ProjectLayout({
       icon: <Calendar className="h-5 w-5" />
     },
     {
-      label: "Members",
-      href: `/project/${projectId}?tab=members`, 
-      icon: <Users className="h-5 w-5" />
-    },
-    {
       label: "Files",
       href: `/project/${projectId}?tab=files`,
       icon: <FolderOpen className="h-5 w-5" />
+    },
+    {
+      label: "Members",
+      href: `/project/${projectId}?tab=members`, 
+      icon: <Users className="h-5 w-5" />
     }
   ];
 

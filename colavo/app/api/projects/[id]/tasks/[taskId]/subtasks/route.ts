@@ -65,28 +65,22 @@ export async function GET(
       );
     }
 
-    // Check project access through main task
-    const hasAccess = await checkPermission(session.user.id, projectId, 'viewFiles') || 
-                     await checkPermission(session.user.id, projectId, 'createTask');
+    // Check if user has access to the project (any member can view tasks)
+    const projectAccess = await db
+      .select()
+      .from(projects)
+      .leftJoin(members, eq(members.projectId, projects.id))
+      .where(and(
+        eq(projects.id, projectId),
+        eq(members.userId, session.user.id)
+      ))
+      .limit(1);
 
-    if (!hasAccess) {
-      // Check if user is project leader or member
-      const projectAccess = await db
-        .select()
-        .from(projects)
-        .leftJoin(members, eq(members.projectId, projects.id))
-        .where(and(
-          eq(projects.id, projectId),
-          eq(members.userId, session.user.id)
-        ))
-        .limit(1);
-
-      if (!projectAccess.length) {
-        return NextResponse.json(
-          { error: 'Access denied' },
-          { status: 403 }
-        );
-      }
+    if (!projectAccess.length) {
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403 }
+      );
     }
 
     // Get sub-tasks with assigned user details

@@ -42,7 +42,14 @@ export function FileUploadModal({
       }
     },
     onUploadError: (error) => {
-      setUploadError(error.message || 'Upload failed. Please try again.');
+      const errorMessage = error.message || 'Upload failed. Please try again.';
+      setUploadError(errorMessage);
+      
+      // Show toast for permission errors
+      if (errorMessage.includes('permission') || errorMessage.includes('access denied')) {
+        toast.error('Permission denied. You no longer have permission to upload files to this project.');
+        handleClose(true); // Force close modal
+      }
     },
   });
 

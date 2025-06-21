@@ -75,11 +75,14 @@ export const ourFileRouter = {
         const hasUploadPermission = await hasPermission(user.id, projectId, 'handleFile');
         
         if (!hasUploadPermission) {
-          throw new UploadThingError("Insufficient permissions to upload files to this project.");
+          throw new UploadThingError("Permission denied. You no longer have permission to upload files to this project.");
         }
-      } catch {
+      } catch (error) {
         // Permission check failed
-        throw new UploadThingError("Unable to verify permissions. Access denied.");
+        if (error instanceof UploadThingError) {
+          throw error; // Re-throw UploadThingError as-is
+        }
+        throw new UploadThingError("Permission denied. Unable to verify permissions for file upload.");
       }
 
       // Return metadata for onUploadComplete

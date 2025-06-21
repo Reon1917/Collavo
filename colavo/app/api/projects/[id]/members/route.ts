@@ -4,7 +4,7 @@ import { db } from '@/db';
 import { members, permissions, user, mainTasks, subTasks, events, files } from '@/db/schema';
 import { createId } from '@paralleldrive/cuid2';
 import { eq, and } from 'drizzle-orm';
-import { requireProjectAccess, hasPermission, checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
+import { requireProjectAccess, checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
 
 // GET /api/projects/[id]/members - List project members
 export async function GET(
@@ -271,10 +271,10 @@ export async function DELETE(
     const { id: projectId } = await params;
 
     // Check if user has addMember permission (same permission for adding/removing)
-    const canManageMembers = await hasPermission(session.user.id, projectId, 'addMember');
-    if (!canManageMembers) {
+    const permissionCheck = await checkPermissionDetailed(session.user.id, projectId, 'addMember');
+    if (!permissionCheck.hasPermission) {
       return NextResponse.json(
-        { error: 'Insufficient permissions to remove members' },
+        createPermissionErrorResponse(permissionCheck),
         { status: 403 }
       );
     }
