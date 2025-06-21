@@ -28,13 +28,15 @@ export function EmptyState({ project, totalEvents, canCreateEvents, onEventCreat
   const { title, description } = getEmptyMessage();
 
   return (
-    <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700">
-      <CardContent className="text-center py-12">
-        <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+    <Card className="border-[2px] border-dashed border-primary/40 bg-primary/5 dark:bg-primary/10 [border-spacing:4px]">
+      <CardContent className="p-6 text-center">
+        <div className="w-12 h-12 mx-auto mb-3 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center">
+          <Calendar className="h-6 w-6 text-primary" />
+        </div>
+        <h3 className="text-base font-medium mb-1">
           {title}
         </h3>
-        <p className="text-gray-600 dark:text-gray-400 mb-4">
+        <p className="text-muted-foreground mb-4 max-w-md mx-auto text-sm">
           {description}
         </p>
         {canCreateEvents && totalEvents === 0 && (
