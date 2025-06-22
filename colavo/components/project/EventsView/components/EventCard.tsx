@@ -96,7 +96,7 @@ export function EventCard({
                   {statusInfo.text}
                 </Badge>
               </div>
-              <CardTitle className="text-base font-semibold text-gray-900 dark:text-white line-clamp-2 mb-2 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+              <CardTitle className="text-base font-semibold text-gray-900 dark:text-white line-clamp-2 mb-2 group-hover:text-[#008080] dark:group-hover:text-[#00FFFF] transition-colors">
                 {event.title}
               </CardTitle>
               {event.description && (
@@ -221,4 +221,4 @@ export function EventCard({
       )}
     </>
   );
-} 
+}
