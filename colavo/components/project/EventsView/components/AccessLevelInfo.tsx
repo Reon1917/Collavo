@@ -11,9 +11,9 @@ export function AccessLevelInfo({ canCreateEvents, canHandleEvents }: AccessLeve
 
   if (!canCreateEvents && !canHandleEvents) {
     return (
-      <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/40 dark:to-gray-900/40 border border-slate-200/60 dark:border-slate-700/60 rounded-full shadow-sm">
-        <div className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full"></div>
-        <span className="text-xs font-medium text-slate-600 dark:text-slate-300">View Only Access</span>
+      <div className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-[#008080]/10 to-[#006666]/10 dark:from-[#00FFFF]/10 dark:to-[#00CCCC]/10 border border-[#008080]/30 dark:border-[#00FFFF]/30 rounded-full shadow-sm">
+        <Eye className="h-3 w-3 text-[#008080] dark:text-[#00FFFF]" />
+        <span className="text-xs font-medium text-[#008080] dark:text-[#00FFFF]">View Only Access</span>
       </div>
     );
   }
