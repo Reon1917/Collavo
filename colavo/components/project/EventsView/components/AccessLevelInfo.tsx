@@ -1,5 +1,5 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Eye, Settings } from 'lucide-react';
 
 interface AccessLevelInfoProps {
   canCreateEvents: boolean;
@@ -11,37 +11,29 @@ export function AccessLevelInfo({ canCreateEvents, canHandleEvents }: AccessLeve
 
   if (!canCreateEvents && !canHandleEvents) {
     return (
-      <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
-        <CardContent className="py-3 px-4">
-          <div className="flex items-center gap-3">
-            <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
-            <div className="min-w-0">
-              <h3 className="font-medium text-amber-900 dark:text-amber-100 text-sm">View-Only Access</h3>
-              <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
-                You can view events but cannot create or manage them. Contact the project leader for event management access.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex justify-start">
+        <Badge 
+          variant="outline" 
+          className="text-sm font-medium px-4 py-2 border-[#008080] dark:border-[#00FFFF] text-[#008080] dark:text-[#00FFFF] bg-transparent hover:bg-[#008080]/5 dark:hover:bg-[#00FFFF]/5 transition-colors duration-200"
+        >
+          <Eye className="h-4 w-4 mr-2" />
+          View Only Access
+        </Badge>
+      </div>
     );
   }
 
   if (canHandleEvents && !canCreateEvents) {
     return (
-      <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-        <CardContent className="py-3 px-4">
-          <div className="flex items-center gap-3">
-            <CheckCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-            <div className="min-w-0">
-              <h3 className="font-medium text-blue-900 dark:text-blue-100 text-sm">Event Management Access</h3>
-              <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
-                You can manage existing events but cannot create new ones. Contact the project leader to create events.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex justify-start">
+        <Badge 
+          variant="outline" 
+          className="text-sm font-medium px-4 py-2 border-[#008080] dark:border-[#00FFFF] text-[#008080] dark:text-[#00FFFF] bg-transparent hover:bg-[#008080]/5 dark:hover:bg-[#00FFFF]/5 transition-colors duration-200"
+        >
+          <Settings className="h-4 w-4 mr-2" />
+          Event Management Access
+        </Badge>
+      </div>
     );
   }
 
