@@ -69,7 +69,7 @@ export async function middleware(request: NextRequest) {
           // Create response with cleared session cookies
           const response = NextResponse.next();
           
-          // Clear auth cookies
+          // Clear Better Auth cookies (correct cookie names)
           response.cookies.delete('better-auth.session_token');
           response.cookies.delete('better-auth.csrf_token');
           
@@ -139,6 +139,17 @@ export async function middleware(request: NextRequest) {
     
   } catch (error) {
     console.error('[Middleware] Auth error on protected route:', error);
+    // Log more details in production for debugging
+    if (!isDev) {
+      console.error('[Middleware] Production auth error details:', {
+        pathname,
+        origin: request.headers.get('origin'),
+        referer: request.headers.get('referer'),
+        userAgent: request.headers.get('user-agent'),
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined
+      });
+    }
     // On error for protected routes, redirect to login
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);

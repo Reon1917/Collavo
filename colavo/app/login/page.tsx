@@ -26,12 +26,24 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
+      // Debug logging for production
+      if (process.env.NODE_ENV === 'production') {
+        console.log('[Login] Attempting sign in with:', {
+          email: email ? 'provided' : 'missing',
+          password: password ? 'provided' : 'missing',
+          callbackUrl,
+          baseURL: process.env.NEXT_PUBLIC_APP_URL || 'fallback',
+          origin: typeof window !== 'undefined' ? window.location.origin : 'unknown'
+        });
+      }
+
       const res = await authClient.signIn.email({
         email,
         password,
       });
 
       if (res.error) {
+        console.error('[Login] Sign in error:', res.error);
         toast.error('Invalid credentials. Please try again.');
       } else {
         toast.success('Login successful!');
@@ -40,7 +52,8 @@ export default function LoginPage() {
           router.push(callbackUrl);
         }, 100);
       }
-    } catch {
+    } catch (error) {
+      console.error('[Login] Sign in exception:', error);
       toast.error('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);

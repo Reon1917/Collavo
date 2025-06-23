@@ -39,6 +39,19 @@ function getAuthEnvConfig(): AuthEnvConfig {
 // Get validated environment config
 const envConfig = getAuthEnvConfig();
 
+// Get production URL more reliably
+const getProductionBaseURL = (): string => {
+  if (envConfig.BETTER_AUTH_URL) {
+    return envConfig.BETTER_AUTH_URL;
+  }
+  
+  if (envConfig.NODE_ENV === "production") {
+    return "https://collavo-alpha.vercel.app";
+  }
+  
+  return "http://localhost:3000";
+};
+
 // Database provider type
 type DatabaseProvider = "pg" | "mysql" | "sqlite";
 
@@ -53,12 +66,7 @@ export const auth = betterAuth({
     requireEmailVerification: false, // Set to true in production
     sendResetPassword: async ({ user, token }) => {
       // Create a proper reset URL that points to our reset password page
-      const baseUrl = envConfig.BETTER_AUTH_URL || 
-        (envConfig.NODE_ENV === "production" 
-          ? "https://collavo-alpha.vercel.app" 
-          : "http://localhost:3000"
-        );
-      
+      const baseUrl = getProductionBaseURL();
       const resetUrl = `${baseUrl}/reset-password?token=${token}`;
       
       // For now, we'll just log the reset URL
@@ -85,11 +93,7 @@ export const auth = betterAuth({
     },
   },
   secret: envConfig.BETTER_AUTH_SECRET,
-  baseURL: envConfig.BETTER_AUTH_URL || 
-    (envConfig.NODE_ENV === "production" 
-      ? "https://collavo-alpha.vercel.app" 
-      : "http://localhost:3000"
-    ),
+  baseURL: getProductionBaseURL(),
   trustedOrigins: [
     "http://localhost:3000",
     "https://collavo-alpha.vercel.app"
@@ -98,10 +102,17 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days in seconds
     updateAge: 60 * 60 * 24, // Update session every 24 hours
+    // Explicit cookie configuration
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    },
   },
-  // CSRF protection
+  // CSRF protection - More permissive for production debugging
   csrf: {
     enabled: true,
+    // Allow same-origin requests in production
+    sameSite: envConfig.NODE_ENV === "production" ? "lax" : "strict",
   },
   // Rate limiting
   rateLimit: {
@@ -111,7 +122,17 @@ export const auth = betterAuth({
   },
   // Logging configuration
   logger: {
-    level: envConfig.NODE_ENV === "production" ? "error" : "debug",
+    level: envConfig.NODE_ENV === "production" ? "warn" : "debug", // Change to warn to see production issues
+  },
+  // Add advanced options for production
+  advanced: {
+    // Disable secure cookies in development, ensure they're enabled in production
+    secureCookies: envConfig.NODE_ENV === "production",
+    // Cross-origin settings for production
+    crossSubDomainCookies: {
+      enabled: envConfig.NODE_ENV === "production",
+      ...(envConfig.NODE_ENV === "production" && { domain: ".vercel.app" }),
+    },
   },
 });
 

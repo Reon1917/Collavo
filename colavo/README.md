@@ -1,5 +1,36 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Critical Production Environment Variables
+
+⚠️ **IMPORTANT**: The following environment variables MUST be set in production to fix authentication issues:
+
+```bash
+# Authentication - Server Side (Required)
+BETTER_AUTH_SECRET=your-secret-key-here
+BETTER_AUTH_URL=https://collavo-alpha.vercel.app
+
+# Authentication - Client Side (Required) 
+NEXT_PUBLIC_BETTER_AUTH_URL=https://collavo-alpha.vercel.app
+NEXT_PUBLIC_APP_URL=https://collavo-alpha.vercel.app
+
+# Database
+DATABASE_URL=postgresql://...
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# File Upload
+UPLOADTHING_SECRET=your-uploadthing-secret
+UPLOADTHING_APP_ID=your-uploadthing-app-id
+```
+
+### ⚠️ Authentication Bug Fix
+The production login issue was caused by:
+1. **URL Mismatch**: Client and server using different base URLs
+2. **Missing Environment Variables**: `NEXT_PUBLIC_BETTER_AUTH_URL` not set
+3. **CSRF Origin Issues**: Better Auth rejecting requests due to origin mismatch
+
 ## Getting Started
 
 First, run the development server:
