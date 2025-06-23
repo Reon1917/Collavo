@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     response.cookies.delete('better-auth.session_token');
     response.cookies.delete('better-auth.csrf_token');
     
-    // Additional security: clear any possible legacy cookies safely
+    // Additional security: clear cookies with explicit settings
     try {
       response.cookies.set('better-auth.session_token', '', {
         expires: new Date(0),
@@ -35,9 +35,8 @@ export async function POST(request: NextRequest) {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax'
       });
-    } catch (cookieError) {
-      // Log but don't fail - cookie clearing is secondary to session termination
-      console.warn('[Kill Session] Cookie clearing warning:', cookieError);
+    } catch {
+      // Cookie clearing is secondary to session termination
     }
     
     // Add cache control headers
@@ -47,9 +46,7 @@ export async function POST(request: NextRequest) {
 
     return response;
 
-  } catch (error) {
-    console.error('[Kill Session] Session termination error:', error);
-    
+  } catch {
     // Even if there's an error, return success and clear cookies
     const response = NextResponse.json(
       { message: 'Session cleared' },
@@ -72,8 +69,8 @@ export async function POST(request: NextRequest) {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax'
       });
-    } catch (cookieError) {
-      console.warn('[Kill Session] Fallback cookie clearing warning:', cookieError);
+    } catch {
+      // Silent fallback
     }
     
     response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');

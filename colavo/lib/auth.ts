@@ -69,12 +69,14 @@ export const auth = betterAuth({
       const baseUrl = getProductionBaseURL();
       const resetUrl = `${baseUrl}/reset-password?token=${token}`;
       
-      // For now, we'll just log the reset URL
-      // In production, you would send this via email
-      // eslint-disable-next-line no-console
-      console.log(`Password reset link for ${user.email}: ${resetUrl}`);
-      // eslint-disable-next-line no-console
-      console.log(`Reset token: ${token}`);
+      // For development, you can see the reset URL in logs
+      // In production, this should send an actual email
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log(`Password reset link for ${user.email}: ${resetUrl}`);
+        // eslint-disable-next-line no-console
+        console.log(`Reset token: ${token}`);
+      }
       
       // TODO: Implement actual email sending
       // await sendEmail({
