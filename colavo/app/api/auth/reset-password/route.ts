@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 
-// Helper to get the correct base URL
-const getBaseURL = (): string => {
-  return process.env.BETTER_AUTH_URL || 
-    (process.env.NODE_ENV === "production" 
-      ? "https://collavo-alpha.vercel.app" 
-      : "http://localhost:3000");
-};
-
 // POST /api/auth/reset-password - Handle password reset requests
 export async function POST(request: NextRequest) {
   try {
@@ -26,7 +18,7 @@ export async function POST(request: NextRequest) {
     await auth.api.forgetPassword({
       body: { 
         email,
-        redirectTo: `${getBaseURL()}/reset-password`
+        redirectTo: `${process.env.BETTER_AUTH_URL || 'http://localhost:3000'}/reset-password`
       },
       headers: request.headers,
     });

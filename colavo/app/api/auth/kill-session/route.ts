@@ -15,29 +15,11 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
 
-    // Clear Better Auth cookies (correct cookie names)
+    // Clear all possible auth cookies
     response.cookies.delete('better-auth.session_token');
     response.cookies.delete('better-auth.csrf_token');
-    
-    // Additional security: clear cookies with explicit settings
-    try {
-      response.cookies.set('better-auth.session_token', '', {
-        expires: new Date(0),
-        path: '/',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
-      });
-      response.cookies.set('better-auth.csrf_token', '', {
-        expires: new Date(0),
-        path: '/',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
-      });
-    } catch {
-      // Cookie clearing is secondary to session termination
-    }
+    response.cookies.delete('authjs.session-token');
+    response.cookies.delete('__Secure-authjs.session-token');
     
     // Add cache control headers
     response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -46,32 +28,21 @@ export async function POST(request: NextRequest) {
 
     return response;
 
-  } catch {
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Kill session error:', error);
+    
     // Even if there's an error, return success and clear cookies
     const response = NextResponse.json(
       { message: 'Session cleared' },
       { status: 200 }
     );
 
-    // Clear Better Auth cookies safely
-    try {
-      response.cookies.set('better-auth.session_token', '', {
-        expires: new Date(0),
-        path: '/',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
-      });
-      response.cookies.set('better-auth.csrf_token', '', {
-        expires: new Date(0),
-        path: '/',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
-      });
-    } catch {
-      // Silent fallback
-    }
+    // Clear cookies anyway
+    response.cookies.delete('better-auth.session_token');
+    response.cookies.delete('better-auth.csrf_token');
+    response.cookies.delete('authjs.session-token');
+    response.cookies.delete('__Secure-authjs.session-token');
     
     response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
     response.headers.set('Pragma', 'no-cache');

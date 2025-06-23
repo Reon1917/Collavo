@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+  const isDev = process.env.NODE_ENV === 'development';
   
   // Early returns for static assets and API routes
   if (
@@ -33,6 +34,10 @@ export async function middleware(request: NextRequest) {
   
   // Handle public routes FIRST - no auth check needed
   if (publicRoutes.has(pathname)) {
+    if (isDev) {
+      console.log('[Middleware] Public route accessed:', pathname);
+    }
+    
     // For certain public routes, kill session if user is authenticated (logout)
     // But allow access to forgot-password and reset-password even when authenticated
     if (authRedirectRoutes.has(pathname)) {
@@ -43,19 +48,28 @@ export async function middleware(request: NextRequest) {
         
         // If user is authenticated and on a route they should be logged out from, kill the session
         if (session?.user) {
+          if (isDev) {
+            console.log('[Middleware] Authenticated user on auth redirect route, killing session and allowing access');
+          }
+          
           // Kill the session by calling signOut
           try {
             await auth.api.signOut({
               headers: request.headers
             });
-          } catch {
-            // Silent fallback if signOut fails
+            if (isDev) {
+              console.log('[Middleware] Session killed successfully');
+            }
+          } catch (signOutError) {
+            if (isDev) {
+              console.log('[Middleware] Error killing session:', signOutError);
+            }
           }
           
           // Create response with cleared session cookies
           const response = NextResponse.next();
           
-          // Clear Better Auth cookies (correct cookie names)
+          // Clear auth cookies
           response.cookies.delete('better-auth.session_token');
           response.cookies.delete('better-auth.csrf_token');
           
@@ -66,9 +80,12 @@ export async function middleware(request: NextRequest) {
           
           return response;
         }
-      } catch {
-        // If auth check fails on public routes, just continue
+      } catch (error) {
+        // If auth check fails on public routes, just log and continue
         // This ensures public routes remain accessible even if auth service is down
+        if (isDev) {
+          console.log('[Middleware] Auth check failed on public route, allowing access anyway:', error);
+        }
       }
     }
     
@@ -78,16 +95,35 @@ export async function middleware(request: NextRequest) {
   
   // For protected routes, perform auth check
   try {
+    if (isDev) {
+      console.log('[Middleware] Checking auth for protected path:', pathname);
+    }
+    
     // Use better-auth's built-in session verification
     const session = await auth.api.getSession({
       headers: request.headers
     });
     
+    if (isDev) {
+      console.log('[Middleware] Session check result:', {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        userId: session?.user?.id
+      });
+    }
+    
     // If no valid session, redirect to login
     if (!session?.user) {
+      if (isDev) {
+        console.log('[Middleware] No valid session, redirecting to login');
+      }
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('callbackUrl', pathname);
       return NextResponse.redirect(loginUrl);
+    }
+    
+    if (isDev) {
+      console.log('[Middleware] Valid session found, allowing access');
     }
     
     // User has valid session, continue with cache control headers
@@ -101,7 +137,8 @@ export async function middleware(request: NextRequest) {
     
     return response;
     
-  } catch {
+  } catch (error) {
+    console.error('[Middleware] Auth error on protected route:', error);
     // On error for protected routes, redirect to login
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
