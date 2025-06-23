@@ -18,7 +18,7 @@ import { formatDistanceToNow, isAfter, isBefore, isToday } from 'date-fns';
 import { EditEventDialog } from './dialogs/EditEventDialog';
 import { EventDetailsDialog } from './dialogs/EventDetailsDialog';
 import { EventDeleteModal } from './dialogs/EventDeleteModal';
-import { Event, Project, getEventStatusColor, formatEventDateTime } from '../types';
+import { Event, Project,formatEventDateTime } from '../types';
 
 interface EventCardProps {
   event: Event;
