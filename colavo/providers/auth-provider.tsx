@@ -54,8 +54,10 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
     try {
       await sessionData.refetch();
       await new Promise(resolve => setTimeout(resolve, 0));
-    } catch {
-      // Silent error handling for production
+    } catch (error) {
+              if (process.env.NODE_ENV === 'development') {
+          console.error("Failed to refetch session:", error);
+        }
     }
   }, [sessionData]);
 
