@@ -15,11 +15,29 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
 
-    // Clear all possible auth cookies
+    // Clear Better Auth cookies (correct cookie names)
     response.cookies.delete('better-auth.session_token');
     response.cookies.delete('better-auth.csrf_token');
-    response.cookies.delete('authjs.session-token');
-    response.cookies.delete('__Secure-authjs.session-token');
+    
+    // Additional security: clear cookies with explicit settings
+    try {
+      response.cookies.set('better-auth.session_token', '', {
+        expires: new Date(0),
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+      });
+      response.cookies.set('better-auth.csrf_token', '', {
+        expires: new Date(0),
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+      });
+    } catch {
+      // Cookie clearing is secondary to session termination
+    }
     
     // Add cache control headers
     response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -28,21 +46,32 @@ export async function POST(request: NextRequest) {
 
     return response;
 
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Kill session error:', error);
-    
+  } catch {
     // Even if there's an error, return success and clear cookies
     const response = NextResponse.json(
       { message: 'Session cleared' },
       { status: 200 }
     );
 
-    // Clear cookies anyway
-    response.cookies.delete('better-auth.session_token');
-    response.cookies.delete('better-auth.csrf_token');
-    response.cookies.delete('authjs.session-token');
-    response.cookies.delete('__Secure-authjs.session-token');
+    // Clear Better Auth cookies safely
+    try {
+      response.cookies.set('better-auth.session_token', '', {
+        expires: new Date(0),
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+      });
+      response.cookies.set('better-auth.csrf_token', '', {
+        expires: new Date(0),
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+      });
+    } catch {
+      // Silent fallback
+    }
     
     response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
     response.headers.set('Pragma', 'no-cache');
