@@ -32,15 +32,19 @@ export default function LoginPage() {
       });
 
       if (res.error) {
+        console.error('Login error:', res.error);
         toast.error('Invalid credentials. Please try again.');
       } else {
         toast.success('Login successful!');
-        // Wait a moment for the session to be established
+        
+        // Force a small delay and reload to ensure session is properly established
         setTimeout(() => {
-          router.push(callbackUrl);
-        }, 100);
+          // Use window.location.href for a full page reload to ensure middleware runs
+          window.location.href = callbackUrl;
+        }, 500); // Increased delay to ensure session is saved
       }
-    } catch {
+    } catch (error) {
+      console.error('Login exception:', error);
       toast.error('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
