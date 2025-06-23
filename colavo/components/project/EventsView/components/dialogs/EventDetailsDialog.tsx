@@ -21,21 +21,36 @@ export function EventDetailsDialog({
   const eventDate = new Date(event.datetime);
   const createdDate = new Date(event.createdAt);
   
-  // Calculate time difference for "X days ago" display
+  // Calculate time difference preserving sign for past/future determination
   const now = new Date();
-  const diffTime = Math.abs(now.getTime() - eventDate.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const diffTime = now.getTime() - eventDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   
   const getEventStatus = () => {
     if (eventDate < now) {
       return { label: 'Past', color: 'bg-gray-500 dark:bg-gray-600' };
-    } else if (diffDays <= 1) {
+    } else if (diffDays === 0) {
       return { label: 'Today', color: 'bg-[#008080] dark:bg-[#00FFFF]' };
-    } else if (diffDays <= 7) {
+    } else if (diffDays >= -7 && diffDays < 0) {
       return { label: 'Upcoming', color: 'bg-green-500 dark:bg-green-600' };
     } else {
       return { label: 'Upcoming', color: 'bg-[#008080] dark:bg-[#008080]' };
     }
+  };
+
+  const getTimeDisplayText = () => {
+    if (diffDays === 0) {
+      return 'Today';
+    } else if (diffDays === 1) {
+      return '1 day ago';
+    } else if (diffDays > 1) {
+      return `${diffDays} days ago`;
+    } else if (diffDays === -1) {
+      return 'Tomorrow';
+    } else if (diffDays < -1) {
+      return `In ${Math.abs(diffDays)} days`;
+    }
+    return 'Today';
   };
 
   const status = getEventStatus();
@@ -96,7 +111,7 @@ export function EventDetailsDialog({
               
               <div className="mt-3 px-3 py-2 bg-[#008080]/10 dark:bg-[#008080]/20 rounded-md">
                 <p className="text-[#008080] dark:text-[#00FFFF] text-sm">
-                  {diffDays === 0 ? 'Today' : diffDays === 1 ? '1 day ago' : `${diffDays} days ago`}
+                  {getTimeDisplayText()}
                 </p>
               </div>
             </div>
