@@ -58,6 +58,7 @@ export function EventsHeader({ project, canCreateEvents, onEventCreated }: Event
           projectId={project.id} 
           onEventCreated={onEventCreated}
           projectData={project}
+          members={project.members}
         />
       )}
     </div>

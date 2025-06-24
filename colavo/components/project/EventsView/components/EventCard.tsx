@@ -18,6 +18,7 @@ import { formatDistanceToNow, isAfter, isBefore, isToday } from 'date-fns';
 import { EditEventDialog } from './dialogs/EditEventDialog';
 import { EventDetailsDialog } from './dialogs/EventDetailsDialog';
 import { EventDeleteModal } from './dialogs/EventDeleteModal';
+import { PostNotificationSettings } from '../../shared/ui/PostNotificationSettings';
 import { Event, Project,formatEventDateTime } from '../types';
 
 interface EventCardProps {
@@ -187,6 +188,18 @@ export function EventCard({
                  isEventToday ? 'Today' : 
                  `In ${formatDistanceToNow(eventDate)}`}
               </span>
+            </div>
+            
+            {/* Notification Settings */}
+            <div className="mb-4 flex justify-center">
+              <PostNotificationSettings
+                entityType="event"
+                entityId={event.id}
+                entityTitle={event.title}
+                projectId={project.id}
+                eventDateTime={event.datetime}
+                members={project.members}
+              />
             </div>
             
             {/* View Details Button - Enhanced on hover */}

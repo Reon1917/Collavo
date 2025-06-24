@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { CreateSubTaskForm } from './forms/CreateSubTaskForm';
 import { EditTaskDialog } from './dialogs/EditTaskDialog';
 import { SubTaskMiniItem } from './SubTaskMiniItem';
+import { PostNotificationSettings } from '../../shared/ui/PostNotificationSettings';
 import { Task, Project, SubTask, getImportanceColor } from '../types';
 
 interface TaskCardProps {
@@ -206,7 +207,7 @@ export function TaskCard({
 
           {/* Task metadata */}
           <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
+            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500 mb-2">
               <div className="flex items-center gap-1 min-w-0">
                 <User className="h-3 w-3 flex-shrink-0" />
                 <span className="truncate">{task.creatorName}</span>
@@ -219,6 +220,20 @@ export function TaskCard({
                   </span>
                 </div>
               )}
+            </div>
+            
+            {/* Notification Settings */}
+            <div className="flex justify-between items-center">
+              <PostNotificationSettings
+                entityType="task"
+                entityId={task.id}
+                entityTitle={task.title}
+                projectId={project.id}
+                hasDeadline={!!task.deadline}
+                hasAssignee={visibleSubTasks.some(st => !!st.assignedId)}
+                deadline={task.deadline || undefined}
+                members={project.members}
+              />
             </div>
           </div>
         </CardContent>
