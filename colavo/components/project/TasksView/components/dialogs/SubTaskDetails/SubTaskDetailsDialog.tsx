@@ -138,7 +138,7 @@ export function SubTaskDetailsDialog({
               </form>
             ) : (
               <>
-                <SubTaskInfoCard subTask={subTask} currentUserId={currentUserId} />
+                <SubTaskInfoCard subTask={subTask} currentUserId={currentUserId} projectId={projectId} members={members} taskId={mainTaskId} />
                 
                 <form onSubmit={handleStatusSubmit} className="space-y-6">
                   <StatusUpdateForm
