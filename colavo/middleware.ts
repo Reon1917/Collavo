@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
       console.log('[Middleware] Public route accessed:', pathname);
     }
     
-    // For certain public routes, kill session if user is authenticated (logout)
+    // For certain public routes, redirect authenticated users to dashboard
     // But allow access to forgot-password and reset-password even when authenticated
     if (authRedirectRoutes.has(pathname)) {
       try {
@@ -46,39 +46,14 @@ export async function middleware(request: NextRequest) {
           headers: request.headers
         });
         
-        // If user is authenticated and on a route they should be logged out from, kill the session
+        // If user is authenticated and on a route they should be redirected from, go to dashboard
         if (session?.user) {
           if (isDev) {
-            console.log('[Middleware] Authenticated user on auth redirect route, killing session and allowing access');
+            console.log('[Middleware] Authenticated user on auth route, redirecting to dashboard');
           }
           
-          // Kill the session by calling signOut
-          try {
-            await auth.api.signOut({
-              headers: request.headers
-            });
-            if (isDev) {
-              console.log('[Middleware] Session killed successfully');
-            }
-          } catch (signOutError) {
-            if (isDev) {
-              console.log('[Middleware] Error killing session:', signOutError);
-            }
-          }
-          
-          // Create response with cleared session cookies
-          const response = NextResponse.next();
-          
-          // Clear auth cookies
-          response.cookies.delete('better-auth.session_token');
-          response.cookies.delete('better-auth.csrf_token');
-          
-          // Add cache control headers to prevent caching
-          response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-          response.headers.set('Pragma', 'no-cache');
-          response.headers.set('Expires', '0');
-          
-          return response;
+          // Redirect to dashboard instead of killing session
+          return NextResponse.redirect(new URL('/dashboard', request.url));
         }
       } catch (error) {
         // If auth check fails on public routes, just log and continue
