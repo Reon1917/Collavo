@@ -31,7 +31,7 @@ export async function sendTaskReminderEmail(
   data: TaskReminderData
 ): Promise<EmailResult> {
   try {
-    const { assignedUserName, taskTitle, daysBefore } = data;
+    const { taskTitle, daysBefore } = data;
     const daysText = daysBefore === 1 ? 'day' : 'days';
     
     const htmlContent = generateTaskReminderHTML(data);
@@ -49,7 +49,7 @@ export async function sendTaskReminderEmail(
     });
 
     if (result.error) {
-      console.error('Failed to send task reminder email:', result.error);
+      // Failed to send task reminder email
       return {
         id: '',
         success: false,
@@ -57,7 +57,7 @@ export async function sendTaskReminderEmail(
       };
     }
 
-    console.log(`Task reminder email sent successfully to ${recipientEmail}:`, result.data?.id);
+    // Task reminder email sent successfully
     
     return {
       id: result.data?.id || '',
@@ -65,7 +65,7 @@ export async function sendTaskReminderEmail(
     };
 
   } catch (error) {
-    console.error('Error sending task reminder email:', error);
+    // Error sending task reminder email
     return {
       id: '',
       success: false,
@@ -100,7 +100,7 @@ export async function sendEventReminderEmail(
     });
 
     if (result.error) {
-      console.error('Failed to send event reminder email:', result.error);
+      // Failed to send event reminder email
       return {
         id: '',
         success: false,
@@ -108,7 +108,7 @@ export async function sendEventReminderEmail(
       };
     }
 
-    console.log(`Event reminder email sent successfully to ${recipientEmails.length} recipients:`, result.data?.id);
+    // Event reminder email sent successfully
     
     return {
       id: result.data?.id || '',
@@ -116,7 +116,7 @@ export async function sendEventReminderEmail(
     };
 
   } catch (error) {
-    console.error('Error sending event reminder email:', error);
+    // Error sending event reminder email
     return {
       id: '',
       success: false,

@@ -150,8 +150,8 @@ export async function GET(
       recipientDetails
     });
 
-  } catch (error) {
-    console.error('Error fetching notification:', error);
+  } catch {
+    // Error fetching notification
     return NextResponse.json({
       error: 'Internal server error'
     }, { status: 500 });

@@ -146,8 +146,8 @@ export async function POST(
           recipientUserIds: notificationSettings.recipientUserIds,
           createdBy: session.user.id
         });
-      } catch (error) {
-        console.error('Failed to schedule notification for event:', error);
+              } catch {
+          // Failed to schedule notification for event
         // Don't fail the whole request if notification scheduling fails
         // The event was created successfully
       }

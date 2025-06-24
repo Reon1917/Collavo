@@ -259,8 +259,8 @@ export async function POST(
           daysBefore: notificationSettings.daysBefore,
           createdBy: session.user.id
         });
-      } catch (error) {
-        console.error('Failed to schedule notification for subtask:', error);
+              } catch {
+          // Failed to schedule notification for subtask
         // Don't fail the whole request if notification scheduling fails
         // The subtask was created successfully
       }

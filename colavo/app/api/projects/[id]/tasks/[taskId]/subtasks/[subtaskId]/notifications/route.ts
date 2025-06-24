@@ -65,7 +65,12 @@ export async function POST(
       return NextResponse.json({ error: 'Subtask not found' }, { status: 404 });
     }
 
-    const { subtask } = subtaskData[0];
+    const subtaskResult = subtaskData[0];
+    if (!subtaskResult) {
+      return NextResponse.json({ error: 'Subtask not found' }, { status: 404 });
+    }
+
+    const { subtask } = subtaskResult;
 
     // Validate subtask has required fields for notifications
     if (!subtask.deadline) {
@@ -100,15 +105,15 @@ export async function POST(
       });
 
     } catch (error) {
-      console.error('Failed to schedule subtask notification:', error);
+      // Failed to schedule subtask notification
       return NextResponse.json({
         success: false,
         error: error instanceof Error ? error.message : 'Failed to schedule notification'
       }, { status: 500 });
     }
 
-  } catch (error) {
-    console.error('Subtask notification API error:', error);
+  } catch {
+    // Subtask notification API error
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

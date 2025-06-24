@@ -72,8 +72,8 @@ export async function DELETE(
     if (notification.qstashMessageId) {
       try {
         await qstashClient.messages.delete(notification.qstashMessageId);
-      } catch (error) {
-        console.error('Failed to cancel QStash message:', error);
+      } catch {
+        // Failed to cancel QStash message
         // Continue with database update even if QStash cancellation fails
         // The message might have already been processed or deleted
       }
@@ -99,8 +99,8 @@ export async function DELETE(
       status: 'cancelled'
     });
 
-  } catch (error) {
-    console.error('Error cancelling notification:', error);
+  } catch {
+    // Error cancelling notification
     return NextResponse.json({
       error: 'Internal server error'
     }, { status: 500 });

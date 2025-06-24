@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in test notification endpoint:', error);
+    // Error in test notification endpoint
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Internal server error'

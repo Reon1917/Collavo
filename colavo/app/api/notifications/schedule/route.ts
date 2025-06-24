@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
         });
 
       } catch (error) {
-        console.error('Failed to schedule subtask notification:', error);
+        // Failed to schedule subtask notification
         return NextResponse.json({
           success: false,
           error: error instanceof Error ? error.message : 'Failed to schedule notification'
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
         });
 
       } catch (error) {
-        console.error('Failed to schedule event notification:', error);
+        // Failed to schedule event notification
         return NextResponse.json({
           success: false,
           error: error instanceof Error ? error.message : 'Failed to schedule notification'
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Error in schedule notification endpoint:', error);
+    // Error in schedule notification endpoint
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Internal server error'
