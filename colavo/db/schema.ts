@@ -89,6 +89,18 @@ export const memberRoleEnum = pgEnum("member_role", [
 	"member"
 ]);
 
+export const notificationTypeEnum = pgEnum("notification_type", [
+	"subtask",
+	"event"
+]);
+
+export const notificationStatusEnum = pgEnum("notification_status", [
+	"pending",
+	"sent", 
+	"failed",
+	"cancelled"
+]);
+
 // Projects table
 export const projects = pgTable("projects", {
 	id: text("id").primaryKey().$defaultFn(() => createId()),
@@ -207,6 +219,29 @@ export const files = pgTable("files", {
 	addedByIdx: index("idx_files_added_by").on(table.addedBy),
 }));
 
+// Scheduled notifications table
+export const scheduledNotifications = pgTable("scheduled_notifications", {
+	id: text("id").primaryKey().$defaultFn(() => createId()),
+	type: notificationTypeEnum("type").notNull(),
+	entityId: text("entity_id").notNull(), // subtask.id or event.id
+	recipientUserId: text("recipient_user_id").references(() => user.id, { onDelete: 'cascade' }), // for single recipient (subtasks)
+	recipientUserIds: text("recipient_user_ids").array(), // for multiple recipients (events)
+	scheduledFor: timestamp("scheduled_for").notNull(),
+	daysBefore: integer("days_before").notNull(),
+	status: notificationStatusEnum("status").default("pending").notNull(),
+	qstashMessageId: text("qstash_message_id"), // for cancellation
+	emailId: text("email_id"), // Resend email ID
+	sentAt: timestamp("sent_at"),
+	createdBy: text("created_by").notNull().references(() => user.id, { onDelete: 'cascade' }),
+	projectId: text("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+	typeEntityIdx: index("idx_notifications_type_entity").on(table.type, table.entityId),
+	statusIdx: index("idx_notifications_status").on(table.status),
+	scheduledForIdx: index("idx_notifications_scheduled_for").on(table.scheduledFor),
+	projectIdx: index("idx_notifications_project").on(table.projectId),
+}));
+
 // Relations
 export const userRelations = relations(user, ({ many }) => ({
 	projectsLed: many(projects),
@@ -314,6 +349,21 @@ export const filesRelations = relations(files, ({ one }) => ({
 	}),
 }));
 
+export const scheduledNotificationsRelations = relations(scheduledNotifications, ({ one }) => ({
+	project: one(projects, {
+		fields: [scheduledNotifications.projectId],
+		references: [projects.id],
+	}),
+	createdBy: one(user, {
+		fields: [scheduledNotifications.createdBy],
+		references: [user.id],
+	}),
+	recipientUser: one(user, {
+		fields: [scheduledNotifications.recipientUserId],
+		references: [user.id],
+	}),
+}));
+
 // Types for TypeScript inference
 export type User = typeof user.$inferSelect;
 export type NewUser = typeof user.$inferInsert;
@@ -341,3 +391,6 @@ export type NewEvent = typeof events.$inferInsert;
 
 export type File = typeof files.$inferSelect;
 export type NewFile = typeof files.$inferInsert;
+
+export type ScheduledNotification = typeof scheduledNotifications.$inferSelect;
+export type NewScheduledNotification = typeof scheduledNotifications.$inferInsert;

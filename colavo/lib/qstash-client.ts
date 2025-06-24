@@ -1,0 +1,91 @@
+import { Client } from "@upstash/qstash";
+
+if (!process.env.QSTASH_TOKEN) {
+  throw new Error("QSTASH_TOKEN environment variable is required");
+}
+
+export const qstash = new Client({
+  token: process.env.QSTASH_TOKEN,
+});
+
+// Thailand timezone utilities (UTC+7)
+const THAILAND_TIMEZONE = 'Asia/Bangkok';
+const THAILAND_OFFSET_HOURS = 7;
+
+/**
+ * Convert date to Thailand timezone (UTC+7)
+ */
+export function toThailandTime(date: Date): Date {
+  return new Date(date.toLocaleString("en-US", { timeZone: THAILAND_TIMEZONE }));
+}
+
+/**
+ * Calculate notification date in Thailand timezone with edge case handling
+ * @param deadline - Task/Event deadline in UTC
+ * @param daysBefore - Number of days before deadline to send notification
+ * @returns Notification date in UTC (for database storage and QStash scheduling)
+ */
+export function calculateNotificationDate(deadline: Date, daysBefore: number): Date {
+  // Convert deadline to Thailand time to calculate correctly
+  const deadlineThailand = toThailandTime(deadline);
+  
+  // Subtract days in Thailand timezone
+  const notificationThailand = new Date(deadlineThailand);
+  notificationThailand.setDate(notificationThailand.getDate() - daysBefore);
+  
+  // Set to morning time in Thailand (9 AM) for better UX
+  notificationThailand.setHours(9, 0, 0, 0);
+  
+  // Convert back to UTC for storage and QStash
+  const notificationUTC = new Date(notificationThailand.getTime() - (THAILAND_OFFSET_HOURS * 60 * 60 * 1000));
+  
+  return notificationUTC;
+}
+
+/**
+ * Calculate delay in seconds for QStash scheduling
+ * @param notificationDate - When to send notification (UTC)
+ * @returns Delay in seconds, minimum 60 seconds
+ */
+export function calculateQStashDelay(notificationDate: Date): number {
+  const now = new Date();
+  const delayMs = notificationDate.getTime() - now.getTime();
+  const delaySeconds = Math.floor(delayMs / 1000);
+  
+  // Minimum delay of 60 seconds for QStash
+  return Math.max(delaySeconds, 60);
+}
+
+/**
+ * Validate if notification can be scheduled
+ * @param notificationDate - When to send notification
+ * @returns true if valid, throws error if invalid
+ */
+export function validateNotificationTiming(notificationDate: Date): boolean {
+  const now = new Date();
+  const delayMs = notificationDate.getTime() - now.getTime();
+  
+  if (delayMs < 60000) { // Less than 60 seconds
+    throw new Error('Notification must be scheduled at least 60 seconds in the future');
+  }
+  
+  if (delayMs > 31536000000) { // More than 1 year
+    throw new Error('Notification cannot be scheduled more than 1 year in advance');
+  }
+  
+  return true;
+}
+
+/**
+ * Format date for user display in Thailand timezone
+ */
+export function formatThailandDate(date: Date): string {
+  return date.toLocaleString('th-TH', { 
+    timeZone: THAILAND_TIMEZONE,
+    year: 'numeric',
+    month: 'long', 
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+} 

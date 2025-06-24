@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Member, SubTask } from '../../types';
+import { NotificationSettings, type NotificationSettings as NotificationSettingsType } from '../../../shared/ui/NotificationSettings';
 
 interface CreateSubTaskFormProps {
   projectId: string;
@@ -32,6 +33,7 @@ interface SubTaskFormData {
   description: string;
   assignedId: string;
   deadline: Date | undefined;
+  notificationSettings: NotificationSettingsType;
 }
 
 export function CreateSubTaskForm({ 
@@ -55,7 +57,11 @@ export function CreateSubTaskForm({
     title: '',
     description: '',
     assignedId: '',
-    deadline: undefined
+    deadline: undefined,
+    notificationSettings: {
+      enabled: false,
+      daysBefore: 1
+    }
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -86,6 +92,18 @@ export function CreateSubTaskForm({
       return;
     }
 
+    // Validate notification settings
+    if (formData.notificationSettings.enabled) {
+      if (!formData.deadline) {
+        toast.error('Deadline is required when notifications are enabled');
+        return;
+      }
+      if (!formData.assignedId) {
+        toast.error('Assigned user is required when notifications are enabled');
+        return;
+      }
+    }
+
     setIsLoading(true);
 
     try {
@@ -98,7 +116,8 @@ export function CreateSubTaskForm({
           title: formData.title.trim(),
           description: formData.description.trim() || null,
           assignedId: formData.assignedId,
-          deadline: formData.deadline.toISOString()
+          deadline: formData.deadline.toISOString(),
+          notificationSettings: formData.notificationSettings.enabled ? formData.notificationSettings : undefined
         }),
       });
 
@@ -108,13 +127,22 @@ export function CreateSubTaskForm({
       }
 
       const newSubTask = await response.json();
-      toast.success('Subtask created successfully!');
+      
+      if (newSubTask.notification?.scheduled) {
+        toast.success(`Subtask created successfully! Notification scheduled for ${formData.notificationSettings.daysBefore} day(s) before deadline.`);
+      } else {
+        toast.success('Subtask created successfully!');
+      }
       
       setFormData({
         title: '',
         description: '',
         assignedId: '',
-        deadline: undefined
+        deadline: undefined,
+        notificationSettings: {
+          enabled: false,
+          daysBefore: 1
+        }
       });
       setDialogOpen(false);
       
@@ -146,7 +174,7 @@ export function CreateSubTaskForm({
           {trigger || defaultTrigger}
         </DialogTrigger>
       )}
-      <DialogContent className="max-w-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-2">
             <Plus className="h-5 w-5 text-[#008080]" />
@@ -268,6 +296,15 @@ export function CreateSubTaskForm({
               </Popover>
             </div>
           </div>
+
+          <NotificationSettings
+            type="subtask"
+            settings={formData.notificationSettings}
+            onSettingsChange={(settings) => setFormData(prev => ({ ...prev, notificationSettings: settings }))}
+            hasDeadline={!!formData.deadline}
+            hasAssignee={!!formData.assignedId}
+            disabled={isLoading}
+          />
 
           <div className="flex gap-3 pt-4">
             <Button

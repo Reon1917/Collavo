@@ -4,6 +4,7 @@ import { db } from '@/db';
 import { projects, members, permissions, mainTasks, subTasks, user } from '@/db/schema';
 import { createId } from '@paralleldrive/cuid2';
 import { eq, and } from 'drizzle-orm';
+import { scheduleSubTaskNotification } from '@/lib/notification-scheduler';
 
 // Define the permission type to match the schema enum
 type PermissionType = "createTask" | "handleTask" | "updateTask" | "handleEvent" | "handleFile" | "addMember" | "createEvent" | "viewFiles";
@@ -161,7 +162,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { title, description, assignedId, deadline } = body;
+    const { title, description, assignedId, deadline, notificationSettings } = body;
 
     // Validate input
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
@@ -210,6 +211,31 @@ export async function POST(
       }
     }
 
+    // Validate notification settings if provided
+    if (notificationSettings) {
+      const { enabled, daysBefore } = notificationSettings;
+      if (enabled) {
+        if (!deadlineDate) {
+          return NextResponse.json(
+            { error: 'Deadline is required when notifications are enabled' },
+            { status: 400 }
+          );
+        }
+        if (!assignedId) {
+          return NextResponse.json(
+            { error: 'Assigned user is required when notifications are enabled' },
+            { status: 400 }
+          );
+        }
+        if (!daysBefore || daysBefore < 1 || daysBefore > 30) {
+          return NextResponse.json(
+            { error: 'daysBefore must be between 1 and 30 when notifications are enabled' },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     // Create sub-task
     const newSubTask = await db.insert(subTasks).values({
       id: createId(),
@@ -224,6 +250,22 @@ export async function POST(
       updatedAt: new Date()
     }).returning();
 
+    // Schedule notification if enabled and all requirements are met
+    let notificationResult = null;
+    if (notificationSettings?.enabled && deadlineDate && assignedId && newSubTask[0]) {
+      try {
+        notificationResult = await scheduleSubTaskNotification({
+          subTaskId: newSubTask[0].id,
+          daysBefore: notificationSettings.daysBefore,
+          createdBy: session.user.id
+        });
+      } catch (error) {
+        console.error('Failed to schedule notification for subtask:', error);
+        // Don't fail the whole request if notification scheduling fails
+        // The subtask was created successfully
+      }
+    }
+
     // Get assigned user details if assigned
     let assignedUser = null;
     if (assignedId) {
@@ -233,12 +275,18 @@ export async function POST(
       }
     }
 
-    return NextResponse.json({
+    const response = {
       ...newSubTask[0],
       assignedUserName: assignedUser?.name || null,
       assignedUserEmail: assignedUser?.email || null,
-      assignedUserImage: assignedUser?.image || null
-    }, { status: 201 });
+      notification: notificationResult ? {
+        scheduled: true,
+        notificationId: notificationResult.notificationId,
+        daysBefore: notificationSettings.daysBefore
+      } : null
+    };
+
+    return NextResponse.json(response, { status: 201 });
 
   } catch {
     return NextResponse.json(

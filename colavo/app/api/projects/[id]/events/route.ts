@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { events, user } from '@/db/schema';
+import { events, user, members } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { requireProjectAccess, checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
+import { scheduleEventNotification } from '@/lib/notification-scheduler';
 
 export async function GET(
   request: NextRequest,
@@ -74,7 +75,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { title, description, datetime, location } = body;
+    const { title, description, datetime, location, notificationSettings } = body;
 
     if (!title?.trim()) {
       return NextResponse.json({ error: 'Event title is required' }, { status: 400 });
@@ -82,6 +83,38 @@ export async function POST(
 
     if (!datetime) {
       return NextResponse.json({ error: 'Event date and time is required' }, { status: 400 });
+    }
+
+    // Validate notification settings if provided
+    if (notificationSettings) {
+      const { enabled, daysBefore, recipientUserIds } = notificationSettings;
+      if (enabled) {
+        if (!daysBefore || daysBefore < 1 || daysBefore > 30) {
+          return NextResponse.json({ 
+            error: 'daysBefore must be between 1 and 30 when notifications are enabled' 
+          }, { status: 400 });
+        }
+        if (!recipientUserIds || !Array.isArray(recipientUserIds) || recipientUserIds.length === 0) {
+          return NextResponse.json({ 
+            error: 'At least one recipient is required when notifications are enabled' 
+          }, { status: 400 });
+        }
+        
+        // Validate that all recipient users are members of the project
+        const projectMembers = await db
+          .select({ userId: members.userId })
+          .from(members)
+          .where(eq(members.projectId, projectId));
+        
+        const memberIds = projectMembers.map(m => m.userId);
+        const invalidRecipients = recipientUserIds.filter(id => !memberIds.includes(id));
+        
+        if (invalidRecipients.length > 0) {
+          return NextResponse.json({ 
+            error: 'All notification recipients must be project members' 
+          }, { status: 400 });
+        }
+      }
     }
 
     // Create the event
@@ -102,6 +135,23 @@ export async function POST(
     }
 
     const newEvent = newEventResult[0]!;
+
+    // Schedule notification if enabled and all requirements are met
+    let notificationResult = null;
+    if (notificationSettings?.enabled && notificationSettings.recipientUserIds?.length > 0) {
+      try {
+        notificationResult = await scheduleEventNotification({
+          eventId: newEvent.id,
+          daysBefore: notificationSettings.daysBefore,
+          recipientUserIds: notificationSettings.recipientUserIds,
+          createdBy: session.user.id
+        });
+      } catch (error) {
+        console.error('Failed to schedule notification for event:', error);
+        // Don't fail the whole request if notification scheduling fails
+        // The event was created successfully
+      }
+    }
 
     // Get the created event with creator information
     const eventWithCreatorResult = await db
@@ -125,7 +175,17 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to retrieve created event' }, { status: 500 });
     }
 
-    return NextResponse.json(eventWithCreatorResult[0], { status: 201 });
+    const response = {
+      ...eventWithCreatorResult[0],
+      notification: notificationResult ? {
+        scheduled: true,
+        notificationId: notificationResult.notificationId,
+        daysBefore: notificationSettings.daysBefore,
+        recipientCount: notificationSettings.recipientUserIds.length
+      } : null
+    };
+
+    return NextResponse.json(response, { status: 201 });
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

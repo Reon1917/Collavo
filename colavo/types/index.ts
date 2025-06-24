@@ -342,6 +342,89 @@ export type Result<T, E = ApiError> =
   | { success: false; error: E };
 
 // ========================================================================================
+// Email Notification Types
+// ========================================================================================
+
+/** Notification types for scheduled reminders */
+export type NotificationType = 'subtask' | 'event';
+
+/** Notification status tracking */
+export type NotificationStatus = 'pending' | 'sent' | 'failed' | 'cancelled';
+
+/** Email notification data for tasks */
+export interface TaskNotificationData {
+  assignedUserName: string;
+  taskTitle: string;
+  taskDescription?: string;
+  projectName: string;
+  deadline: Date;
+  daysBefore: number;
+}
+
+/** Email notification data for events */
+export interface EventNotificationData {
+  eventTitle: string;
+  eventDescription?: string;
+  projectName: string;
+  datetime: Date;
+  location?: string;
+  daysBefore: number;
+}
+
+/** Scheduled notification record */
+export interface ScheduledNotification {
+  readonly id: string;
+  type: NotificationType;
+  entityId: string; // subtask.id or event.id
+  recipientUserId?: string | null; // for single recipient (subtasks)
+  recipientUserIds?: string[] | null; // for multiple recipients (events)
+  scheduledFor: Date;
+  daysBefore: number;
+  status: NotificationStatus;
+  qstashMessageId?: string | null;
+  emailId?: string | null;
+  sentAt?: Date | null;
+  createdBy: string;
+  projectId: string;
+  readonly createdAt: Date;
+}
+
+/** Parameters for scheduling subtask notifications */
+export interface ScheduleSubTaskNotificationParams {
+  subTaskId: string;
+  daysBefore: number;
+  createdBy: string;
+}
+
+/** Parameters for scheduling event notifications */
+export interface ScheduleEventNotificationParams {
+  eventId: string;
+  daysBefore: number;
+  recipientUserIds: string[];
+  createdBy: string;
+}
+
+/** Email sending result */
+export interface EmailResult {
+  id: string;
+  success: boolean;
+  error?: string;
+}
+
+// Re-export database types for convenience
+export type { 
+  User as DbUser2, 
+  Project as DbProject2, 
+  Member, 
+  Permission, 
+  MainTask, 
+  SubTask, 
+  Event as DbEvent, 
+  File as DbFile, 
+  ScheduledNotification as DbScheduledNotification 
+} from '@/db/schema';
+
+// ========================================================================================
 // Constants & Enums
 // ========================================================================================
 

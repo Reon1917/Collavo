@@ -13,6 +13,7 @@ interface CreateEventFormProps {
   projectData?: {
     deadline: string | null;
   };
+  members?: Array<{ userId: string; userName: string; userEmail: string }>;
 }
 
 interface EventFormData {
@@ -20,16 +21,26 @@ interface EventFormData {
   description: string;
   datetime: Date | undefined;
   location: string;
+  notificationSettings: {
+    enabled: boolean;
+    daysBefore: number;
+    recipientUserIds?: string[];
+  };
 }
 
 const initialFormData: EventFormData = {
   title: '',
   description: '',
   datetime: undefined,
-  location: ''
+  location: '',
+  notificationSettings: {
+    enabled: false,
+    daysBefore: 1,
+    recipientUserIds: []
+  }
 };
 
-export function CreateEventForm({ projectId, onEventCreated, trigger, projectData }: CreateEventFormProps) {
+export function CreateEventForm({ projectId, onEventCreated, trigger, projectData, members = [] }: CreateEventFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [eventData, setEventData] = useState<EventFormData>(initialFormData);
 
@@ -85,6 +96,7 @@ export function CreateEventForm({ projectId, onEventCreated, trigger, projectDat
           projectData={projectData || { deadline: null }}
           onSuccess={handleEventSuccess}
           onCancel={handleCancel}
+          members={members}
         />
       </DialogContent>
     </Dialog>

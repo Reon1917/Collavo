@@ -10,22 +10,22 @@
 ## 📋 Action Items for Today
 
 ### Phase 1: Database Schema Extension
-- [ ] **1.1** Add `scheduledNotifications` table to schema
-- [ ] **1.2** Add notification-related enums (type, status)
+- [x] **1.1** Add `scheduledNotifications` table to schema
+- [x] **1.2** Add notification-related enums (type, status)
 - [ ] **1.3** Run database migration
-- [ ] **1.4** Update TypeScript types
+- [x] **1.4** Update TypeScript types
 
 ### Phase 2: Core QStash Integration
-- [ ] **2.1** Create QStash client configuration (`lib/qstash-client.ts`)
-- [ ] **2.2** Build notification scheduler (`lib/notification-scheduler.ts`)
-- [ ] **2.3** Create webhook handler (`app/api/webhooks/send-notification/route.ts`)
-- [ ] **2.4** Implement signature verification for security
+- [x] **2.1** Create QStash client configuration (`lib/qstash-client.ts`)
+- [x] **2.2** Build notification scheduler (`lib/notification-scheduler.ts`)
+- [x] **2.3** Create webhook handler (`app/api/webhooks/send-notification/route.ts`)
+- [x] **2.4** Implement signature verification for security
 
 ### Phase 3: Email Templates & Sending
-- [ ] **3.1** Create Resend email templates (`lib/email-templates.ts`)
-- [ ] **3.2** Build email sending service (`lib/email-service.ts`)
-- [ ] **3.3** Implement task reminder emails
-- [ ] **3.4** Implement event reminder emails
+- [x] **3.1** Create Resend email templates (`lib/email-templates.ts`)
+- [x] **3.2** Build email sending service (`lib/email-service.ts`)
+- [x] **3.3** Implement task reminder emails
+- [x] **3.4** Implement event reminder emails
 
 ### Phase 4: API Integration
 - [ ] **4.1** Extend task creation API to schedule notifications

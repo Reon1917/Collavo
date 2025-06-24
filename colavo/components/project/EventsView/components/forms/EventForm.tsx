@@ -6,26 +6,31 @@ import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarIcon, Loader2, AlertCircle } from 'lucide-react';
+import { CalendarIcon, Loader2, AlertCircle, MapPin, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Event } from '../../types';
+import { NotificationSettings, type NotificationSettings as NotificationSettingsType } from '../../../shared/ui/NotificationSettings';
 
 interface EventFormData {
   title: string;
   description: string;
   datetime: Date | undefined;
   location: string;
+  notificationSettings: NotificationSettingsType;
 }
 
 interface EventFormProps {
   projectId: string;
   eventData: EventFormData;
   setEventData: (data: EventFormData | ((prev: EventFormData) => EventFormData)) => void;
-  projectData?: { deadline: string | null };
+  projectData: {
+    deadline: string | null;
+  };
   onSuccess: (event: Event) => void;
   onCancel: () => void;
+  members?: Array<{ userId: string; userName: string; userEmail: string }>;
 }
 
 export function EventForm({ 
@@ -34,7 +39,8 @@ export function EventForm({
   setEventData, 
   projectData, 
   onSuccess, 
-  onCancel 
+  onCancel,
+  members = []
 }: EventFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTime, setSelectedTime] = useState('12:00');
@@ -55,33 +61,28 @@ export function EventForm({
       return;
     }
 
-    // Validate against project deadline
-    if (projectDeadline && eventData.datetime > projectDeadline) {
-      toast.error('Event date cannot be later than the project deadline');
+    // Validate event is not in the past
+    if (eventData.datetime < new Date()) {
+      toast.error('Event date cannot be in the past');
       return;
     }
 
-    // Combine date and time
-    const timeParts = selectedTime.split(':');
-    if (timeParts.length !== 2) {
-      toast.error('Invalid time format');
+    // Validate against project deadline if exists
+    if (projectData.deadline && eventData.datetime > new Date(projectData.deadline)) {
+      toast.error('Event date cannot be after the project deadline');
       return;
     }
-    const hours = timeParts[0];
-    const minutes = timeParts[1];
-    
-    if (!hours || !minutes) {
-      toast.error('Invalid time format');
-      return;
-    }
-    
-    const eventDateTime = new Date(eventData.datetime);
-    eventDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
 
-    // Additional validation for combined datetime against project deadline
-    if (projectDeadline && eventDateTime > projectDeadline) {
-      toast.error('Event date and time cannot be later than the project deadline');
-      return;
+    // Validate notification settings
+    if (eventData.notificationSettings.enabled) {
+      if (!eventData.datetime) {
+        toast.error('Event datetime is required when notifications are enabled');
+        return;
+      }
+      if (!eventData.notificationSettings.recipientUserIds || eventData.notificationSettings.recipientUserIds.length === 0) {
+        toast.error('At least one recipient must be selected for notifications');
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -95,14 +96,21 @@ export function EventForm({
         body: JSON.stringify({
           title: eventData.title.trim(),
           description: eventData.description.trim() || null,
-          datetime: eventDateTime.toISOString(),
-          location: eventData.location.trim() || null
+          datetime: eventData.datetime.toISOString(),
+          location: eventData.location.trim() || null,
+          notificationSettings: eventData.notificationSettings.enabled ? eventData.notificationSettings : undefined
         }),
       });
 
       if (response.ok) {
         const event = await response.json();
-        toast.success('Event created successfully!');
+        
+        if (event.notification?.scheduled) {
+          toast.success(`Event created successfully! Notification scheduled for ${eventData.notificationSettings.daysBefore} day(s) before the event for ${event.notification.recipientCount} member(s).`);
+        } else {
+          toast.success('Event created successfully!');
+        }
+        
         onSuccess(event);
       } else {
         const errorData = await response.json();
@@ -279,6 +287,15 @@ export function EventForm({
           disabled={isLoading}
         />
       </div>
+
+      <NotificationSettings
+        type="event"
+        settings={eventData.notificationSettings}
+        onSettingsChange={(settings) => setEventData(prev => ({ ...prev, notificationSettings: settings }))}
+        hasDeadline={!!eventData.datetime}
+        members={members}
+        disabled={isLoading}
+      />
 
       {/* Form Actions */}
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
