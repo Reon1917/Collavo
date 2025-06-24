@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +14,6 @@ import { toast } from 'sonner';
 
 export default function LoginPage() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   //const { refetch: _refetch } = useAuth();
   const callbackUrl = searchParams?.get('callbackUrl') || '/dashboard';
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +31,6 @@ export default function LoginPage() {
       });
 
       if (res.error) {
-        console.error('Login error:', res.error);
         toast.error('Invalid credentials. Please try again.');
       } else {
         toast.success('Login successful!');
@@ -43,8 +41,7 @@ export default function LoginPage() {
           window.location.href = callbackUrl;
         }, 500); // Increased delay to ensure session is saved
       }
-    } catch (error) {
-      console.error('Login exception:', error);
+    } catch {
       toast.error('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);

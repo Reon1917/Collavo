@@ -21,13 +21,12 @@ export const authClient = createAuthClient({
   // Add additional configuration for debugging
   fetchOptions: {
     onError: (ctx) => {
-      console.error('Auth client error:', ctx.error);
+      // Silently handle auth errors - they're handled in the UI
+      void ctx.error;
     },
     onRequest: (ctx) => {
-      // Only log in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Auth request:', ctx.url);
-      }
+      // Silently handle requests
+      void ctx.url;
     }
   }
 })
