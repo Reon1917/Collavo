@@ -54,7 +54,7 @@ export async function scheduleSubTaskNotification(
       throw new Error(`Subtask ${subTaskId} not found`);
     }
 
-    const { subtask, mainTask, project, assignedUser } = subtaskData[0];
+    const { subtask, project, assignedUser } = subtaskData[0];
 
     if (!subtask.deadline) {
       throw new Error('Cannot schedule notification for subtask without deadline');
@@ -110,14 +110,7 @@ export async function scheduleSubTaskNotification(
       .set({ qstashMessageId: qstashResponse.messageId })
       .where(eq(scheduledNotifications.id, notificationId));
 
-    console.log(`Scheduled subtask notification:`, {
-      notificationId,
-      subTaskId,
-      daysBefore,
-      notificationDate: notificationDate.toISOString(),
-      qstashMessageId: qstashResponse.messageId,
-      delay: `${delay} seconds`,
-    });
+    // Scheduled subtask notification
 
     return {
       notificationId,
@@ -125,7 +118,7 @@ export async function scheduleSubTaskNotification(
     };
 
   } catch (error) {
-    console.error('Failed to schedule subtask notification:', error);
+    // Failed to schedule subtask notification
     throw error;
   }
 }
@@ -206,15 +199,7 @@ export async function scheduleEventNotification(
       .set({ qstashMessageId: qstashResponse.messageId })
       .where(eq(scheduledNotifications.id, notificationId));
 
-    console.log(`Scheduled event notification:`, {
-      notificationId,
-      eventId,
-      daysBefore,
-      recipientCount: recipientUserIds.length,
-      notificationDate: notificationDate.toISOString(),
-      qstashMessageId: qstashResponse.messageId,
-      delay: `${delay} seconds`,
-    });
+    // Scheduled event notification
 
     return {
       notificationId,
@@ -222,7 +207,7 @@ export async function scheduleEventNotification(
     };
 
   } catch (error) {
-    console.error('Failed to schedule event notification:', error);
+    // Failed to schedule event notification
     throw error;
   }
 }
@@ -253,10 +238,10 @@ export async function cancelScheduledNotification(notificationId: string): Promi
     if (notif.qstashMessageId) {
       try {
         await qstash.messages.delete(notif.qstashMessageId);
-        console.log(`Cancelled QStash message: ${notif.qstashMessageId}`);
-      } catch (qstashError) {
+        // Cancelled QStash message
+      } catch {
         // Message might already be processed or doesn't exist
-        console.warn(`Could not cancel QStash message ${notif.qstashMessageId}:`, qstashError);
+        // Could not cancel QStash message
       }
     }
 
@@ -269,10 +254,10 @@ export async function cancelScheduledNotification(notificationId: string): Promi
       })
       .where(eq(scheduledNotifications.id, notificationId));
 
-    console.log(`Cancelled notification: ${notificationId}`);
+    // Cancelled notification
 
   } catch (error) {
-    console.error('Failed to cancel notification:', error);
+    // Failed to cancel notification
     throw error;
   }
 }
@@ -303,16 +288,16 @@ export async function cancelNotificationsForEntity(
       try {
         await cancelScheduledNotification(notification.id);
         cancelledCount++;
-      } catch (error) {
-        console.error(`Failed to cancel notification ${notification.id}:`, error);
+      } catch {
+        // Failed to cancel individual notification
       }
     }
 
-    console.log(`Cancelled ${cancelledCount} notifications for ${type} ${entityId}`);
+    // Cancelled notifications for entity
     return cancelledCount;
 
   } catch (error) {
-    console.error(`Failed to cancel notifications for ${type} ${entityId}:`, error);
+    // Failed to cancel notifications for entity
     throw error;
   }
 }

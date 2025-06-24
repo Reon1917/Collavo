@@ -13,18 +13,18 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bell, BellOff, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { NotificationSettings } from '../NotificationSettings';
+import { NotificationSettings, type NotificationSettings as NotificationSettingsType } from '../NotificationSettings';
 
 interface PostNotificationSettingsProps {
-  entityType: 'task' | 'event';
+  entityType: 'event' | 'subtask'; // Removed 'task' since we don't support task-level notifications
   entityId: string;
   entityTitle: string;
   projectId: string;
   hasDeadline?: boolean;
   hasAssignee?: boolean;
-  deadline?: string;
   assignedUserId?: string;
   eventDateTime?: string;
+  taskId?: string; // Required for subtasks
   members?: Array<{ userId: string; userName: string; userEmail: string }>;
   existingNotifications?: Array<{ id: string; status: string }>;
   onNotificationScheduled?: (notificationId: string) => void;
@@ -37,19 +37,19 @@ export function PostNotificationSettings({
   projectId,
   hasDeadline = false,
   hasAssignee = false,
-  deadline,
   assignedUserId,
   eventDateTime,
+  taskId,
   members = [],
   existingNotifications = [],
   onNotificationScheduled
 }: PostNotificationSettingsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [notificationSettings, setNotificationSettings] = useState({
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettingsType>({
     enabled: false,
     daysBefore: 1,
-    recipientUserIds: entityType === 'task' && assignedUserId ? [assignedUserId] : []
+    recipientUserIds: entityType === 'subtask' && assignedUserId ? [assignedUserId] : []
   });
 
   // Check if there are active notifications
@@ -57,13 +57,13 @@ export function PostNotificationSettings({
     n.status === 'pending' || n.status === 'scheduled'
   );
 
-  // Validation for tasks
-  const canSetupTaskNotification = entityType === 'task' && hasDeadline && hasAssignee;
+  // Validation for subtasks
+  const canSetupSubtaskNotification = entityType === 'subtask' && hasDeadline && hasAssignee;
   
   // Validation for events
   const canSetupEventNotification = entityType === 'event' && eventDateTime && members.length > 0;
 
-  const canSetupNotification = canSetupTaskNotification || canSetupEventNotification;
+  const canSetupNotification = canSetupSubtaskNotification || canSetupEventNotification;
 
   const handleSetupNotification = async () => {
     if (!notificationSettings.enabled) {
@@ -71,7 +71,7 @@ export function PostNotificationSettings({
       return;
     }
 
-    if (entityType === 'event' && notificationSettings.recipientUserIds.length === 0) {
+    if (entityType === 'event' && (!notificationSettings.recipientUserIds || notificationSettings.recipientUserIds.length === 0)) {
       toast.error('Please select at least one recipient for event notifications');
       return;
     }
@@ -79,9 +79,18 @@ export function PostNotificationSettings({
     setIsLoading(true);
 
     try {
-      const endpoint = entityType === 'task' 
-        ? `/api/projects/${projectId}/tasks/${entityId}/notifications`
-        : `/api/projects/${projectId}/events/${entityId}/notifications`;
+      let endpoint: string;
+      
+      if (entityType === 'event') {
+        endpoint = `/api/projects/${projectId}/events/${entityId}/notifications`;
+      } else if (entityType === 'subtask') {
+        if (!taskId) {
+          throw new Error('Task ID is required for subtask notifications');
+        }
+        endpoint = `/api/projects/${projectId}/tasks/${taskId}/subtasks/${entityId}/notifications`;
+      } else {
+        throw new Error('Invalid entity type');
+      }
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -100,7 +109,8 @@ export function PostNotificationSettings({
 
       const result = await response.json();
       
-      toast.success(`${entityType === 'task' ? 'Task' : 'Event'} notification scheduled successfully!`);
+      const entityLabel = entityType === 'subtask' ? 'Subtask' : 'Event';
+      toast.success(`${entityLabel} notification scheduled successfully!`);
       
       onNotificationScheduled?.(result.notificationId);
       setIsOpen(false);
@@ -109,11 +119,11 @@ export function PostNotificationSettings({
       setNotificationSettings({
         enabled: false,
         daysBefore: 1,
-        recipientUserIds: entityType === 'task' && assignedUserId ? [assignedUserId] : []
+        recipientUserIds: entityType === 'subtask' && assignedUserId ? [assignedUserId] : []
       });
 
     } catch (error) {
-      console.error(`Error setting up ${entityType} notification:`, error);
+      // Error setting up notification
       toast.error(error instanceof Error ? error.message : `Failed to setup ${entityType} notification`);
     } finally {
       setIsLoading(false);
@@ -138,10 +148,10 @@ export function PostNotificationSettings({
   };
 
   const getRequirements = () => {
-    if (entityType === 'task') {
+    if (entityType === 'subtask') {
       return {
         missing: (!hasDeadline ? ['deadline'] : []).concat(!hasAssignee ? ['assignee'] : []),
-        description: 'Task notifications require a deadline and an assigned member.'
+        description: 'Subtask notifications require a deadline and an assigned member.'
       };
     } else {
       return {
@@ -155,7 +165,7 @@ export function PostNotificationSettings({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger>
         <Button
           variant="ghost"
           size="sm"
@@ -173,10 +183,13 @@ export function PostNotificationSettings({
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-2">
             <Bell className="h-5 w-5 text-[#008080]" />
-            Setup {entityType === 'task' ? 'Task' : 'Event'} Notification
+            {(() => {
+              const entityLabel = entityType === 'subtask' ? 'Subtask' : 'Event';
+              return `Setup ${entityLabel} Notification`;
+            })()}
           </DialogTitle>
           <DialogDescription className="text-gray-600 dark:text-gray-400">
-            Schedule email notifications for "{entityTitle}"
+            Schedule email notifications for &quot;{entityTitle}&quot;
           </DialogDescription>
         </DialogHeader>
 
@@ -222,9 +235,13 @@ export function PostNotificationSettings({
 
           {canSetupNotification && !hasActiveNotifications && (
             <NotificationSettings
-              type={entityType === 'task' ? 'subtask' : 'event'}
+              type={entityType}
               settings={notificationSettings}
-              onSettingsChange={setNotificationSettings}
+              onSettingsChange={(settings) => setNotificationSettings({
+                enabled: settings.enabled,
+                daysBefore: settings.daysBefore,
+                recipientUserIds: settings.recipientUserIds || []
+              })}
               hasDeadline={hasDeadline}
               hasAssignee={hasAssignee}
               members={members}

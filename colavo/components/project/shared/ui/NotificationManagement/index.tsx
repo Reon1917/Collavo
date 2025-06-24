@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +16,6 @@ import {
   AlertCircle, 
   Trash2, 
   Search,
-  Filter,
   RefreshCw,
   Mail,
   User,
@@ -87,7 +86,7 @@ const STATUS_CONFIG = {
   }
 };
 
-export function NotificationManagement({ projectId, trigger, className }: NotificationManagementProps) {
+export function NotificationManagement({ projectId, trigger }: NotificationManagementProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<ScheduledNotification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -107,7 +106,7 @@ export function NotificationManagement({ projectId, trigger, className }: Notifi
   });
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
@@ -123,13 +122,13 @@ export function NotificationManagement({ projectId, trigger, className }: Notifi
       } else {
         throw new Error('Failed to fetch notifications');
       }
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
+          } catch {
+        // Error fetching notifications
       toast.error('Failed to load notifications');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [projectId, filters.status, filters.type]);
 
   const handleCancelNotification = async (notificationId: string, notificationTitle: string) => {
     setConfirmationDialog({
@@ -162,7 +161,7 @@ export function NotificationManagement({ projectId, trigger, className }: Notifi
         throw new Error(error.error || 'Failed to cancel notification');
       }
     } catch (error) {
-      console.error('Error cancelling notification:', error);
+      // Error cancelling notification
       toast.error(error instanceof Error ? error.message : 'Failed to cancel notification');
     } finally {
       setCancellingId(null);
@@ -178,7 +177,7 @@ export function NotificationManagement({ projectId, trigger, className }: Notifi
     if (isOpen) {
       fetchNotifications();
     }
-  }, [isOpen, filters.status, filters.type]);
+  }, [isOpen, filters.status, filters.type, fetchNotifications]);
 
   const filteredNotifications = notifications.filter(notification => {
     if (filters.search) {

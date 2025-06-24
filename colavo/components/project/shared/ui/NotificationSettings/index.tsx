@@ -53,7 +53,7 @@ export function NotificationSettings({
       onSettingsChange({
         enabled: false,
         daysBefore: settings.daysBefore,
-        recipientUserIds: settings.recipientUserIds
+        recipientUserIds: settings.recipientUserIds || []
       });
       setIsExpanded(false);
     } else if (canEnableNotifications) {
@@ -136,7 +136,6 @@ export function NotificationSettings({
             <Select
               value={settings.daysBefore.toString()}
               onValueChange={handleDaysChange}
-              disabled={disabled}
             >
               <SelectTrigger className="bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600">
                 <SelectValue />
@@ -226,7 +225,7 @@ export function NotificationSettings({
               <ul className="mt-1 space-y-1 text-xs">
                 <li>• Emails are sent automatically at the scheduled time</li>
                 <li>• {type === 'subtask' ? 'Only sent if the task is still incomplete' : 'Sent to all selected members'}</li>
-                <li>• You can cancel notifications anytime before they're sent</li>
+                <li>• You can cancel notifications anytime before they&apos;re sent</li>
                 <li>• All times are in Thailand timezone (UTC+7)</li>
               </ul>
             </div>

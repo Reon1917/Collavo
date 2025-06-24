@@ -8,15 +8,13 @@ import {
   mainTasks, 
   projects, 
   user, 
-  events,
-  members 
+  events
 } from '@/db/schema';
 import { 
   sendTaskReminderEmail, 
   sendEventReminderEmail, 
   type EmailResult 
 } from '@/lib/email-service';
-import { formatThailandDate } from '@/lib/qstash-client';
 
 /**
  * Webhook handler that QStash calls to send notifications
@@ -37,7 +35,7 @@ async function handler(req: NextRequest) {
       );
     }
 
-    console.log(`Processing notification: ${notificationId} for ${type} ${entityId}`);
+    // Processing notification
 
     // Get notification details
     const notification = await db
@@ -47,14 +45,14 @@ async function handler(req: NextRequest) {
       .limit(1);
 
     if (!notification[0]) {
-      console.log(`Notification ${notificationId} not found`);
+      // Notification not found
       return NextResponse.json({ message: 'Notification not found' }, { status: 200 });
     }
 
     const notif = notification[0];
 
     if (notif.status !== 'pending') {
-      console.log(`Notification ${notificationId} already processed (status: ${notif.status})`);
+      // Notification already processed
       return NextResponse.json({ message: 'Already processed' }, { status: 200 });
     }
 
@@ -87,13 +85,13 @@ async function handler(req: NextRequest) {
       .where(eq(scheduledNotifications.id, notificationId));
 
     if (emailResult.success) {
-      console.log(`Successfully sent notification ${notificationId}`);
+      // Successfully sent notification
       return NextResponse.json({ 
         message: 'Notification sent successfully',
         emailId: emailResult.id 
       }, { status: 200 });
     } else {
-      console.error(`Failed to send notification ${notificationId}:`, emailResult.error);
+      // Failed to send notification
       return NextResponse.json({ 
         error: 'Failed to send email',
         details: emailResult.error 
@@ -101,7 +99,7 @@ async function handler(req: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Error processing notification webhook:', error);
+    // Error processing notification webhook
     return NextResponse.json({ 
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -133,7 +131,7 @@ async function sendSubTaskReminder(notification: any): Promise<EmailResult> {
       throw new Error('Subtask not found');
     }
 
-    const { subtask, mainTask, project, assignedUser } = subtaskData[0];
+    const { subtask, project, assignedUser } = subtaskData[0];
 
     if (!assignedUser) {
       throw new Error('No assigned user for subtask');
@@ -141,7 +139,7 @@ async function sendSubTaskReminder(notification: any): Promise<EmailResult> {
 
     // Check if task is completed (skip if completed)
     if (subtask.status === 'completed') {
-      console.log(`Subtask ${notification.entityId} is completed, skipping notification`);
+      // Subtask is completed, skipping notification
       return {
         id: 'skipped-completed',
         success: true,
@@ -165,7 +163,7 @@ async function sendSubTaskReminder(notification: any): Promise<EmailResult> {
     return emailResult;
 
   } catch (error) {
-    console.error('Error sending subtask reminder:', error);
+    // Error sending subtask reminder
     return {
       id: '',
       success: false,
@@ -197,20 +195,10 @@ async function sendEventReminder(notification: any): Promise<EmailResult> {
     const { event, project } = eventData[0];
 
     // Get recipient emails
-    let recipientEmails: string[] = [];
+          const recipientEmails: string[] = [];
 
     if (notification.recipientUserIds && notification.recipientUserIds.length > 0) {
       // Get specific recipients
-      const recipients = await db
-        .select({
-          email: user.email,
-          name: user.name,
-        })
-        .from(user)
-        .where(
-          // Need to use SQL IN operator for array of IDs
-          // This is a simplified version - in production you'd use proper SQL IN
-        );
 
       // For now, get each recipient individually (can be optimized later)
       for (const userId of notification.recipientUserIds) {
@@ -229,7 +217,7 @@ async function sendEventReminder(notification: any): Promise<EmailResult> {
       }
     } else {
       // No specific recipients specified, shouldn't happen but handle gracefully
-      console.warn(`Event notification ${notification.id} has no recipients`);
+      // Event notification has no recipients
       return {
         id: 'no-recipients',
         success: true,
@@ -256,7 +244,7 @@ async function sendEventReminder(notification: any): Promise<EmailResult> {
     return emailResult;
 
   } catch (error) {
-    console.error('Error sending event reminder:', error);
+    // Error sending event reminder
     return {
       id: '',
       success: false,

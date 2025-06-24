@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 import { CreateSubTaskForm } from './forms/CreateSubTaskForm';
 import { EditTaskDialog } from './dialogs/EditTaskDialog';
 import { SubTaskMiniItem } from './SubTaskMiniItem';
-import { PostNotificationSettings } from '../../shared/ui/PostNotificationSettings';
+
 import { Task, Project, SubTask, getImportanceColor } from '../types';
 
 interface TaskCardProps {
@@ -222,19 +222,7 @@ export function TaskCard({
               )}
             </div>
             
-            {/* Notification Settings */}
-            <div className="flex justify-between items-center">
-              <PostNotificationSettings
-                entityType="task"
-                entityId={task.id}
-                entityTitle={task.title}
-                projectId={project.id}
-                hasDeadline={!!task.deadline}
-                hasAssignee={visibleSubTasks.some(st => !!st.assignedId)}
-                deadline={task.deadline || undefined}
-                members={project.members}
-              />
-            </div>
+
           </div>
         </CardContent>
       </Card>
