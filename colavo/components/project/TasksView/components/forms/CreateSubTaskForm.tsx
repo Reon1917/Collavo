@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Member, SubTask } from '../../types';
-import { NotificationSettings, type NotificationSettings as NotificationSettingsType } from '../../../shared/ui/NotificationSettings';
+import { NotificationSettings } from '../../../shared/ui/NotificationSettings';
 
 interface CreateSubTaskFormProps {
   projectId: string;
@@ -33,7 +33,10 @@ interface SubTaskFormData {
   description: string;
   assignedId: string;
   deadline: Date | undefined;
-  notificationSettings: NotificationSettingsType;
+  notificationSettings: {
+    daysBefore: number;
+    notificationTime: string;
+  };
 }
 
 export function CreateSubTaskForm({ 
@@ -59,8 +62,8 @@ export function CreateSubTaskForm({
     assignedId: '',
     deadline: undefined,
     notificationSettings: {
-      enabled: false,
-      daysBefore: 1
+      daysBefore: 1,
+      notificationTime: "09:00"
     }
   });
 
@@ -92,17 +95,7 @@ export function CreateSubTaskForm({
       return;
     }
 
-    // Validate notification settings
-    if (formData.notificationSettings.enabled) {
-      if (!formData.deadline) {
-        toast.error('Deadline is required when notifications are enabled');
-        return;
-      }
-      if (!formData.assignedId) {
-        toast.error('Assigned user is required when notifications are enabled');
-        return;
-      }
-    }
+    // Validation for notification settings is handled by the notification component
 
     setIsLoading(true);
 
@@ -117,7 +110,7 @@ export function CreateSubTaskForm({
           description: formData.description.trim() || null,
           assignedId: formData.assignedId,
           deadline: formData.deadline.toISOString(),
-          notificationSettings: formData.notificationSettings.enabled ? formData.notificationSettings : undefined
+          notificationSettings: formData.notificationSettings
         }),
       });
 
@@ -140,8 +133,8 @@ export function CreateSubTaskForm({
         assignedId: '',
         deadline: undefined,
         notificationSettings: {
-          enabled: false,
-          daysBefore: 1
+          daysBefore: 1,
+          notificationTime: "09:00"
         }
       });
       setDialogOpen(false);

@@ -8,7 +8,7 @@ import { eq, and } from 'drizzle-orm';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string; taskId: string; subtaskId: string } }
+  { params }: { params: Promise<{ id: string; taskId: string; subtaskId: string }> }
 ): Promise<NextResponse> {
   try {
     // Get session using the correct auth API
@@ -20,9 +20,8 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const projectId = params.id;
-    const taskId = params.taskId;
-    const subtaskId = params.subtaskId;
+    // Await params in Next.js 15
+    const { id: projectId, taskId, subtaskId } = await params;
 
     // Check project access
     const projectAccess = await requireProjectAccess(projectId, session.user.id);

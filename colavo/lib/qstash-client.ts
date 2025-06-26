@@ -1,12 +1,32 @@
 import { Client } from "@upstash/qstash";
 
-if (!process.env.QSTASH_TOKEN) {
-  throw new Error("QSTASH_TOKEN environment variable is required");
+// QStash configuration with development server support
+const IS_DEVELOPMENT = process.env.NODE_ENV === 'development';
+const QSTASH_DEV_URL = process.env.QSTASH_URL;
+const QSTASH_DEV_TOKEN = process.env.QSTASH_TOKEN;
+
+// Use development QStash CLI if configured, otherwise production
+const qstashConfig = IS_DEVELOPMENT && QSTASH_DEV_URL && QSTASH_DEV_TOKEN ? {
+  token: QSTASH_DEV_TOKEN,
+  baseUrl: QSTASH_DEV_URL
+} : {
+  token: process.env.QSTASH_TOKEN || '',
+  baseUrl: 'https://qstash.upstash.io'
+};
+
+if (!qstashConfig.token) {
+  if (IS_DEVELOPMENT) {
+    console.warn('⚠️ QStash not configured. For local testing, run: npx @upstash/qstash-cli dev');
+    console.warn('⚠️ Then copy the environment variables to your .env.local file');
+  } else {
+    throw new Error("QSTASH_TOKEN environment variable is required");
+  }
 }
 
-export const qstash = new Client({
-  token: process.env.QSTASH_TOKEN,
-});
+export const qstash = qstashConfig.token ? new Client({
+  token: qstashConfig.token,
+  baseUrl: qstashConfig.baseUrl,
+}) : null;
 
 // Thailand timezone utilities (UTC+7)
 const THAILAND_TIMEZONE = 'Asia/Bangkok';

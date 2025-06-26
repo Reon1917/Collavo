@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Clock, Users, AlertCircle, Check, X, Loader2 } from 'lucide-react';
+import { Bell, Clock, Users, AlertCircle, Check, X, Loader2, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -172,6 +172,46 @@ export function NotificationSettings({
       }
     } catch (error) {
       toast.error('Failed to schedule test notification');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSendEmailNow = async () => {
+    if (!entityId || !projectId) {
+      toast.info('Email test feature ready! This needs to be called with a specific subtask or event ID.');
+      return;
+    }
+
+    if (type === 'event' && (!settings.recipientUserIds || settings.recipientUserIds.length === 0)) {
+      toast.error('Please select at least one recipient for event email testing');
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      const response = await fetch('/api/notifications/test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type,
+          entityId,
+          sendImmediately: true,
+          ...(type === 'event' && { recipientUserIds: settings.recipientUserIds })
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast.success(`Test email sent immediately! Check inbox for ${Array.isArray(result.recipients) ? result.recipients.join(', ') : result.recipient}`);
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Failed to send test email');
+      }
+    } catch (error) {
+      toast.error('Failed to send test email');
     } finally {
       setIsSaving(false);
     }
@@ -396,14 +436,27 @@ export function NotificationSettings({
             </Button>
 
             {process.env.NODE_ENV === 'development' && (
-              <Button
-                onClick={handleTestNotification}
-                disabled={isSaving || disabled}
-                variant="outline"
-                className="border-gray-300 dark:border-gray-600"
-              >
-                Test Now
-              </Button>
+              <>
+                <Button
+                  onClick={handleSendEmailNow}
+                  disabled={isSaving || disabled}
+                  variant="outline"
+                  className="border-gray-300 dark:border-gray-600 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/20"
+                  title="Send test email immediately (development only)"
+                >
+                  <Mail className="w-4 h-4 mr-1" />
+                  Send Email
+                </Button>
+                <Button
+                  onClick={handleTestNotification}
+                  disabled={isSaving || disabled}
+                  variant="outline"
+                  className="border-gray-300 dark:border-gray-600"
+                  title="Schedule test notification for 2 minutes (development only)"
+                >
+                  Test Schedule
+                </Button>
+              </>
             )}
           </div>
 

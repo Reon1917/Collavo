@@ -13,6 +13,8 @@ const WEBHOOK_URL = process.env.NEXT_PUBLIC_APP_URL
   ? `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/send-notification`
   : 'https://your-app.vercel.app/api/webhooks/send-notification';
 
+// Note: IS_DEVELOPMENT and IS_LOCALHOST were removed as they're now handled in qstash-client
+
 export interface ScheduleSubTaskNotificationParams {
   subTaskId: string;
   daysBefore: number;
@@ -88,37 +90,64 @@ export async function scheduleSubTaskNotification(
       projectId: project.id,
     });
 
-    // Calculate delay for QStash
-    const delay = calculateQStashDelay(notificationDate);
+    let qstashMessageId: string;
 
-    // Schedule with QStash
-    const qstashResponse = await qstash.publishJSON({
-      url: WEBHOOK_URL,
-      body: {
+    // Check if QStash is available
+    if (!qstash) {
+      // Mock QStash response for development when QStash is not configured
+      qstashMessageId = `mock-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      console.log(`[DEV] Mock notification scheduled (QStash not configured):`, {
         notificationId,
         type: 'subtask',
         entityId: subTaskId,
-      },
-      delay: delay,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      // Deduplication to prevent duplicates
-      deduplicationId: `subtask-${subTaskId}-${daysBefore}days-${Date.now()}`,
-      retries: 3,
-    });
+        scheduledFor: notificationDate,
+        delay: `${Math.round((notificationDate.getTime() - Date.now()) / 1000 / 60)} minutes`
+      });
+    } else {
+      // Calculate delay for QStash
+      const delay = calculateQStashDelay(notificationDate);
+
+      // Schedule with QStash (production or development server)
+      const qstashResponse = await qstash!.publishJSON({
+        url: WEBHOOK_URL,
+        body: {
+          notificationId,
+          type: 'subtask',
+          entityId: subTaskId,
+        },
+        delay: delay,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Deduplication to prevent duplicates
+        deduplicationId: `subtask-${subTaskId}-${daysBefore}days-${Date.now()}`,
+        retries: 3,
+      });
+
+      qstashMessageId = qstashResponse.messageId;
+      
+      console.log(`[QStash] Notification scheduled:`, {
+        notificationId,
+        qstashMessageId,
+        type: 'subtask',
+        entityId: subTaskId,
+        scheduledFor: notificationDate,
+        webhookUrl: WEBHOOK_URL
+      });
+    }
 
     // Update database with QStash message ID
     await db
       .update(scheduledNotifications)
-      .set({ qstashMessageId: qstashResponse.messageId })
+      .set({ qstashMessageId })
       .where(eq(scheduledNotifications.id, notificationId));
 
     // Scheduled subtask notification
 
     return {
       notificationId,
-      qstashMessageId: qstashResponse.messageId,
+      qstashMessageId,
     };
 
   } catch (error) {
@@ -179,37 +208,64 @@ export async function scheduleEventNotification(
       projectId: project.id,
     });
 
-    // Calculate delay for QStash
-    const delay = calculateQStashDelay(notificationDate);
+    let qstashMessageId: string;
 
-    // Schedule with QStash
-    const qstashResponse = await qstash.publishJSON({
-      url: WEBHOOK_URL,
-      body: {
+    // Check if QStash is available
+    if (!qstash) {
+      // Mock QStash response for development when QStash is not configured
+      qstashMessageId = `mock-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      console.log(`[DEV] Mock notification scheduled (QStash not configured):`, {
         notificationId,
         type: 'event',
         entityId: eventId,
-      },
-      delay: delay,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      // Deduplication to prevent duplicates
-      deduplicationId: `event-${eventId}-${daysBefore}days-${Date.now()}`,
-      retries: 3,
-    });
+        scheduledFor: notificationDate,
+        delay: `${Math.round((notificationDate.getTime() - Date.now()) / 1000 / 60)} minutes`
+      });
+    } else {
+      // Calculate delay for QStash
+      const delay = calculateQStashDelay(notificationDate);
+
+      // Schedule with QStash (production or development server)
+      const qstashResponse = await qstash.publishJSON({
+        url: WEBHOOK_URL,
+        body: {
+          notificationId,
+          type: 'event',
+          entityId: eventId,
+        },
+        delay: delay,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Deduplication to prevent duplicates
+        deduplicationId: `event-${eventId}-${daysBefore}days-${Date.now()}`,
+        retries: 3,
+      });
+
+      qstashMessageId = qstashResponse.messageId;
+      
+      console.log(`[QStash] Notification scheduled:`, {
+        notificationId,
+        qstashMessageId,
+        type: 'event',
+        entityId: eventId,
+        scheduledFor: notificationDate,
+        webhookUrl: WEBHOOK_URL
+      });
+    }
 
     // Update database with QStash message ID
     await db
       .update(scheduledNotifications)
-      .set({ qstashMessageId: qstashResponse.messageId })
+      .set({ qstashMessageId })
       .where(eq(scheduledNotifications.id, notificationId));
 
     // Scheduled event notification
 
     return {
       notificationId,
-      qstashMessageId: qstashResponse.messageId,
+      qstashMessageId,
     };
 
   } catch (error) {
@@ -240,15 +296,22 @@ export async function cancelScheduledNotification(notificationId: string): Promi
       throw new Error(`Cannot cancel notification with status: ${notif.status}`);
     }
 
-    // Try to cancel in QStash (if message ID exists)
-    if (notif.qstashMessageId) {
+    // Try to cancel in QStash (if message ID exists and not a mock)
+    if (notif.qstashMessageId && !notif.qstashMessageId.startsWith('mock-')) {
       try {
-        await qstash.messages.delete(notif.qstashMessageId);
-        // Cancelled QStash message
+        if (qstash) {
+          await qstash.messages.delete(notif.qstashMessageId);
+          // Cancelled QStash message
+        } else {
+          console.warn(`[DEV] Cannot cancel QStash message - QStash not configured`);
+        }
       } catch {
         // Message might already be processed or doesn't exist
         // Could not cancel QStash message
       }
+    } else if (notif.qstashMessageId?.startsWith('mock-')) {
+      // Mock cancellation for development
+      console.log(`[DEV] Mock notification cancelled:`, notif.qstashMessageId);
     }
 
     // Update status in database

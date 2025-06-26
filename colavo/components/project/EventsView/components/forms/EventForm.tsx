@@ -73,17 +73,7 @@ export function EventForm({
       return;
     }
 
-    // Validate notification settings
-    if (eventData.notificationSettings.enabled) {
-      if (!eventData.datetime) {
-        toast.error('Event datetime is required when notifications are enabled');
-        return;
-      }
-      if (!eventData.notificationSettings.recipientUserIds || eventData.notificationSettings.recipientUserIds.length === 0) {
-        toast.error('At least one recipient must be selected for notifications');
-        return;
-      }
-    }
+    // Notification validation is handled by the notification component
 
     setIsLoading(true);
 
@@ -98,7 +88,7 @@ export function EventForm({
           description: eventData.description.trim() || null,
           datetime: eventData.datetime.toISOString(),
           location: eventData.location.trim() || null,
-          notificationSettings: eventData.notificationSettings.enabled ? eventData.notificationSettings : undefined
+          notificationSettings: eventData.notificationSettings
         }),
       });
 

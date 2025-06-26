@@ -202,4 +202,77 @@ This is an automated test email from Collavo Project Management
       error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
+}
+
+// Interface for the unified notification email function
+export interface NotificationEmailParams {
+  type: 'subtask_reminder' | 'event_reminder';
+  recipientEmail: string;
+  recipientName: string;
+  data: {
+    // For subtask reminders
+    subtaskTitle?: string;
+    mainTaskTitle?: string;
+    projectName: string;
+    deadline?: Date;
+    projectId: string;
+    subtaskId?: string;
+    
+    // For event reminders  
+    eventTitle?: string;
+    eventDescription?: string;
+    eventDatetime?: Date;
+    eventId?: string;
+  };
+}
+
+/**
+ * Unified function to send notification emails for both subtasks and events
+ * Used by the test API for immediate email testing
+ */
+export async function sendNotificationEmail(params: NotificationEmailParams): Promise<EmailResult> {
+  try {
+    const { type, recipientEmail, recipientName, data } = params;
+    
+    if (type === 'subtask_reminder') {
+      if (!data.subtaskTitle || !data.deadline) {
+        throw new Error('Missing required subtask data');
+      }
+      
+      const taskData: TaskReminderData = {
+        assignedUserName: recipientName,
+        taskTitle: data.subtaskTitle,
+        projectName: data.projectName,
+        deadline: data.deadline,
+        daysBefore: 1 // Test email, so use 1 day
+      };
+      
+      return await sendTaskReminderEmail(recipientEmail, taskData);
+      
+    } else if (type === 'event_reminder') {
+      if (!data.eventTitle || !data.eventDatetime) {
+        throw new Error('Missing required event data');
+      }
+      
+      const eventData: EventReminderData = {
+        eventTitle: data.eventTitle,
+        ...(data.eventDescription && { eventDescription: data.eventDescription }),
+        projectName: data.projectName,
+        datetime: data.eventDatetime,
+        daysBefore: 1 // Test email, so use 1 day
+      };
+      
+      return await sendEventReminderEmail([recipientEmail], eventData);
+      
+    } else {
+      throw new Error(`Unsupported notification type: ${type}`);
+    }
+    
+  } catch (error) {
+    return {
+      id: '',
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error sending notification email'
+    };
+  }
 } 

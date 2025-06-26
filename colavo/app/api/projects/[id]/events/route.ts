@@ -87,33 +87,31 @@ export async function POST(
 
     // Validate notification settings if provided
     if (notificationSettings) {
-      const { enabled, daysBefore, recipientUserIds } = notificationSettings;
-      if (enabled) {
-        if (!daysBefore || daysBefore < 1 || daysBefore > 30) {
-          return NextResponse.json({ 
-            error: 'daysBefore must be between 1 and 30 when notifications are enabled' 
-          }, { status: 400 });
-        }
-        if (!recipientUserIds || !Array.isArray(recipientUserIds) || recipientUserIds.length === 0) {
-          return NextResponse.json({ 
-            error: 'At least one recipient is required when notifications are enabled' 
-          }, { status: 400 });
-        }
-        
-        // Validate that all recipient users are members of the project
-        const projectMembers = await db
-          .select({ userId: members.userId })
-          .from(members)
-          .where(eq(members.projectId, projectId));
-        
-        const memberIds = projectMembers.map(m => m.userId);
-        const invalidRecipients = recipientUserIds.filter(id => !memberIds.includes(id));
-        
-        if (invalidRecipients.length > 0) {
-          return NextResponse.json({ 
-            error: 'All notification recipients must be project members' 
-          }, { status: 400 });
-        }
+      const { daysBefore, recipientUserIds } = notificationSettings;
+      if (!daysBefore || daysBefore < 1 || daysBefore > 30) {
+        return NextResponse.json({ 
+          error: 'daysBefore must be between 1 and 30' 
+        }, { status: 400 });
+      }
+      if (!recipientUserIds || !Array.isArray(recipientUserIds) || recipientUserIds.length === 0) {
+        return NextResponse.json({ 
+          error: 'At least one recipient is required for notifications' 
+        }, { status: 400 });
+      }
+      
+      // Validate that all recipient users are members of the project
+      const projectMembers = await db
+        .select({ userId: members.userId })
+        .from(members)
+        .where(eq(members.projectId, projectId));
+      
+      const memberIds = projectMembers.map(m => m.userId);
+      const invalidRecipients = recipientUserIds.filter(id => !memberIds.includes(id));
+      
+      if (invalidRecipients.length > 0) {
+        return NextResponse.json({ 
+          error: 'All notification recipients must be project members' 
+        }, { status: 400 });
       }
     }
 
@@ -136,9 +134,9 @@ export async function POST(
 
     const newEvent = newEventResult[0]!;
 
-    // Schedule notification if enabled and all requirements are met
+    // Schedule notification if provided and all requirements are met
     let notificationResult = null;
-    if (notificationSettings?.enabled && notificationSettings.recipientUserIds?.length > 0) {
+    if (notificationSettings && notificationSettings.recipientUserIds?.length > 0) {
       try {
         notificationResult = await scheduleEventNotification({
           eventId: newEvent.id,

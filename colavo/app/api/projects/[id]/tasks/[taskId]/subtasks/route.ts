@@ -213,26 +213,24 @@ export async function POST(
 
     // Validate notification settings if provided
     if (notificationSettings) {
-      const { enabled, daysBefore } = notificationSettings;
-      if (enabled) {
-        if (!deadlineDate) {
-          return NextResponse.json(
-            { error: 'Deadline is required when notifications are enabled' },
-            { status: 400 }
-          );
-        }
-        if (!assignedId) {
-          return NextResponse.json(
-            { error: 'Assigned user is required when notifications are enabled' },
-            { status: 400 }
-          );
-        }
-        if (!daysBefore || daysBefore < 1 || daysBefore > 30) {
-          return NextResponse.json(
-            { error: 'daysBefore must be between 1 and 30 when notifications are enabled' },
-            { status: 400 }
-          );
-        }
+      const { daysBefore } = notificationSettings;
+      if (!deadlineDate) {
+        return NextResponse.json(
+          { error: 'Deadline is required when notifications are provided' },
+          { status: 400 }
+        );
+      }
+      if (!assignedId) {
+        return NextResponse.json(
+          { error: 'Assigned user is required when notifications are provided' },
+          { status: 400 }
+        );
+      }
+      if (!daysBefore || daysBefore < 1 || daysBefore > 30) {
+        return NextResponse.json(
+          { error: 'daysBefore must be between 1 and 30' },
+          { status: 400 }
+        );
       }
     }
 
@@ -250,9 +248,9 @@ export async function POST(
       updatedAt: new Date()
     }).returning();
 
-    // Schedule notification if enabled and all requirements are met
+    // Schedule notification if provided and all requirements are met
     let notificationResult = null;
-    if (notificationSettings?.enabled && deadlineDate && assignedId && newSubTask[0]) {
+    if (notificationSettings && deadlineDate && assignedId && newSubTask[0]) {
       try {
         notificationResult = await scheduleSubTaskNotification({
           subTaskId: newSubTask[0].id,
