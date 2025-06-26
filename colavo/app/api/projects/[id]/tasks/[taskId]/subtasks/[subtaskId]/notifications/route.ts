@@ -22,18 +22,22 @@ export async function POST(
 
     // Await params in Next.js 15
     const { id: projectId, taskId, subtaskId } = await params;
+    // Debug: console.log('API params:', { projectId, taskId, subtaskId, userId: session.user.id });
 
     // Check project access
-    const projectAccess = await requireProjectAccess(projectId, session.user.id);
+    const projectAccess = await requireProjectAccess(session.user.id, projectId);
+    // Debug: console.log('Project access result:', projectAccess);
     if (!projectAccess.hasAccess) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     const body = await request.json();
     const { notificationSettings } = body;
+    // Debug: console.log('Received body:', body);
+    // Debug: console.log('Notification settings:', notificationSettings);
 
-    if (!notificationSettings?.enabled) {
-      return NextResponse.json({ error: 'Notification settings must be enabled' }, { status: 400 });
+    if (!notificationSettings) {
+      return NextResponse.json({ error: 'Notification settings are required' }, { status: 400 });
     }
 
     // Validate notification settings
@@ -41,7 +45,7 @@ export async function POST(
         notificationSettings.daysBefore < 1 || 
         notificationSettings.daysBefore > 30) {
       return NextResponse.json({ 
-        error: 'daysBefore must be between 1 and 30 when notifications are enabled' 
+        error: 'daysBefore must be between 1 and 30' 
       }, { status: 400 });
     }
 
@@ -89,6 +93,7 @@ export async function POST(
       const result = await scheduleSubTaskNotification({
         subTaskId: subtask.id,
         daysBefore: notificationSettings.daysBefore,
+        notificationTime: notificationSettings.notificationTime,
         createdBy: session.user.id
       });
 
@@ -105,14 +110,16 @@ export async function POST(
 
     } catch (error) {
       // Failed to schedule subtask notification
+      console.error('Notification scheduling error:', error);
       return NextResponse.json({
         success: false,
         error: error instanceof Error ? error.message : 'Failed to schedule notification'
       }, { status: 500 });
     }
 
-  } catch {
+  } catch (error) {
     // Subtask notification API error
+    console.error('API error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

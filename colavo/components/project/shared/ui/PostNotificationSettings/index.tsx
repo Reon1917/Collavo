@@ -17,7 +17,7 @@ import { NotificationSettings, type NotificationSettings as BaseNotificationSett
 
 // Extended interface for PostNotificationSettings that includes enabled flag
 interface PostNotificationSettingsState extends BaseNotificationSettings {
-  enabled: boolean;
+  // No additional properties needed - enabled is no longer used
 }
 
 interface PostNotificationSettingsProps {
@@ -52,7 +52,6 @@ export function PostNotificationSettings({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState<PostNotificationSettingsState>({
-    enabled: true, // Always enabled since we removed the checkbox
     daysBefore: 1,
     notificationTime: '09:00',
     recipientUserIds: entityType === 'subtask' && assignedUserId ? [assignedUserId] : []
@@ -93,13 +92,26 @@ export function PostNotificationSettings({
         throw new Error('Invalid entity type');
       }
 
+      // Prepare notification settings based on entity type
+      const settingsToSend = entityType === 'subtask' 
+        ? {
+            daysBefore: notificationSettings.daysBefore,
+            notificationTime: notificationSettings.notificationTime
+          }
+        : {
+            daysBefore: notificationSettings.daysBefore,
+            notificationTime: notificationSettings.notificationTime,
+            recipientUserIds: notificationSettings.recipientUserIds || []
+          };
+
+      // Debug: console.log('Sending notification settings:', settingsToSend);
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          notificationSettings
+          notificationSettings: settingsToSend
         }),
       });
 
@@ -118,7 +130,6 @@ export function PostNotificationSettings({
       
       // Reset form
       setNotificationSettings({
-        enabled: true,
         daysBefore: 1,
         notificationTime: '09:00',
         recipientUserIds: entityType === 'subtask' && assignedUserId ? [assignedUserId] : []

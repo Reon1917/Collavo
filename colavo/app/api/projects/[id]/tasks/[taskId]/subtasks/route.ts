@@ -255,6 +255,7 @@ export async function POST(
         notificationResult = await scheduleSubTaskNotification({
           subTaskId: newSubTask[0].id,
           daysBefore: notificationSettings.daysBefore,
+          notificationTime: notificationSettings.notificationTime || "09:00",
           createdBy: session.user.id
         });
               } catch {

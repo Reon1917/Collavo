@@ -18,6 +18,7 @@ const WEBHOOK_URL = process.env.NEXT_PUBLIC_APP_URL
 export interface ScheduleSubTaskNotificationParams {
   subTaskId: string;
   daysBefore: number;
+  notificationTime?: string; // HH:mm format, Thailand time
   createdBy: string;
   customScheduledFor?: Date; // For testing - override calculated date
 }
@@ -25,6 +26,7 @@ export interface ScheduleSubTaskNotificationParams {
 export interface ScheduleEventNotificationParams {
   eventId: string;
   daysBefore: number;
+  notificationTime?: string; // HH:mm format, Thailand time
   recipientUserIds: string[];
   createdBy: string;
   customScheduledFor?: Date; // For testing - override calculated date
@@ -36,7 +38,7 @@ export interface ScheduleEventNotificationParams {
 export async function scheduleSubTaskNotification(
   params: ScheduleSubTaskNotificationParams
 ): Promise<{ notificationId: string; qstashMessageId: string }> {
-  const { subTaskId, daysBefore, createdBy, customScheduledFor } = params;
+  const { subTaskId, daysBefore, notificationTime = "09:00", createdBy, customScheduledFor } = params;
 
   try {
     // Get subtask with related data
@@ -69,7 +71,7 @@ export async function scheduleSubTaskNotification(
     }
 
     // Calculate notification date (use custom date for testing, or calculate normally)
-    const notificationDate = customScheduledFor || calculateNotificationDate(subtask.deadline, daysBefore);
+    const notificationDate = customScheduledFor || calculateNotificationDate(subtask.deadline, daysBefore, notificationTime);
     
     // Validate timing (skip validation for custom dates in testing)
     if (!customScheduledFor) {
@@ -162,7 +164,7 @@ export async function scheduleSubTaskNotification(
 export async function scheduleEventNotification(
   params: ScheduleEventNotificationParams
 ): Promise<{ notificationId: string; qstashMessageId: string }> {
-  const { eventId, daysBefore, recipientUserIds, createdBy, customScheduledFor } = params;
+  const { eventId, daysBefore, notificationTime = "09:00", recipientUserIds, createdBy, customScheduledFor } = params;
 
   try {
     // Get event with related data
@@ -187,7 +189,7 @@ export async function scheduleEventNotification(
     }
 
     // Calculate notification date (use custom date for testing, or calculate normally)
-    const notificationDate = customScheduledFor || calculateNotificationDate(event.datetime, daysBefore);
+    const notificationDate = customScheduledFor || calculateNotificationDate(event.datetime, daysBefore, notificationTime);
     
     // Validate timing (skip validation for custom dates in testing)
     if (!customScheduledFor) {

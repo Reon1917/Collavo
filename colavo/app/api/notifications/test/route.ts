@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
       result = await scheduleSubTaskNotification({
         subTaskId: entityId,
         daysBefore: 1, // This will be overridden by our custom date
+        notificationTime: "09:00", // Default for testing
         createdBy: session.user.id,
         customScheduledFor: testScheduledFor
       });
@@ -137,6 +138,7 @@ export async function POST(request: NextRequest) {
       result = await scheduleEventNotification({
         eventId: entityId,
         daysBefore: 1, // This will be overridden by our custom date
+        notificationTime: "09:00", // Default for testing
         recipientUserIds,
         createdBy: session.user.id,
         customScheduledFor: testScheduledFor

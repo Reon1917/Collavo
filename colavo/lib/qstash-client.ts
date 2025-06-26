@@ -43,9 +43,16 @@ export function toThailandTime(date: Date): Date {
  * Calculate notification date in Thailand timezone with edge case handling
  * @param deadline - Task/Event deadline in UTC
  * @param daysBefore - Number of days before deadline to send notification
+ * @param notificationTime - Time of day to send notification (HH:mm format, Thailand time)
  * @returns Notification date in UTC (for database storage and QStash scheduling)
  */
-export function calculateNotificationDate(deadline: Date, daysBefore: number): Date {
+export function calculateNotificationDate(deadline: Date, daysBefore: number, notificationTime: string = "09:00"): Date {
+  // Parse notification time
+  const [hours, minutes] = notificationTime.split(':').map(Number);
+  if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+    throw new Error('Invalid notification time format. Use HH:mm format.');
+  }
+  
   // Convert deadline to Thailand time to calculate correctly
   const deadlineThailand = toThailandTime(deadline);
   
@@ -53,8 +60,8 @@ export function calculateNotificationDate(deadline: Date, daysBefore: number): D
   const notificationThailand = new Date(deadlineThailand);
   notificationThailand.setDate(notificationThailand.getDate() - daysBefore);
   
-  // Set to morning time in Thailand (9 AM) for better UX
-  notificationThailand.setHours(9, 0, 0, 0);
+  // Set to user-specified time in Thailand timezone
+  notificationThailand.setHours(hours, minutes, 0, 0);
   
   // Convert back to UTC for storage and QStash
   const notificationUTC = new Date(notificationThailand.getTime() - (THAILAND_OFFSET_HOURS * 60 * 60 * 1000));
