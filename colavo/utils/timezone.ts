@@ -70,12 +70,32 @@ export function formatBangkokTime(date: Date): string {
 
 /**
  * Check if a date is in the past (Bangkok time)
+ * For notifications, we allow scheduling if the deadline itself is in the future,
+ * even if the notification time would be in the past
  */
 export function isPastTime(date: Date): boolean {
   const now = new Date();
   const bangkokNow = toBangkokTime(now);
   const bangkokDate = toBangkokTime(date);
-  return bangkokDate < bangkokNow;
+  
+  // Add a small buffer (5 minutes) to avoid issues with immediate scheduling
+  const bufferTime = new Date(bangkokNow.getTime() + (5 * 60 * 1000));
+  return bangkokDate < bufferTime;
+}
+
+/**
+ * Check if a deadline allows for notification scheduling
+ * This is more lenient - we only check if the deadline itself is far enough in the future
+ */
+export function canScheduleNotification(deadline: Date, daysBefore: number): boolean {
+  const now = new Date();
+  const bangkokNow = toBangkokTime(now);
+  const bangkokDeadline = toBangkokTime(deadline);
+  
+  // Check if deadline is at least 1 hour in the future
+  const minimumFutureTime = new Date(bangkokNow.getTime() + (1 * 60 * 60 * 1000)); // 1 hour buffer
+  
+  return bangkokDeadline > minimumFutureTime;
 }
 
 /**

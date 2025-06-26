@@ -5,7 +5,7 @@ import { createId } from '@paralleldrive/cuid2';
 import { ResendEmailService } from './resend-service';
 import { generateSubtaskReminderTemplate } from './templates/subtask-reminder';
 import { generateEventReminderTemplate } from './templates/event-reminder';
-import { calculateScheduleTime, isPastTime } from '@/utils/timezone';
+import { calculateScheduleTime, isPastTime, canScheduleNotification } from '@/utils/timezone';
 
 export interface CreateSubtaskNotificationParams {
   subtaskId: string;
@@ -40,6 +40,8 @@ export class NotificationService {
   static async createSubtaskNotification(params: CreateSubtaskNotificationParams): Promise<string> {
     const { subtaskId, userId, daysBefore, time, projectId, createdBy } = params;
 
+    console.log('NotificationService.createSubtaskNotification called with:', params);
+
     // Get subtask details with related data
     const subtaskData = await db
       .select({
@@ -55,6 +57,14 @@ export class NotificationService {
       .where(eq(subTasks.id, subtaskId))
       .limit(1);
 
+    console.log('Subtask data found:', subtaskData.length > 0 ? {
+      subtaskId: subtaskData[0]?.subtask.id,
+      deadline: subtaskData[0]?.subtask.deadline,
+      assignedUserId: subtaskData[0]?.assignedUser?.id,
+      assignedUserEmail: subtaskData[0]?.assignedUser?.email,
+      projectId: subtaskData[0]?.project.id
+    } : 'No subtask found');
+
     if (!subtaskData.length) {
       throw new Error('Subtask not found');
     }
@@ -69,13 +79,16 @@ export class NotificationService {
       throw new Error('Subtask must be assigned to a user');
     }
 
+    // Check if deadline allows for notification scheduling
+    if (!canScheduleNotification(subtaskRecord.subtask.deadline, daysBefore)) {
+      throw new Error('Deadline is too close or in the past to schedule notifications');
+    }
+
     // Calculate scheduled time
     const scheduledFor = calculateScheduleTime(subtaskRecord.subtask.deadline, daysBefore, time);
 
-    // Check if scheduled time is in the past
-    if (isPastTime(scheduledFor)) {
-      throw new Error('Cannot schedule notification for past time');
-    }
+    // If the computed time is in the past, schedule for immediate delivery
+    const finalScheduledTime = isPastTime(scheduledFor) ? new Date() : scheduledFor;
 
     // Generate email content
     const emailHtml = generateSubtaskReminderTemplate({
@@ -90,12 +103,18 @@ export class NotificationService {
 
     const subject = `Reminder: ${subtaskRecord.subtask.title} deadline in ${daysBefore} ${daysBefore === 1 ? 'day' : 'days'}`;
 
+    // For development: Only send to verified email if domain not set up
+    const isDevMode = !process.env.FROM_EMAIL || process.env.FROM_EMAIL.includes('noreply@collavo.com');
+    const recipientEmail = isDevMode ? 'linmyatphyo03@gmail.com' : subtaskRecord.assignedUser.email;
+
+    console.log(`${isDevMode ? '[DEV MODE]' : '[PROD MODE]'} Sending notification to: ${recipientEmail}`);
+
     // Schedule email with Resend
     const { emailId } = await ResendEmailService.scheduleNotification({
-      recipientEmails: [subtaskRecord.assignedUser.email],
-      subject,
+      recipientEmails: [recipientEmail],
+      subject: isDevMode ? `[DEV] ${subject}` : subject,
       html: emailHtml,
-      scheduledAt: scheduledFor,
+      scheduledAt: finalScheduledTime,
     });
 
     // Save notification record
@@ -105,7 +124,7 @@ export class NotificationService {
       type: 'subtask',
       entityId: subtaskId,
       recipientUserId: userId,
-      scheduledFor,
+      scheduledFor: finalScheduledTime,
       daysBefore,
       status: 'pending',
       emailId,
@@ -139,13 +158,16 @@ export class NotificationService {
 
     const eventRecord = eventData[0]!;
 
+    // Check if event allows for notification scheduling
+    if (!canScheduleNotification(eventRecord.event.datetime, daysBefore)) {
+      throw new Error('Event date is too close or in the past to schedule notifications');
+    }
+
     // Calculate scheduled time
     const scheduledFor = calculateScheduleTime(eventRecord.event.datetime, daysBefore, time);
 
-    // Check if scheduled time is in the past
-    if (isPastTime(scheduledFor)) {
-      throw new Error('Cannot schedule notification for past time');
-    }
+    // If the computed time is in the past, schedule for immediate delivery
+    const finalScheduledTime = isPastTime(scheduledFor) ? new Date() : scheduledFor;
 
     // Get recipient user details
     const recipients = await db
@@ -184,12 +206,18 @@ export class NotificationService {
 
       const subject = `Event Reminder: ${eventRecord.event.title} in ${daysBefore} ${daysBefore === 1 ? 'day' : 'days'}`;
 
+      // For development: Only send to verified email if domain not set up
+      const isDevMode = !process.env.FROM_EMAIL || process.env.FROM_EMAIL.includes('noreply@collavo.com');
+      const recipientEmail = isDevMode ? 'linmyatphyo03@gmail.com' : recipient.email;
+
+      console.log(`${isDevMode ? '[DEV MODE]' : '[PROD MODE]'} Sending event notification to: ${recipientEmail}`);
+
       // Schedule email with Resend
       const { emailId } = await ResendEmailService.scheduleNotification({
-        recipientEmails: [recipient.email],
-        subject,
+        recipientEmails: [recipientEmail],
+        subject: isDevMode ? `[DEV] ${subject}` : subject,
         html: emailHtml,
-        scheduledAt: scheduledFor,
+        scheduledAt: finalScheduledTime,
       });
 
       // Save notification record
@@ -199,7 +227,7 @@ export class NotificationService {
         type: 'event',
         entityId: eventId,
         recipientUserId: recipient.id,
-        scheduledFor,
+        scheduledFor: finalScheduledTime,
         daysBefore,
         status: 'pending',
         emailId,
