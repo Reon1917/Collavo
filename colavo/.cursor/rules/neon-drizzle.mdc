@@ -1,9 +1,4 @@
 ---
-description: 
-globs: 
-alwaysApply: true
----
----
 description: Use this rules when integrating Neon (serverless Postgres) with Drizzle ORM
 globs: *.ts, *.tsx
 alwaysApply: false

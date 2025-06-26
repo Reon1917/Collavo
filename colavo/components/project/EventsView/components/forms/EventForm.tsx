@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -47,6 +47,38 @@ export function EventForm({
 
   // Get project deadline for validation
   const projectDeadline = projectData?.deadline ? new Date(projectData.deadline) : null;
+
+  // Initialize selectedTime from existing event datetime when editing
+  useEffect(() => {
+    if (eventData.datetime) {
+      const hours = eventData.datetime.getHours().toString().padStart(2, '0');
+      const minutes = eventData.datetime.getMinutes().toString().padStart(2, '0');
+      setSelectedTime(`${hours}:${minutes}`);
+    }
+  }, [eventData.datetime]);
+
+  // Helper function to combine date and time
+  const combineDateTime = (date: Date | undefined, timeString: string): Date | undefined => {
+    if (!date) return undefined;
+    
+    const timeParts = timeString.split(':');
+    const hours = parseInt(timeParts[0] || '0', 10);
+    const minutes = parseInt(timeParts[1] || '0', 10);
+    
+    const combined = new Date(date);
+    combined.setHours(hours, minutes, 0, 0);
+    return combined;
+  };
+
+  // Update datetime whenever selectedTime changes
+  useEffect(() => {
+    if (eventData.datetime) {
+      const combinedDateTime = combineDateTime(eventData.datetime, selectedTime);
+      if (combinedDateTime && combinedDateTime.getTime() !== eventData.datetime.getTime()) {
+        setEventData(prev => ({ ...prev, datetime: combinedDateTime }));
+      }
+    }
+  }, [selectedTime, eventData.datetime, setEventData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,7 +214,10 @@ export function EventForm({
             <Calendar
               mode="single"
               selected={eventData.datetime}
-              onSelect={(date) => setEventData(prev => ({ ...prev, datetime: date }))}
+              onSelect={(date) => {
+                const combinedDateTime = combineDateTime(date, selectedTime);
+                setEventData(prev => ({ ...prev, datetime: combinedDateTime }));
+              }}
               disabled={(date) => {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);

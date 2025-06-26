@@ -141,17 +141,21 @@ export async function POST(
         notificationResult = await scheduleEventNotification({
           eventId: newEvent.id,
           daysBefore: notificationSettings.daysBefore,
+          notificationTime: notificationSettings.notificationTime,
           recipientUserIds: notificationSettings.recipientUserIds,
           createdBy: session.user.id
         });
-              } catch {
-          // Failed to schedule notification for event
+      } catch (error) {
         // Don't fail the whole request if notification scheduling fails
         // The event was created successfully
+        console.error('Failed to schedule notification for new event:', {
+          eventId: newEvent.id,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
       }
     }
 
-    // Get the created event with creator information
+    // Fetch the created event with creator information
     const eventWithCreatorResult = await db
       .select({
         id: events.id,

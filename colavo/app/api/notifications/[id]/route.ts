@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { scheduledNotifications, projects, members, subTasks, events, mainTasks, user } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 
 /**
  * Get a specific notification by ID
@@ -136,11 +136,18 @@ export async function GET(
         };
       }
 
-      // For events, get all recipient details - simplified for now
+      // For events, get all recipient details
       if (notification.recipientUserIds && notification.recipientUserIds.length > 0) {
-        // Note: Drizzle doesn't support IN queries with arrays directly from postgres arrays
-        // This is a simplified implementation - in production you'd want to handle multiple recipients properly
-        recipientDetails = [];
+        const recipientResults = await db
+          .select({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+          })
+          .from(user)
+          .where(inArray(user.id, notification.recipientUserIds));
+
+        recipientDetails = recipientResults;
       }
     }
 
@@ -150,10 +157,9 @@ export async function GET(
       recipientDetails
     });
 
-  } catch {
-    // Error fetching notification
+  } catch (error) {
+    console.error('Error fetching notification:', error);
     return NextResponse.json({
       error: 'Internal server error'
     }, { status: 500 });
-  }
-} 
+  }} 

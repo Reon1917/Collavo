@@ -22,19 +22,15 @@ export async function POST(
 
     // Await params in Next.js 15
     const { id: projectId, taskId, subtaskId } = await params;
-    // Debug: console.log('API params:', { projectId, taskId, subtaskId, userId: session.user.id });
 
     // Check project access
     const projectAccess = await requireProjectAccess(session.user.id, projectId);
-    // Debug: console.log('Project access result:', projectAccess);
     if (!projectAccess.hasAccess) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
     const body = await request.json();
     const { notificationSettings } = body;
-    // Debug: console.log('Received body:', body);
-    // Debug: console.log('Notification settings:', notificationSettings);
 
     if (!notificationSettings) {
       return NextResponse.json({ error: 'Notification settings are required' }, { status: 400 });
@@ -109,8 +105,6 @@ export async function POST(
       });
 
     } catch (error) {
-      // Failed to schedule subtask notification
-      console.error('Notification scheduling error:', error);
       return NextResponse.json({
         success: false,
         error: error instanceof Error ? error.message : 'Failed to schedule notification'
@@ -118,8 +112,6 @@ export async function POST(
     }
 
   } catch (error) {
-    // Subtask notification API error
-    console.error('API error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

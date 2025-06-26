@@ -26,11 +26,25 @@ export interface EmailResult {
 /**
  * Send task reminder email to assigned user
  */
+// Add at the top of the file
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
 export async function sendTaskReminderEmail(
   recipientEmail: string,
   data: TaskReminderData
 ): Promise<EmailResult> {
   try {
+    if (!isValidEmail(recipientEmail)) {
+      return {
+        id: '',
+        success: false,
+        error: 'Invalid recipient email address'
+      };
+    }
+
     const { taskTitle, daysBefore } = data;
     const daysText = daysBefore === 1 ? 'day' : 'days';
     
@@ -47,7 +61,7 @@ export async function sendTaskReminderEmail(
         'X-Entity-Ref-ID': `task-reminder-${data.taskTitle}`,
       },
     });
-
+    // …rest of function…
     if (result.error) {
       // Failed to send task reminder email
       return {

@@ -393,6 +393,7 @@ export interface ScheduledNotification {
 export interface ScheduleSubTaskNotificationParams {
   subTaskId: string;
   daysBefore: number;
+  notificationTime?: string; // HH:mm format, Thailand time
   createdBy: string;
   customScheduledFor?: Date; // For testing - override calculated date
 }
@@ -401,6 +402,7 @@ export interface ScheduleSubTaskNotificationParams {
 export interface ScheduleEventNotificationParams {
   eventId: string;
   daysBefore: number;
+  notificationTime?: string; // HH:mm format, Thailand time
   recipientUserIds: string[];
   createdBy: string;
   customScheduledFor?: Date; // For testing - override calculated date

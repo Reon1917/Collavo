@@ -212,7 +212,7 @@ async function handleImmediateEmailTest(
           subtaskTitle: subtask.title,
           mainTaskTitle: mainTask.title,
           projectName: project.name,
-                     deadline: subtask.deadline!,
+          deadline: subtask.deadline!,
           projectId: project.id,
           subtaskId: subtask.id
         }
@@ -280,14 +280,14 @@ async function handleImmediateEmailTest(
           type: 'event_reminder',
           recipientEmail: recipient.email,
           recipientName: recipient.name || recipient.email,
-                     data: {
-             eventTitle: event.title,
-             projectName: project.name,
-             eventDatetime: event.datetime,
-             ...(event.description && { eventDescription: event.description }),
-             projectId: project.id,
-             eventId: event.id
-           }
+          data: {
+            eventTitle: event.title,
+            projectName: project.name,
+            eventDatetime: event.datetime,
+            ...(event.description && { eventDescription: event.description }),
+            projectId: project.id,
+            eventId: event.id
+          }
         })
       );
 

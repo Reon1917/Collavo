@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm';
+import { eq, and, gte, lte } from 'drizzle-orm';
 import { createId } from '@paralleldrive/cuid2';
 import { db } from '@/db';
 import { scheduledNotifications, subTasks, mainTasks, projects, user, events } from '@/db/schema';
@@ -8,29 +8,16 @@ import {
   calculateQStashDelay, 
   validateNotificationTiming 
 } from './qstash-client';
+import type { ScheduleSubTaskNotificationParams, ScheduleEventNotificationParams } from '@/types';
 
-const WEBHOOK_URL = process.env.NEXT_PUBLIC_APP_URL 
+const WEBHOOK_URL = process.env.NEXT_PUBLIC_APP_URL
   ? `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/send-notification`
-  : 'https://your-app.vercel.app/api/webhooks/send-notification';
-
+  : process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}/api/webhooks/send-notification`
+  : (() => {
+      throw new Error('Either NEXT_PUBLIC_APP_URL or VERCEL_URL environment variable is required for notification scheduling');
+    })();
 // Note: IS_DEVELOPMENT and IS_LOCALHOST were removed as they're now handled in qstash-client
-
-export interface ScheduleSubTaskNotificationParams {
-  subTaskId: string;
-  daysBefore: number;
-  notificationTime?: string; // HH:mm format, Thailand time
-  createdBy: string;
-  customScheduledFor?: Date; // For testing - override calculated date
-}
-
-export interface ScheduleEventNotificationParams {
-  eventId: string;
-  daysBefore: number;
-  notificationTime?: string; // HH:mm format, Thailand time
-  recipientUserIds: string[];
-  createdBy: string;
-  customScheduledFor?: Date; // For testing - override calculated date
-}
 
 /**
  * Schedule notification for a subtask
@@ -392,6 +379,7 @@ export async function getProjectNotifications(projectId: string) {
  * Get notifications that are about to be sent (for monitoring)
  */
 export async function getUpcomingNotifications(hoursAhead: number = 24) {
+  const now = new Date();
   const futureTime = new Date();
   futureTime.setHours(futureTime.getHours() + hoursAhead);
 
@@ -401,7 +389,8 @@ export async function getUpcomingNotifications(hoursAhead: number = 24) {
     .where(
       and(
         eq(scheduledNotifications.status, 'pending'),
-        // scheduledFor between now and futureTime would need additional date functions
+        gte(scheduledNotifications.scheduledFor, now),
+        lte(scheduledNotifications.scheduledFor, futureTime)
       )
     )
     .orderBy(scheduledNotifications.scheduledFor);

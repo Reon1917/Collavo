@@ -122,12 +122,10 @@ export function NotificationManagement({ projectId, trigger }: NotificationManag
       } else {
         throw new Error('Failed to fetch notifications');
       }
-          } catch {
-        // Error fetching notifications
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
       toast.error('Failed to load notifications');
-    } finally {
-      setIsLoading(false);
-    }
+    } finally {    }
   }, [projectId, filters.status, filters.type]);
 
   const handleCancelNotification = async (notificationId: string, notificationTitle: string) => {

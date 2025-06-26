@@ -48,8 +48,23 @@ export function toThailandTime(date: Date): Date {
  */
 export function calculateNotificationDate(deadline: Date, daysBefore: number, notificationTime: string = "09:00"): Date {
   // Parse notification time
-  const [hours, minutes] = notificationTime.split(':').map(Number);
-  if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+  const timeParts = notificationTime.split(':');
+  if (timeParts.length !== 2) {
+    throw new Error('Invalid notification time format. Use HH:mm format.');
+  }
+  
+  const hoursStr = timeParts[0]!;
+  const minutesStr = timeParts[1]!;
+  
+  // Check if both parts are numeric
+  if (!/^\d+$/.test(hoursStr) || !/^\d+$/.test(minutesStr)) {
+    throw new Error('Invalid notification time format. Use HH:mm format.');
+  }
+  
+  const hours = parseInt(hoursStr, 10);
+  const minutes = parseInt(minutesStr, 10);
+  
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
     throw new Error('Invalid notification time format. Use HH:mm format.');
   }
   

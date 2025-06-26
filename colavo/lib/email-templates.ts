@@ -1,5 +1,18 @@
 import { formatThailandDate } from './qstash-client';
 
+/**
+ * Escape HTML special characters to prevent XSS vulnerabilities
+ */
+function escapeHtml(unsafe: string | undefined | null): string {
+  if (!unsafe) return '';
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export interface TaskReminderData {
   assignedUserName: string;
   taskTitle: string;
@@ -34,13 +47,19 @@ export function generateTaskReminderHTML(data: TaskReminderData): string {
   const deadlineFormatted = formatThailandDate(deadline);
   const daysText = daysBefore === 1 ? 'day' : 'days';
   
+  // Escape all user-provided data to prevent XSS
+  const safeName = escapeHtml(assignedUserName);
+  const safeTitle = escapeHtml(taskTitle);
+  const safeDescription = escapeHtml(taskDescription);
+  const safeProject = escapeHtml(projectName);
+  
   return `
     <!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Task Reminder - ${taskTitle}</title>
+      <title>Task Reminder - ${safeTitle}</title>
     </head>
     <body style="
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -97,7 +116,7 @@ export function generateTaskReminderHTML(data: TaskReminderData): string {
             font-size: 18px;
             margin: 0;
             color: #2d3748;
-          ">Hi ${assignedUserName},</p>
+          ">Hi ${safeName},</p>
           <p style="
             font-size: 16px;
             color: #4a5568;
@@ -121,12 +140,12 @@ export function generateTaskReminderHTML(data: TaskReminderData): string {
           
           <div style="margin-bottom: 16px;">
             <strong style="display: block; margin-bottom: 4px; opacity: 0.9;">Task:</strong>
-            <span style="font-size: 18px; font-weight: 500;">${taskTitle}</span>
+            <span style="font-size: 18px; font-weight: 500;">${safeTitle}</span>
           </div>
           
           <div style="margin-bottom: 16px;">
             <strong style="display: block; margin-bottom: 4px; opacity: 0.9;">Project:</strong>
-            <span>${projectName}</span>
+            <span>${safeProject}</span>
           </div>
           
           <div style="margin-bottom: 16px;">
@@ -144,10 +163,10 @@ export function generateTaskReminderHTML(data: TaskReminderData): string {
             ">${daysBefore} ${daysText}</span>
           </div>
           
-          ${taskDescription ? `
+          ${safeDescription ? `
           <div>
             <strong style="display: block; margin-bottom: 4px; opacity: 0.9;">Description:</strong>
-            <p style="margin: 0; opacity: 0.95; line-height: 1.5;">${taskDescription}</p>
+            <p style="margin: 0; opacity: 0.95; line-height: 1.5;">${safeDescription}</p>
           </div>
           ` : ''}
         </div>
@@ -211,13 +230,19 @@ export function generateEventReminderHTML(data: EventReminderData): string {
   const datetimeFormatted = formatThailandDate(datetime);
   const daysText = daysBefore === 1 ? 'day' : 'days';
   
+  // Escape all user-provided data to prevent XSS
+  const safeTitle = escapeHtml(eventTitle);
+  const safeDescription = escapeHtml(eventDescription);
+  const safeProject = escapeHtml(projectName);
+  const safeLocation = escapeHtml(location);
+  
   return `
     <!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Event Reminder - ${eventTitle}</title>
+      <title>Event Reminder - ${safeTitle}</title>
     </head>
     <body style="
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -298,12 +323,12 @@ export function generateEventReminderHTML(data: EventReminderData): string {
           
           <div style="margin-bottom: 16px;">
             <strong style="display: block; margin-bottom: 4px; opacity: 0.9;">Event:</strong>
-            <span style="font-size: 18px; font-weight: 500;">${eventTitle}</span>
+            <span style="font-size: 18px; font-weight: 500;">${safeTitle}</span>
           </div>
           
           <div style="margin-bottom: 16px;">
             <strong style="display: block; margin-bottom: 4px; opacity: 0.9;">Project:</strong>
-            <span>${projectName}</span>
+            <span>${safeProject}</span>
           </div>
           
           <div style="margin-bottom: 16px;">
@@ -311,10 +336,10 @@ export function generateEventReminderHTML(data: EventReminderData): string {
             <span style="font-size: 16px; font-weight: 500;">${datetimeFormatted}</span>
           </div>
           
-          ${location ? `
+          ${safeLocation ? `
           <div style="margin-bottom: 16px;">
             <strong style="display: block; margin-bottom: 4px; opacity: 0.9;">Location:</strong>
-            <span>${location}</span>
+            <span>${safeLocation}</span>
           </div>
           ` : ''}
           
@@ -328,10 +353,10 @@ export function generateEventReminderHTML(data: EventReminderData): string {
             ">${daysBefore} ${daysText}</span>
           </div>
           
-          ${eventDescription ? `
+          ${safeDescription ? `
           <div>
             <strong style="display: block; margin-bottom: 4px; opacity: 0.9;">Description:</strong>
-            <p style="margin: 0; opacity: 0.95; line-height: 1.5;">${eventDescription}</p>
+            <p style="margin: 0; opacity: 0.95; line-height: 1.5;">${safeDescription}</p>
           </div>
           ` : ''}
         </div>
