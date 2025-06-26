@@ -205,10 +205,15 @@ export async function updateNotification(data: UpdateNotificationData, projectId
       throw new Error('Invalid time format. Use HH:MM format');
     }
 
-    await NotificationService.updateNotification(notificationId, {
-      daysBefore,
-      time,
-    });
+    const updateParams: any = {};
+    if (daysBefore !== undefined) {
+      updateParams.daysBefore = daysBefore;
+    }
+    if (time !== undefined) {
+      updateParams.time = time;
+    }
+
+    await NotificationService.updateNotification(notificationId, updateParams);
 
     revalidatePath(`/project/${projectId}`);
 

@@ -1,7 +1,7 @@
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -34,6 +34,38 @@ export function DetailsEditForm({
   // Get the selected member's name for display
   const selectedMember = members.find(m => m.userId === detailsFormData.assignedId);
   const selectedMemberName = selectedMember?.userName;
+
+  const getDeadlineOptions = () => {
+    const options = [];
+    
+    if (mainTaskDeadline) {
+      options.push({
+        label: `Main Task Deadline: ${format(new Date(mainTaskDeadline), "PPP")}`,
+        value: new Date(mainTaskDeadline),
+      });
+    }
+    
+    if (projectDeadline) {
+      options.push({
+        label: `Project Deadline: ${format(new Date(projectDeadline), "PPP")}`,
+        value: new Date(projectDeadline),
+      });
+    }
+    
+    return options;
+  };
+
+  const deadlineOptions = getDeadlineOptions();
+
+  const isDateValid = (date: Date) => {
+    if (mainTaskDeadline && date > new Date(mainTaskDeadline)) {
+      return false;
+    }
+    if (projectDeadline && date > new Date(projectDeadline)) {
+      return false;
+    }
+    return true;
+  };
 
   return (
     <div className="space-y-6">
@@ -152,22 +184,90 @@ export function DetailsEditForm({
               {detailsFormData.deadline ? format(detailsFormData.deadline, "PPP") : "Select deadline *"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+          <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
               selected={detailsFormData.deadline}
               onSelect={(date) => setDetailsFormData(prev => ({ ...prev, deadline: date }))}
-              disabled={(date) => {
-                const today = new Date();
-                if (date < today) return true;
-                if (maxDate && date > maxDate) return true;
-                return false;
-              }}
+              disabled={(date) => date < new Date() || !isDateValid(date)}
               initialFocus
             />
+            {deadlineOptions.length > 0 && (
+              <div className="p-3 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Quick Select:</p>
+                <div className="space-y-1">
+                  {deadlineOptions.map((option, index) => (
+                    <Button
+                      key={index}
+                      variant="ghost"
+                      size="sm"
+                      className="w-full text-xs text-left justify-start h-auto py-1 px-2"
+                      onClick={() => setDetailsFormData(prev => ({ ...prev, deadline: option.value }))}
+                    >
+                      {option.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
           </PopoverContent>
         </Popover>
       </div>
+
+      {/* Email Notification Section */}
+      {detailsFormData.deadline && detailsFormData.assignedId && (
+        <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 bg-[#008080] rounded-full flex items-center justify-center">
+              <span className="text-white text-xs">📧</span>
+            </div>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Email Reminder (Optional)
+            </Label>
+          </div>
+          
+          <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
+              Set up an email reminder for the assigned user before the deadline.
+            </p>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                  Days Before Deadline
+                </Label>
+                <Select defaultValue="3">
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 day</SelectItem>
+                    <SelectItem value="2">2 days</SelectItem>
+                    <SelectItem value="3">3 days</SelectItem>
+                    <SelectItem value="5">5 days</SelectItem>
+                    <SelectItem value="7">1 week</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                  Time (Bangkok)
+                </Label>
+                <Input 
+                  type="time" 
+                  defaultValue="09:00"
+                  className="h-8 text-sm"
+                />
+              </div>
+            </div>
+            
+            <p className="text-xs text-blue-600 dark:text-blue-400 mt-3">
+              Note: Notification will be set up after the subtask is saved with a deadline and assignee.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

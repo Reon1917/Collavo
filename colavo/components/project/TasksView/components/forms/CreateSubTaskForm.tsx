@@ -240,7 +240,7 @@ export function CreateSubTaskForm({
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 hover:bg-white dark:hover:bg-gray-900 hover:border-[#008080] dark:hover:border-[#00FFFF]",
+                      "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700",
                       !formData.deadline && "text-gray-500 dark:text-gray-400",
                       isLoading && "opacity-50 cursor-not-allowed"
                     )}
@@ -250,7 +250,7 @@ export function CreateSubTaskForm({
                     {formData.deadline ? format(formData.deadline, "PPP") : "Select deadline *"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={formData.deadline}
@@ -264,10 +264,66 @@ export function CreateSubTaskForm({
                     }}
                     initialFocus
                   />
+
                 </PopoverContent>
               </Popover>
             </div>
           </div>
+
+          {/* Email Notification Section */}
+          {formData.deadline && formData.assignedId && (
+            <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 bg-[#008080] rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs">📧</span>
+                </div>
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Email Reminder (Optional)
+                </Label>
+              </div>
+              
+              <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
+                  Set up an email reminder for the assigned user before the deadline.
+                </p>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                      Days Before Deadline
+                    </Label>
+                    <Select defaultValue="3">
+                      <SelectTrigger className="h-8 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 day</SelectItem>
+                        <SelectItem value="2">2 days</SelectItem>
+                        <SelectItem value="3">3 days</SelectItem>
+                        <SelectItem value="5">5 days</SelectItem>
+                        <SelectItem value="7">1 week</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                      Time (Bangkok)
+                    </Label>
+                    <Input 
+                      type="time" 
+                      defaultValue="09:00"
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                </div>
+                
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-3">
+                  Reminder will be sent to the assigned user at the specified time.
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="flex gap-3 pt-4">
             <Button
