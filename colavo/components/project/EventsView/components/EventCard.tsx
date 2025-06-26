@@ -11,13 +11,15 @@ import {
   Edit,
   Trash2,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Bell
 } from 'lucide-react';
 import { formatDistanceToNow, isAfter, isBefore, isToday } from 'date-fns';
 
 import { EditEventDialog } from './dialogs/EditEventDialog';
 import { EventDetailsDialog } from './dialogs/EventDetailsDialog';
 import { EventDeleteModal } from './dialogs/EventDeleteModal';
+import { EventNotificationModal } from './dialogs/EventNotificationModal';
 import { Event, Project,formatEventDateTime } from '../types';
 
 interface EventCardProps {
@@ -38,6 +40,7 @@ export function EventCard({
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
   
   const eventDate = new Date(event.datetime);
   const now = new Date();
@@ -173,10 +176,33 @@ export function EventCard({
           )}
 
           {/* Creator */}
-          <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-500 mb-6">
+          <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-500 mb-4">
             <User className="h-4 w-4 flex-shrink-0" />
             <span className="truncate">Created by <span className="font-medium text-gray-700 dark:text-gray-300">{event.creatorName}</span></span>
           </div>
+
+          {/* Notification Setup */}
+          {isUpcoming && (
+            <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg mb-4 border border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-green-600" />
+                <span className="text-sm text-green-800 dark:text-green-200 font-medium">
+                  Email Reminder
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowNotificationModal(true);
+                }}
+                className="h-7 px-2 text-xs hover:bg-green-100 dark:hover:bg-green-800/30 text-green-700 dark:text-green-300"
+              >
+                Setup
+              </Button>
+            </div>
+          )}
 
           {/* Bottom Section */}
           <div className="mt-auto">
@@ -231,6 +257,16 @@ export function EventCard({
           event={event}
           projectId={project.id}
           onEventDeleted={handleConfirmDelete}
+        />
+      )}
+
+      {showNotificationModal && (
+        <EventNotificationModal
+          event={event}
+          members={project.members}
+          projectId={project.id}
+          isOpen={showNotificationModal}
+          onOpenChange={setShowNotificationModal}
         />
       )}
     </>

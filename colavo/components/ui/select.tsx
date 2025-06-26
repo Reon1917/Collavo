@@ -124,25 +124,29 @@ export function SelectItem({ value, children }: SelectItemProps) {
     }
   }, [context.value, value, children, context]);
 
+  const handleClick = () => {
+    if (context && typeof context.onValueChange === 'function') {
+      context.onValueChange(value);
+      
+      // Set display value immediately
+      if (typeof children === 'string') {
+        context.setDisplayValue(children);
+      } else if (React.isValidElement(children)) {
+        const textContent = React.Children.toArray(children)
+          .filter(child => typeof child === 'string')
+          .join('');
+        context.setDisplayValue(textContent);
+      }
+      
+      context.setOpen(false);
+    }
+  };
+
   return (
     <button
       type="button"
       className="w-full px-3 py-2 text-left text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-800 focus:outline-none"
-      onClick={() => {
-        context.onValueChange(value);
-        
-        // Set display value immediately
-        if (typeof children === 'string') {
-          context.setDisplayValue(children);
-        } else if (React.isValidElement(children)) {
-          const textContent = React.Children.toArray(children)
-            .filter(child => typeof child === 'string')
-            .join('');
-          context.setDisplayValue(textContent);
-        }
-        
-        context.setOpen(false);
-      }}
+      onClick={handleClick}
     >
       {children}
     </button>
