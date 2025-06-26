@@ -17,6 +17,7 @@ export interface ScheduleSubTaskNotificationParams {
   subTaskId: string;
   daysBefore: number;
   createdBy: string;
+  customScheduledFor?: Date; // For testing - override calculated date
 }
 
 export interface ScheduleEventNotificationParams {
@@ -24,6 +25,7 @@ export interface ScheduleEventNotificationParams {
   daysBefore: number;
   recipientUserIds: string[];
   createdBy: string;
+  customScheduledFor?: Date; // For testing - override calculated date
 }
 
 /**
@@ -32,7 +34,7 @@ export interface ScheduleEventNotificationParams {
 export async function scheduleSubTaskNotification(
   params: ScheduleSubTaskNotificationParams
 ): Promise<{ notificationId: string; qstashMessageId: string }> {
-  const { subTaskId, daysBefore, createdBy } = params;
+  const { subTaskId, daysBefore, createdBy, customScheduledFor } = params;
 
   try {
     // Get subtask with related data
@@ -64,11 +66,13 @@ export async function scheduleSubTaskNotification(
       throw new Error('Cannot schedule notification for subtask without assigned user');
     }
 
-    // Calculate notification date in Thailand timezone
-    const notificationDate = calculateNotificationDate(subtask.deadline, daysBefore);
+    // Calculate notification date (use custom date for testing, or calculate normally)
+    const notificationDate = customScheduledFor || calculateNotificationDate(subtask.deadline, daysBefore);
     
-    // Validate timing
-    validateNotificationTiming(notificationDate);
+    // Validate timing (skip validation for custom dates in testing)
+    if (!customScheduledFor) {
+      validateNotificationTiming(notificationDate);
+    }
 
     // Create database record first
     const notificationId = createId();
@@ -129,7 +133,7 @@ export async function scheduleSubTaskNotification(
 export async function scheduleEventNotification(
   params: ScheduleEventNotificationParams
 ): Promise<{ notificationId: string; qstashMessageId: string }> {
-  const { eventId, daysBefore, recipientUserIds, createdBy } = params;
+  const { eventId, daysBefore, recipientUserIds, createdBy, customScheduledFor } = params;
 
   try {
     // Get event with related data
@@ -153,11 +157,13 @@ export async function scheduleEventNotification(
       throw new Error('Cannot schedule notification without recipients');
     }
 
-    // Calculate notification date in Thailand timezone
-    const notificationDate = calculateNotificationDate(event.datetime, daysBefore);
+    // Calculate notification date (use custom date for testing, or calculate normally)
+    const notificationDate = customScheduledFor || calculateNotificationDate(event.datetime, daysBefore);
     
-    // Validate timing
-    validateNotificationTiming(notificationDate);
+    // Validate timing (skip validation for custom dates in testing)
+    if (!customScheduledFor) {
+      validateNotificationTiming(notificationDate);
+    }
 
     // Create database record first
     const notificationId = createId();

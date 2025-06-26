@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { scheduleSubTaskNotification, scheduleEventNotification } from '@/lib/notification-scheduler';
 import { db } from '@/db';
-import { subTasks, events, projects, members } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { subTasks, mainTasks, events, projects, members } from '@/db/schema';
+import { eq, and } from 'drizzle-orm';
 
 /**
  * Test notification scheduling with short delays
@@ -44,17 +44,23 @@ export async function POST(request: NextRequest) {
 
     if (type === 'subtask') {
       // Verify subtask exists and user has access
-      const subtask = await db
+      const subtaskQuery = db
         .select({
           id: subTasks.id,
           assignedId: subTasks.assignedId,
           projectId: projects.id,
         })
         .from(subTasks)
-        .innerJoin(projects, eq(subTasks.mainTaskId, projects.id))
+        .innerJoin(mainTasks, eq(subTasks.mainTaskId, mainTasks.id))
+        .innerJoin(projects, eq(mainTasks.projectId, projects.id))
         .innerJoin(members, eq(projects.id, members.projectId))
-        .where(eq(subTasks.id, entityId))
+        .where(and(
+          eq(subTasks.id, entityId),
+          eq(members.userId, session.user.id)
+        ))
         .limit(1);
+      
+      const subtask = await subtaskQuery;
 
       if (!subtask.length) {
         return NextResponse.json({ 
@@ -75,7 +81,7 @@ export async function POST(request: NextRequest) {
         subTaskId: entityId,
         daysBefore: 1, // This will be overridden by our custom date
         createdBy: session.user.id,
-        customScheduledFor: testScheduledFor // We'll need to add this parameter
+        customScheduledFor: testScheduledFor
       });
 
     } else if (type === 'event') {
@@ -127,7 +133,7 @@ export async function POST(request: NextRequest) {
         daysBefore: 1, // This will be overridden by our custom date
         recipientUserIds,
         createdBy: session.user.id,
-        customScheduledFor: testScheduledFor // We'll need to add this parameter
+        customScheduledFor: testScheduledFor
       });
     }
 

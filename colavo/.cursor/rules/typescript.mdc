@@ -1,7 +1,7 @@
 ---
 description: 
-globs: *.tsx,*.ts
-alwaysApply: false
+globs: 
+alwaysApply: true
 ---
 # Cursor AI TypeScript Rules - Prevent Type Errors & Build Issues
 

@@ -394,6 +394,7 @@ export interface ScheduleSubTaskNotificationParams {
   subTaskId: string;
   daysBefore: number;
   createdBy: string;
+  customScheduledFor?: Date; // For testing - override calculated date
 }
 
 /** Parameters for scheduling event notifications */
@@ -402,6 +403,7 @@ export interface ScheduleEventNotificationParams {
   daysBefore: number;
   recipientUserIds: string[];
   createdBy: string;
+  customScheduledFor?: Date; // For testing - override calculated date
 }
 
 /** Email sending result */

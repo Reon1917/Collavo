@@ -13,7 +13,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bell, BellOff, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { NotificationSettings, type NotificationSettings as NotificationSettingsType } from '../NotificationSettings';
+import { NotificationSettings, type NotificationSettings as BaseNotificationSettings } from '../NotificationSettings';
+
+// Extended interface for PostNotificationSettings that includes enabled flag
+interface PostNotificationSettingsState extends BaseNotificationSettings {
+  enabled: boolean;
+}
 
 interface PostNotificationSettingsProps {
   entityType: 'event' | 'subtask'; // Removed 'task' since we don't support task-level notifications
@@ -46,9 +51,10 @@ export function PostNotificationSettings({
 }: PostNotificationSettingsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [notificationSettings, setNotificationSettings] = useState<NotificationSettingsType>({
-    enabled: false,
+  const [notificationSettings, setNotificationSettings] = useState<PostNotificationSettingsState>({
+    enabled: true, // Always enabled since we removed the checkbox
     daysBefore: 1,
+    notificationTime: '09:00',
     recipientUserIds: entityType === 'subtask' && assignedUserId ? [assignedUserId] : []
   });
 
@@ -66,11 +72,6 @@ export function PostNotificationSettings({
   const canSetupNotification = canSetupSubtaskNotification || canSetupEventNotification;
 
   const handleSetupNotification = async () => {
-    if (!notificationSettings.enabled) {
-      toast.error('Please enable notifications first');
-      return;
-    }
-
     if (entityType === 'event' && (!notificationSettings.recipientUserIds || notificationSettings.recipientUserIds.length === 0)) {
       toast.error('Please select at least one recipient for event notifications');
       return;
@@ -117,8 +118,9 @@ export function PostNotificationSettings({
       
       // Reset form
       setNotificationSettings({
-        enabled: false,
+        enabled: true,
         daysBefore: 1,
+        notificationTime: '09:00',
         recipientUserIds: entityType === 'subtask' && assignedUserId ? [assignedUserId] : []
       });
 
@@ -166,17 +168,15 @@ export function PostNotificationSettings({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={`text-xs h-7 px-2 gap-1 ${
+        <div
+          className={`inline-flex items-center justify-center gap-1 rounded-md text-xs h-7 px-2 font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer ${
             hasActiveNotifications 
               ? 'text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300' 
               : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
           }`}
         >
           {getButtonContent()}
-        </Button>
+        </div>
       </DialogTrigger>
 
       <DialogContent className="max-w-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
@@ -236,15 +236,22 @@ export function PostNotificationSettings({
           {canSetupNotification && !hasActiveNotifications && (
             <NotificationSettings
               type={entityType}
-              settings={notificationSettings}
-              onSettingsChange={(settings) => setNotificationSettings({
-                enabled: settings.enabled,
+              settings={{
+                daysBefore: notificationSettings.daysBefore,
+                notificationTime: notificationSettings.notificationTime,
+                recipientUserIds: notificationSettings.recipientUserIds || []
+              }}
+              onSettingsChange={(settings) => setNotificationSettings(prev => ({
+                ...prev,
                 daysBefore: settings.daysBefore,
+                notificationTime: settings.notificationTime,
                 recipientUserIds: settings.recipientUserIds || []
-              })}
+              }))}
               hasDeadline={hasDeadline}
               hasAssignee={hasAssignee}
               members={members}
+              entityId={entityId}
+              projectId={projectId}
             />
           )}
 
@@ -259,7 +266,7 @@ export function PostNotificationSettings({
             {canSetupNotification && !hasActiveNotifications && (
               <Button
                 onClick={handleSetupNotification}
-                disabled={isLoading || !notificationSettings.enabled}
+                disabled={isLoading}
                 className="bg-[#008080] hover:bg-[#006666] text-white"
               >
                 {isLoading ? 'Setting up...' : 'Setup Notification'}

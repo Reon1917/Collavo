@@ -19,7 +19,7 @@ export interface EventReminderData {
 }
 
 /**
- * Generate HTML email template for task reminders
+ * Generate HTML email template for task reminders with Collavo branding
  */
 export function generateTaskReminderHTML(data: TaskReminderData): string {
   const {
@@ -57,17 +57,18 @@ export function generateTaskReminderHTML(data: TaskReminderData): string {
         padding: 32px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       ">
-        <!-- Header -->
+        <!-- Header with Collavo Branding -->
         <div style="
           text-align: center;
           margin-bottom: 32px;
           padding-bottom: 24px;
           border-bottom: 2px solid #e9ecef;
         ">
+          <!-- Collavo Logo/Icon -->
           <div style="
             width: 60px;
             height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #008080 0%, #00a0a0 100%);
             border-radius: 50%;
             margin: 0 auto 16px;
             display: flex;
@@ -76,9 +77,9 @@ export function generateTaskReminderHTML(data: TaskReminderData): string {
             font-size: 24px;
             color: white;
             font-weight: bold;
-          ">📋</div>
+          ">C</div>
           <h1 style="
-            color: #2d3748;
+            color: #008080;
             margin: 0;
             font-size: 28px;
             font-weight: 700;
@@ -104,9 +105,9 @@ export function generateTaskReminderHTML(data: TaskReminderData): string {
           ">This is a friendly reminder about your upcoming task deadline.</p>
         </div>
 
-        <!-- Task Details Card -->
+        <!-- Task Details Card with Collavo Colors -->
         <div style="
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #008080 0%, #00a0a0 100%);
           border-radius: 12px;
           padding: 24px;
           margin: 24px 0;
@@ -167,7 +168,7 @@ export function generateTaskReminderHTML(data: TaskReminderData): string {
           ">⚠️ Please make sure to complete this task before the deadline.</p>
         </div>
 
-        <!-- Footer -->
+        <!-- Footer with Collavo Branding -->
         <div style="
           text-align: center;
           margin-top: 32px;
@@ -179,13 +180,14 @@ export function generateTaskReminderHTML(data: TaskReminderData): string {
             margin: 0;
             font-size: 14px;
           ">Best regards,<br>
-          <strong style="color: #4a5568;">Your Collavo Team</strong></p>
+          <strong style="color: #008080;">The Collavo Team</strong></p>
           
           <p style="
             color: #a0aec0;
             margin: 16px 0 0 0;
             font-size: 12px;
-          ">This is an automated notification from Collavo Project Management</p>
+          ">This is an automated notification from Collavo Project Management<br>
+          Helping teams collaborate and deliver projects on time.</p>
         </div>
       </div>
     </body>
@@ -194,7 +196,7 @@ export function generateTaskReminderHTML(data: TaskReminderData): string {
 }
 
 /**
- * Generate HTML email template for event reminders
+ * Generate HTML email template for event reminders with Collavo branding
  */
 export function generateEventReminderHTML(data: EventReminderData): string {
   const {
@@ -232,17 +234,18 @@ export function generateEventReminderHTML(data: EventReminderData): string {
         padding: 32px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       ">
-        <!-- Header -->
+        <!-- Header with Collavo Branding -->
         <div style="
           text-align: center;
           margin-bottom: 32px;
           padding-bottom: 24px;
           border-bottom: 2px solid #e9ecef;
         ">
+          <!-- Collavo Logo/Icon -->
           <div style="
             width: 60px;
             height: 60px;
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background: linear-gradient(135deg, #008080 0%, #00a0a0 100%);
             border-radius: 50%;
             margin: 0 auto 16px;
             display: flex;
@@ -251,9 +254,9 @@ export function generateEventReminderHTML(data: EventReminderData): string {
             font-size: 24px;
             color: white;
             font-weight: bold;
-          ">📅</div>
+          ">C</div>
           <h1 style="
-            color: #2d3748;
+            color: #008080;
             margin: 0;
             font-size: 28px;
             font-weight: 700;
@@ -279,9 +282,9 @@ export function generateEventReminderHTML(data: EventReminderData): string {
           ">This is a reminder about the upcoming event.</p>
         </div>
 
-        <!-- Event Details Card -->
+        <!-- Event Details Card with Collavo Colors -->
         <div style="
-          background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+          background: linear-gradient(135deg, #008080 0%, #00a0a0 100%);
           border-radius: 12px;
           padding: 24px;
           margin: 24px 0;
@@ -336,20 +339,20 @@ export function generateEventReminderHTML(data: EventReminderData): string {
         <!-- Action Section -->
         <div style="
           background-color: #f0f9ff;
-          border-left: 4px solid #3b82f6;
+          border-left: 4px solid #008080;
           border-radius: 8px;
           padding: 20px;
           margin: 24px 0;
         ">
           <p style="
             margin: 0;
-            color: #1e40af;
+            color: #006666;
             font-weight: 500;
             font-size: 16px;
           ">📝 Please mark your calendar and prepare accordingly.</p>
         </div>
 
-        <!-- Footer -->
+        <!-- Footer with Collavo Branding -->
         <div style="
           text-align: center;
           margin-top: 32px;
@@ -361,13 +364,14 @@ export function generateEventReminderHTML(data: EventReminderData): string {
             margin: 0;
             font-size: 14px;
           ">Best regards,<br>
-          <strong style="color: #4a5568;">Your Collavo Team</strong></p>
+          <strong style="color: #008080;">The Collavo Team</strong></p>
           
           <p style="
             color: #a0aec0;
             margin: 16px 0 0 0;
             font-size: 12px;
-          ">This is an automated notification from Collavo Project Management</p>
+          ">This is an automated notification from Collavo Project Management<br>
+          Helping teams collaborate and deliver projects on time.</p>
         </div>
       </div>
     </body>
@@ -384,7 +388,7 @@ export function generateTaskReminderText(data: TaskReminderData): string {
   const daysText = daysBefore === 1 ? 'day' : 'days';
 
   return `
-Task Reminder - Due in ${daysBefore} ${daysText}
+COLLAVO - Task Reminder
 
 Hi ${assignedUserName},
 
@@ -400,10 +404,11 @@ ${data.taskDescription ? `- Description: ${data.taskDescription}` : ''}
 Please make sure to complete this task before the deadline.
 
 Best regards,
-Your Collavo Team
+The Collavo Team
 
 ---
 This is an automated notification from Collavo Project Management
+Helping teams collaborate and deliver projects on time.
   `.trim();
 }
 
@@ -416,7 +421,7 @@ export function generateEventReminderText(data: EventReminderData): string {
   const daysText = daysBefore === 1 ? 'day' : 'days';
 
   return `
-Event Reminder - Happening in ${daysBefore} ${daysText}
+COLLAVO - Event Reminder
 
 Hi team,
 
@@ -433,9 +438,10 @@ ${data.eventDescription ? `- Description: ${data.eventDescription}` : ''}
 Please mark your calendar and prepare accordingly.
 
 Best regards,
-Your Collavo Team
+The Collavo Team
 
 ---
 This is an automated notification from Collavo Project Management
+Helping teams collaborate and deliver projects on time.
   `.trim();
 } 

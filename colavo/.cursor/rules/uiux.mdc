@@ -1,7 +1,7 @@
 ---
-description: UI / UX design standards for React & TSX files
-globs: *.tsx,*.ts
-alwaysApply: false
+description: 
+globs: 
+alwaysApply: true
 ---
 
     You are an expert in UI and UX design principles for software development.

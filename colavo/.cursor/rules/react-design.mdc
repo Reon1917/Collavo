@@ -1,7 +1,7 @@
 ---
 description: 
-globs: *.tsx,*.ts
-alwaysApply: false
+globs: 
+alwaysApply: true
 ---
 # Next.js 15 + TypeScript Component Design Rules for Cursor AI
 
