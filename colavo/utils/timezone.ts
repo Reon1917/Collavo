@@ -1,32 +1,27 @@
+import { DateTime } from 'luxon';
+
 /**
  * Bangkok timezone utilities for email notification scheduling
- * Bangkok timezone is UTC+7 (Asia/Bangkok)
+ * Using Luxon for robust timezone handling
  */
 
-const BANGKOK_TIMEZONE_OFFSET = 7 * 60; // 7 hours in minutes
-
-/**
- * Convert UTC date to Bangkok time
- */
-export function toBangkokTime(date: Date): Date {
-  const bangkokTime = new Date(date.getTime() + (BANGKOK_TIMEZONE_OFFSET * 60 * 1000));
-  return bangkokTime;
-}
+const BANGKOK_TIMEZONE = 'Asia/Bangkok';
 
 /**
- * Convert Bangkok time to UTC
+ * Format a date for display in Bangkok timezone
  */
-export function fromBangkokTime(date: Date): Date {
-  const utcTime = new Date(date.getTime() - (BANGKOK_TIMEZONE_OFFSET * 60 * 1000));
-  return utcTime;
+export function formatBangkokTime(date: Date): string {
+  return DateTime.fromJSDate(date)
+    .setZone(BANGKOK_TIMEZONE)
+    .toFormat('MM/dd/yyyy, hh:mm a ZZZZ');
 }
 
 /**
  * Calculate the scheduled time for a notification
- * @param deadline - The deadline date (in UTC)
- * @param daysBefore - Number of days before deadline
+ * @param deadline - The deadline date (stored as UTC in database)
+ * @param daysBefore - Number of days before deadline  
  * @param time - Time in HH:MM format (Bangkok time)
- * @returns Scheduled time in UTC
+ * @returns Scheduled time in UTC for storage
  */
 export function calculateScheduleTime(deadline: Date, daysBefore: number, time: string): Date {
   const timeParts = time.split(':');
@@ -40,32 +35,16 @@ export function calculateScheduleTime(deadline: Date, daysBefore: number, time: 
     throw new Error('Invalid time values. Hours must be 0-23, minutes must be 0-59');
   }
   
-  // Create the target date (days before deadline)
-  const targetDate = new Date(deadline);
-  targetDate.setDate(targetDate.getDate() - daysBefore);
+  // Convert deadline to Bangkok timezone
+  const deadlineInBangkok = DateTime.fromJSDate(deadline).setZone(BANGKOK_TIMEZONE);
   
-  // Convert to Bangkok time to set the time
-  const bangkokDate = toBangkokTime(targetDate);
-  bangkokDate.setHours(hours, minutes, 0, 0);
+  // Calculate target date (days before deadline) in Bangkok timezone
+  const targetDateTime = deadlineInBangkok
+    .minus({ days: daysBefore })
+    .set({ hour: hours, minute: minutes, second: 0, millisecond: 0 });
   
   // Convert back to UTC for storage
-  return fromBangkokTime(bangkokDate);
-}
-
-/**
- * Format a date for display in Bangkok timezone
- */
-export function formatBangkokTime(date: Date): string {
-  const bangkokTime = toBangkokTime(date);
-  return bangkokTime.toLocaleString('en-US', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'Asia/Bangkok',
-    timeZoneName: 'short'
-  });
+  return targetDateTime.toUTC().toJSDate();
 }
 
 /**
@@ -74,13 +53,12 @@ export function formatBangkokTime(date: Date): string {
  * even if the notification time would be in the past
  */
 export function isPastTime(date: Date): boolean {
-  const now = new Date();
-  const bangkokNow = toBangkokTime(now);
-  const bangkokDate = toBangkokTime(date);
+  const now = DateTime.now().setZone(BANGKOK_TIMEZONE);
+  const dateInBangkok = DateTime.fromJSDate(date).setZone(BANGKOK_TIMEZONE);
   
   // Add a small buffer (5 minutes) to avoid issues with immediate scheduling
-  const bufferTime = new Date(bangkokNow.getTime() + (5 * 60 * 1000));
-  return bangkokDate < bufferTime;
+  const bufferTime = now.plus({ minutes: 5 });
+  return dateInBangkok < bufferTime;
 }
 
 /**
@@ -88,19 +66,32 @@ export function isPastTime(date: Date): boolean {
  * This is more lenient - we only check if the deadline itself is far enough in the future
  */
 export function canScheduleNotification(deadline: Date, daysBefore: number): boolean {
-  const now = new Date();
-  const bangkokNow = toBangkokTime(now);
-  const bangkokDeadline = toBangkokTime(deadline);
+  const now = DateTime.now().setZone(BANGKOK_TIMEZONE);
+  const deadlineInBangkok = DateTime.fromJSDate(deadline).setZone(BANGKOK_TIMEZONE);
   
   // Check if deadline is at least 1 hour in the future
-  const minimumFutureTime = new Date(bangkokNow.getTime() + (1 * 60 * 60 * 1000)); // 1 hour buffer
+  const minimumFutureTime = now.plus({ hours: 1 });
   
-  return bangkokDeadline > minimumFutureTime;
+  return deadlineInBangkok > minimumFutureTime;
 }
 
 /**
  * Get current Bangkok time
  */
 export function getBangkokNow(): Date {
-  return toBangkokTime(new Date());
+  return DateTime.now().setZone(BANGKOK_TIMEZONE).toJSDate();
+}
+
+/**
+ * Convert a Bangkok time string to UTC Date
+ */
+export function bangkokTimeToUTC(bangkokTimeString: string): Date {
+  return DateTime.fromISO(bangkokTimeString, { zone: BANGKOK_TIMEZONE }).toUTC().toJSDate();
+}
+
+/**
+ * Get Bangkok timezone offset for a specific date (handles DST if applicable)
+ */
+export function getBangkokOffset(date: Date): string {
+  return DateTime.fromJSDate(date).setZone(BANGKOK_TIMEZONE).toFormat('ZZ');
 } 
