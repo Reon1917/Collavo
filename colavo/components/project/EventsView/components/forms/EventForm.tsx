@@ -22,7 +22,7 @@ interface EventFormData {
 interface EventFormProps {
   projectId: string;
   eventData: EventFormData;
-  setEventData: (data: EventFormData | ((prev: EventFormData) => EventFormData)) => void;
+  setEventData: (data: EventFormData) => void;
   projectData?: { deadline: string | null };
   onSuccess: (event: Event) => void;
   onCancel: () => void;
@@ -37,7 +37,7 @@ export function EventForm({
   onCancel 
 }: EventFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedTime, setSelectedTime] = useState('12:00');
+  const [selectedTime, setSelectedTime] = useState({ hour: '12', minute: '00' });
 
   // Get project deadline for validation
   const projectDeadline = projectData?.deadline ? new Date(projectData.deadline) : null;
@@ -62,21 +62,8 @@ export function EventForm({
     }
 
     // Combine date and time
-    const timeParts = selectedTime.split(':');
-    if (timeParts.length !== 2) {
-      toast.error('Invalid time format');
-      return;
-    }
-    const hours = timeParts[0];
-    const minutes = timeParts[1];
-    
-    if (!hours || !minutes) {
-      toast.error('Invalid time format');
-      return;
-    }
-    
     const eventDateTime = new Date(eventData.datetime);
-    eventDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+    eventDateTime.setHours(parseInt(selectedTime.hour), parseInt(selectedTime.minute));
 
     // Additional validation for combined datetime against project deadline
     if (projectDeadline && eventDateTime > projectDeadline) {
@@ -114,6 +101,18 @@ export function EventForm({
       setIsLoading(false);
     }
   };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    setEventData(prev => ({ ...prev, datetime: date }));
+  };
+
+  const generateTimeOptions = () => {
+    const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
+    const minutes = ['00', '15', '30', '45'];
+    return { hours, minutes };
+  };
+
+  const { hours, minutes } = generateTimeOptions();
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -171,20 +170,21 @@ export function EventForm({
             <Button
               variant="outline"
               className={cn(
-                "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 hover:bg-white dark:hover:bg-gray-900 hover:border-[#008080] dark:hover:border-[#00FFFF]",
-                !eventData.datetime && "text-gray-500 dark:text-gray-400"
+                "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700",
+                !eventData.datetime && "text-gray-500 dark:text-gray-400",
+                isLoading && "opacity-50 cursor-not-allowed"
               )}
               disabled={isLoading}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {eventData.datetime ? format(eventData.datetime, "PPP") : "Select event date *"}
+              {eventData.datetime ? format(eventData.datetime, "PPP") : "Select date *"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+          <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
               selected={eventData.datetime}
-              onSelect={(date) => setEventData(prev => ({ ...prev, datetime: date }))}
+              onSelect={handleDateSelect}
               disabled={(date) => {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
@@ -217,20 +217,17 @@ export function EventForm({
           <div>
             <Label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Hour</Label>
             <Select
-              value={selectedTime.split(':')[0] || '12'}
-              onValueChange={(hour) => {
-                const parts = selectedTime.split(':');
-                const minute = parts[1] || '00';
-                setSelectedTime(`${hour}:${minute}`);
-              }}
+              value={selectedTime.hour}
+              onValueChange={(hour) => setSelectedTime(prev => ({ ...prev, hour }))}
+              disabled={isLoading}
             >
               <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
                 <SelectValue placeholder="Hour" />
               </SelectTrigger>
               <SelectContent>
-                {Array.from({ length: 24 }, (_, i) => (
-                  <SelectItem key={i} value={i.toString().padStart(2, '0')}>
-                    {i.toString().padStart(2, '0')}:00
+                {hours.map((hour) => (
+                  <SelectItem key={hour} value={hour}>
+                    {hour}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -241,20 +238,17 @@ export function EventForm({
           <div>
             <Label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Minute</Label>
             <Select
-              value={selectedTime.split(':')[1] || '00'}
-              onValueChange={(minute) => {
-                const parts = selectedTime.split(':');
-                const hour = parts[0] || '12';
-                setSelectedTime(`${hour}:${minute}`);
-              }}
+              value={selectedTime.minute}
+              onValueChange={(minute) => setSelectedTime(prev => ({ ...prev, minute }))}
+              disabled={isLoading}
             >
               <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
                 <SelectValue placeholder="Min" />
               </SelectTrigger>
               <SelectContent>
-                {Array.from({ length: 4 }, (_, i) => (
-                  <SelectItem key={i} value={(i * 15).toString().padStart(2, '0')}>
-                    :{(i * 15).toString().padStart(2, '0')}
+                {minutes.map((minute) => (
+                  <SelectItem key={minute} value={minute}>
+                    :{minute}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -280,87 +274,6 @@ export function EventForm({
         />
       </div>
 
-      {/* Email Notification Section */}
-      {eventData.datetime && (
-        <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6">
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 bg-[#008080] rounded-full flex items-center justify-center">
-              <span className="text-white text-xs">📧</span>
-            </div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Email Reminders (Optional)
-            </Label>
-          </div>
-          
-          <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-            <p className="text-sm text-green-800 dark:text-green-200 mb-4">
-              Send email reminders to selected team members before the event.
-            </p>
-            
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-medium text-green-700 dark:text-green-300">
-                  Send reminders to:
-                </Label>
-                <div className="flex flex-wrap gap-2">
-                  <Button 
-                    type="button"
-                    variant="outline" 
-                    size="sm"
-                    className="h-7 text-xs"
-                  >
-                    All project members
-                  </Button>
-                  <Button 
-                    type="button"
-                    variant="outline" 
-                    size="sm"
-                    className="h-7 text-xs"
-                  >
-                    Select members...
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium text-green-700 dark:text-green-300">
-                    Days Before Event
-                  </Label>
-                  <Select defaultValue="1">
-                    <SelectTrigger className="h-8 text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0">Same day</SelectItem>
-                      <SelectItem value="1">1 day</SelectItem>
-                      <SelectItem value="2">2 days</SelectItem>
-                      <SelectItem value="3">3 days</SelectItem>
-                      <SelectItem value="7">1 week</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium text-green-700 dark:text-green-300">
-                    Time (Bangkok)
-                  </Label>
-                  <Input 
-                    type="time" 
-                    defaultValue="09:00"
-                    className="h-8 text-sm"
-                  />
-                </div>
-              </div>
-              
-              <p className="text-xs text-green-600 dark:text-green-400">
-                Reminders will be sent to all selected members at the specified time.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Form Actions */}
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
         <Button
@@ -374,7 +287,7 @@ export function EventForm({
         </Button>
         <Button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || !eventData.title.trim() || !eventData.datetime}
           className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
         >
           {isLoading ? (

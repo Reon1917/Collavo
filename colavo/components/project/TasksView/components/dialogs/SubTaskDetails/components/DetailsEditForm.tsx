@@ -1,16 +1,14 @@
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
+import { CalendarIcon, AlertCircle } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, AlertCircle } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, addDays, addWeeks, addMonths } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { DetailsFormData } from '../types';
-import { Member } from '../../../../types';
-import { getMaxDate } from '../utils';
+import { DetailsFormData, Member } from '../../../types';
 
 interface DetailsEditFormProps {
   detailsFormData: DetailsFormData;
@@ -29,41 +27,40 @@ export function DetailsEditForm({
   projectDeadline, 
   isLoading 
 }: DetailsEditFormProps) {
-  const maxDate = getMaxDate(mainTaskDeadline, projectDeadline);
-  
-  // Get the selected member's name for display
-  const selectedMember = members.find(m => m.userId === detailsFormData.assignedId);
-  const selectedMemberName = selectedMember?.userName;
+  // Find the selected member's name
+  const selectedMemberName = members.find(m => m.userId === detailsFormData.assignedId)?.userName;
 
+  // Get maximum allowed date based on task and project deadlines
+  const getMaxDate = () => {
+    const dates = [mainTaskDeadline, projectDeadline].filter(Boolean).map(d => new Date(d!));
+    if (dates.length === 0) return undefined;
+    return new Date(Math.min(...dates.map(d => d.getTime())));
+  };
+
+  // Generate deadline options based on constraints
   const getDeadlineOptions = () => {
-    const options = [];
+    const today = new Date();
+    const standardOptions = [
+      { label: 'Tomorrow', value: addDays(today, 1) },
+      { label: 'This week', value: addDays(today, 7) },
+      { label: 'Next week', value: addWeeks(today, 1) },
+      { label: 'This month', value: addMonths(today, 1) },
+    ];
+
+    // Filter options based on task/project deadlines
+    const maxDate = getMaxDate();
     
-    if (mainTaskDeadline) {
-      options.push({
-        label: `Main Task Deadline: ${format(new Date(mainTaskDeadline), "PPP")}`,
-        value: new Date(mainTaskDeadline),
-      });
-    }
-    
-    if (projectDeadline) {
-      options.push({
-        label: `Project Deadline: ${format(new Date(projectDeadline), "PPP")}`,
-        value: new Date(projectDeadline),
-      });
-    }
-    
-    return options;
+    return standardOptions.filter(option => {
+      if (maxDate && option.value > maxDate) return false;
+      return true;
+    });
   };
 
   const deadlineOptions = getDeadlineOptions();
 
   const isDateValid = (date: Date) => {
-    if (mainTaskDeadline && date > new Date(mainTaskDeadline)) {
-      return false;
-    }
-    if (projectDeadline && date > new Date(projectDeadline)) {
-      return false;
-    }
+    const maxDate = getMaxDate();
+    if (maxDate && date > maxDate) return false;
     return true;
   };
 
@@ -213,61 +210,6 @@ export function DetailsEditForm({
           </PopoverContent>
         </Popover>
       </div>
-
-      {/* Email Notification Section */}
-      {detailsFormData.deadline && detailsFormData.assignedId && (
-        <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6">
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 bg-[#008080] rounded-full flex items-center justify-center">
-              <span className="text-white text-xs">📧</span>
-            </div>
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Email Reminder (Optional)
-            </Label>
-          </div>
-          
-          <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-            <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
-              Set up an email reminder for the assigned user before the deadline.
-            </p>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-medium text-blue-700 dark:text-blue-300">
-                  Days Before Deadline
-                </Label>
-                <Select defaultValue="3">
-                  <SelectTrigger className="h-8 text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1 day</SelectItem>
-                    <SelectItem value="2">2 days</SelectItem>
-                    <SelectItem value="3">3 days</SelectItem>
-                    <SelectItem value="5">5 days</SelectItem>
-                    <SelectItem value="7">1 week</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label className="text-xs font-medium text-blue-700 dark:text-blue-300">
-                  Time (Bangkok)
-                </Label>
-                <Input 
-                  type="time" 
-                  defaultValue="09:00"
-                  className="h-8 text-sm"
-                />
-              </div>
-            </div>
-            
-            <p className="text-xs text-blue-600 dark:text-blue-400 mt-3">
-              Note: Notification will be set up after the subtask is saved with a deadline and assignee.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 } 

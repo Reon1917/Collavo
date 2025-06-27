@@ -16,7 +16,14 @@ interface EventNotificationModalProps {
     title: string;
     datetime: string;
   };
-  members: Array<{ id: string; name: string; email?: string }>;
+  members: Array<{ 
+    id: string; 
+    userId: string; 
+    role: 'leader' | 'member'; 
+    userName: string; 
+    userEmail: string; 
+    userImage: string | null;
+  }>;
   projectId: string;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -41,7 +48,7 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
     try {
       // Schedule notifications for selected recipients
       const recipientIds = notificationSettings.recipientType === 'all' 
-        ? members.map(m => m.id)
+        ? members.map(m => m.userId) // Use userId for the actual user IDs
         : notificationSettings.selectedMembers;
 
       if (notificationSettings.recipientType === 'select' && recipientIds.length === 0) {
@@ -69,12 +76,12 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
     }
   };
 
-  const toggleMemberSelection = (memberId: string) => {
+  const toggleMemberSelection = (userId: string) => {
     setNotificationSettings(prev => ({
       ...prev,
-      selectedMembers: prev.selectedMembers.includes(memberId)
-        ? prev.selectedMembers.filter(id => id !== memberId)
-        : [...prev.selectedMembers, memberId]
+      selectedMembers: prev.selectedMembers.includes(userId)
+        ? prev.selectedMembers.filter(id => id !== userId)
+        : [...prev.selectedMembers, userId]
     }));
   };
 
@@ -176,7 +183,7 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
                       />
                       <div className="flex items-center gap-2 text-sm">
                         <Users className="h-4 w-4 text-green-600" />
-                        All project members
+                        All project members ({members.length})
                       </div>
                     </label>
                     
@@ -199,19 +206,32 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
                   </div>
 
                   {notificationSettings.recipientType === 'select' && (
-                    <div className="space-y-1 mt-2 max-h-32 overflow-y-auto">
+                    <div className="space-y-1 mt-2 max-h-32 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
                       {members.map(member => (
                         <label
-                          key={member.id}
-                          className="flex items-center gap-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                          key={member.userId}
+                          className="flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
                         >
                           <input
                             type="checkbox"
-                            checked={notificationSettings.selectedMembers.includes(member.id)}
-                            onChange={() => toggleMemberSelection(member.id)}
+                            checked={notificationSettings.selectedMembers.includes(member.userId)}
+                            onChange={() => toggleMemberSelection(member.userId)}
                             className="rounded border-gray-300"
                           />
-                          <span className="text-xs">{member.name}</span>
+                          <div className="flex items-center gap-2 flex-1">
+                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                              <span className="text-xs font-medium text-white">
+                                {member.userName.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <div className="flex-1">
+                              <div className="text-xs font-medium">{member.userName}</div>
+                              <div className="text-xs text-gray-500">{member.userEmail}</div>
+                            </div>
+                            {member.role === 'leader' && (
+                              <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">Leader</span>
+                            )}
+                          </div>
                         </label>
                       ))}
                     </div>
@@ -223,11 +243,11 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
                   <p className="text-xs text-green-800 dark:text-green-200">
                     Email will be sent to {
                       notificationSettings.recipientType === 'all' 
-                        ? 'all project members' 
+                        ? `all ${members.length} project members` 
                         : notificationSettings.selectedMembers.length === 0
                           ? 'selected members'
                           : `${notificationSettings.selectedMembers.length} selected member(s)`
-                    } {notificationSettings.daysBefore === '0' ? 'on the same day' : `${notificationSettings.daysBefore} day(s) before`} at {notificationSettings.time} Bangkok time.
+                    } {notificationSettings.daysBefore === '0' ? 'on the same day' : `${notificationSettings.daysBefore} day(s) before`} the event at {notificationSettings.time} Bangkok time.
                   </p>
                 </div>
               </div>
