@@ -70,8 +70,7 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
 
       toast.success(result.message);
       onOpenChange(false);
-    } catch (error) {
-      console.error('Failed to schedule notification:', error);
+    } catch {
       toast.error('Failed to set up notification');
     }
   };

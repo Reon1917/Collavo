@@ -22,6 +22,7 @@ interface SelectItemProps {
 interface SelectTriggerProps {
   children: React.ReactNode;
   className?: string;
+  disabled?: boolean;
 }
 
 interface SelectValueProps {
@@ -68,13 +69,14 @@ export function Select({ value, onValueChange, children }: SelectProps) {
   );
 }
 
-export function SelectTrigger({ children, className }: SelectTriggerProps) {
+export function SelectTrigger({ children, className, disabled }: SelectTriggerProps) {
   const context = React.useContext(SelectContext);
   if (!context) throw new Error("SelectTrigger must be used within Select");
 
   return (
     <button
       type="button"
+      disabled={disabled}
       className={cn(
         "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         className

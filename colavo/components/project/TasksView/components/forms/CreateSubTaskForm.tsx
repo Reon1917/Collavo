@@ -213,21 +213,26 @@ export function CreateSubTaskForm({
             <Select 
               value={formData.assignedId} 
               onValueChange={(value) => setFormData(prev => ({ ...prev, assignedId: value }))}
-              disabled={isLoading}
             >
-              <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
+              <SelectTrigger 
+                className={cn(
+                  "bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]",
+                  isLoading && "opacity-50 cursor-not-allowed"
+                )}
+                disabled={isLoading}
+              >
                 <SelectValue placeholder="Select a team member *" />
               </SelectTrigger>
               <SelectContent>
                 {members.map((member) => (
-                  <SelectItem key={member.id} value={member.id}>
+                  <SelectItem key={member.userId} value={member.userId}>
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
                         <span className="text-xs font-medium text-white">
-                          {member.name.charAt(0).toUpperCase()}
+                          {member.userName.charAt(0).toUpperCase()}
                         </span>
                       </div>
-                      <span>{member.name}</span>
+                      <span>{member.userName}</span>
                     </div>
                   </SelectItem>
                 ))}

@@ -31,8 +31,6 @@ export interface UpdateNotificationData {
  */
 export async function createSubtaskNotification(data: CreateSubtaskNotificationData) {
   try {
-    console.log('createSubtaskNotification called with:', data);
-    
     const session = await auth.api.getSession({
       headers: await import('next/headers').then(mod => mod.headers()),
     });
@@ -41,14 +39,10 @@ export async function createSubtaskNotification(data: CreateSubtaskNotificationD
       throw new Error('Authentication required');
     }
 
-    console.log('User session:', { userId: session.user.id, userEmail: session.user.email });
-
     const { subtaskId, daysBefore, time, projectId } = data;
 
     // Check project access
-    console.log('Checking project access for:', { projectId, userId: session.user.id });
     const access = await checkProjectAccess(projectId, session.user.id);
-    console.log('Project access result:', access);
     
     if (!access.hasAccess) {
       throw new Error('Access denied to project');

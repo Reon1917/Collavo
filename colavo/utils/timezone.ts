@@ -69,10 +69,12 @@ export function canScheduleNotification(deadline: Date, daysBefore: number): boo
   const now = DateTime.now().setZone(BANGKOK_TIMEZONE);
   const deadlineInBangkok = DateTime.fromJSDate(deadline).setZone(BANGKOK_TIMEZONE);
   
-  // Check if deadline is at least 1 hour in the future
+  // Check if there's enough time between now and the notification date
+  // The notification should be scheduled at least 1 hour from now
+  const notificationTime = deadlineInBangkok.minus({ days: daysBefore });
   const minimumFutureTime = now.plus({ hours: 1 });
   
-  return deadlineInBangkok > minimumFutureTime;
+  return notificationTime > minimumFutureTime;
 }
 
 /**

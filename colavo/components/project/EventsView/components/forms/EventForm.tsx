@@ -22,7 +22,7 @@ interface EventFormData {
 interface EventFormProps {
   projectId: string;
   eventData: EventFormData;
-  setEventData: (data: EventFormData) => void;
+  setEventData: (data: EventFormData | ((prev: EventFormData) => EventFormData)) => void;
   projectData?: { deadline: string | null };
   onSuccess: (event: Event) => void;
   onCancel: () => void;
@@ -103,7 +103,7 @@ export function EventForm({
   };
 
   const handleDateSelect = (date: Date | undefined) => {
-    setEventData(prev => ({ ...prev, datetime: date }));
+    setEventData((prev: EventFormData) => ({ ...prev, datetime: date }));
   };
 
   const generateTimeOptions = () => {
@@ -137,7 +137,7 @@ export function EventForm({
           type="text"
           placeholder="Enter event title..."
           value={eventData.title}
-          onChange={(e) => setEventData(prev => ({ ...prev, title: e.target.value }))}
+          onChange={(e) => setEventData((prev: EventFormData) => ({ ...prev, title: e.target.value }))}
           className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]"
           maxLength={500}
           required
@@ -154,7 +154,7 @@ export function EventForm({
           id="description"
           placeholder="Describe the event details, agenda, or purpose..."
           value={eventData.description}
-          onChange={(e) => setEventData(prev => ({ ...prev, description: e.target.value }))}
+          onChange={(e) => setEventData((prev: EventFormData) => ({ ...prev, description: e.target.value }))}
           className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] min-h-[80px] resize-none"
           disabled={isLoading}
         />
@@ -219,9 +219,8 @@ export function EventForm({
             <Select
               value={selectedTime.hour}
               onValueChange={(hour) => setSelectedTime(prev => ({ ...prev, hour }))}
-              disabled={isLoading}
             >
-              <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
+              <SelectTrigger disabled={isLoading} className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
                 <SelectValue placeholder="Hour" />
               </SelectTrigger>
               <SelectContent>
@@ -240,9 +239,8 @@ export function EventForm({
             <Select
               value={selectedTime.minute}
               onValueChange={(minute) => setSelectedTime(prev => ({ ...prev, minute }))}
-              disabled={isLoading}
             >
-              <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
+              <SelectTrigger disabled={isLoading} className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
                 <SelectValue placeholder="Min" />
               </SelectTrigger>
               <SelectContent>
@@ -267,7 +265,7 @@ export function EventForm({
           type="text"
           placeholder="Enter event location (optional)"
           value={eventData.location}
-          onChange={(e) => setEventData(prev => ({ ...prev, location: e.target.value }))}
+          onChange={(e) => setEventData((prev: EventFormData) => ({ ...prev, location: e.target.value }))}
           className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]"
           maxLength={500}
           disabled={isLoading}

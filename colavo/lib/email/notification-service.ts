@@ -259,9 +259,8 @@ export class NotificationService {
     if (notificationData.emailId) {
       try {
         await ResendEmailService.cancelEmail(notificationData.emailId);
-      } catch (error) {
+      } catch {
         // Log error but don't fail the operation since the notification might already be processed
-        console.warn(`Failed to cancel email with Resend: ${error}`);
       }
     }
 
@@ -335,7 +334,7 @@ export class NotificationService {
     if (notificationRecord.notification.emailId) {
       try {
         await ResendEmailService.updateEmail(notificationRecord.notification.emailId, newScheduledFor);
-      } catch (error) {
+      } catch {
         throw new Error('Failed to update email schedule with Resend');
       }
     }

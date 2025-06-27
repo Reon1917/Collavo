@@ -11,7 +11,6 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { formatDateForInput } from '@/utils/date';
 import { Event, Project } from '../../types';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface EditEventDialogProps {
   event: Event;
