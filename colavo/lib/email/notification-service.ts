@@ -31,6 +31,17 @@ export interface UpdateNotificationParams {
 }
 
 /**
+ * Sanitize email content to prevent injection
+ */
+function sanitizeEmailContent(content: string): string {
+  return content
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
+/**
  * Notification service for managing email notifications
  */
 export class NotificationService {
@@ -39,8 +50,6 @@ export class NotificationService {
    */
   static async createSubtaskNotification(params: CreateSubtaskNotificationParams): Promise<string> {
     const { subtaskId, userId, daysBefore, time, projectId, createdBy } = params;
-
-    console.log('NotificationService.createSubtaskNotification called with:', params);
 
     // Get subtask details with related data
     const subtaskData = await db
@@ -56,14 +65,6 @@ export class NotificationService {
       .leftJoin(user, eq(subTasks.assignedId, user.id))
       .where(eq(subTasks.id, subtaskId))
       .limit(1);
-
-    console.log('Subtask data found:', subtaskData.length > 0 ? {
-      subtaskId: subtaskData[0]?.subtask.id,
-      deadline: subtaskData[0]?.subtask.deadline,
-      assignedUserId: subtaskData[0]?.assignedUser?.id,
-      assignedUserEmail: subtaskData[0]?.assignedUser?.email,
-      projectId: subtaskData[0]?.project.id
-    } : 'No subtask found');
 
     if (!subtaskData.length) {
       throw new Error('Subtask not found');
@@ -90,29 +91,23 @@ export class NotificationService {
     // If the computed time is in the past, schedule for immediate delivery
     const finalScheduledTime = isPastTime(scheduledFor) ? new Date() : scheduledFor;
 
-    // Generate email content
+    // Generate email content with sanitization
     const emailHtml = generateSubtaskReminderTemplate({
-      userName: subtaskRecord.assignedUser.name,
-      subtaskTitle: subtaskRecord.subtask.title,
+      userName: sanitizeEmailContent(subtaskRecord.assignedUser.name),
+      subtaskTitle: sanitizeEmailContent(subtaskRecord.subtask.title),
       deadline: subtaskRecord.subtask.deadline,
-      projectName: subtaskRecord.project.name,
+      projectName: sanitizeEmailContent(subtaskRecord.project.name),
       daysRemaining: daysBefore,
       projectId,
       subtaskId,
     });
 
-    const subject = `Reminder: ${subtaskRecord.subtask.title} deadline in ${daysBefore} ${daysBefore === 1 ? 'day' : 'days'}`;
+    const subject = `Reminder: ${sanitizeEmailContent(subtaskRecord.subtask.title)} deadline in ${daysBefore} ${daysBefore === 1 ? 'day' : 'days'}`;
 
-    // For development: Only send to verified email if domain not set up
-    const isDevMode = !process.env.FROM_EMAIL || process.env.FROM_EMAIL.includes('noreply@collavo.com');
-    const recipientEmail = isDevMode ? 'linmyatphyo03@gmail.com' : subtaskRecord.assignedUser.email;
-
-    console.log(`${isDevMode ? '[DEV MODE]' : '[PROD MODE]'} Sending notification to: ${recipientEmail}`);
-
-    // Schedule email with Resend
-    const { emailId } = await ResendEmailService.scheduleNotification({
-      recipientEmails: [recipientEmail],
-      subject: isDevMode ? `[DEV] ${subject}` : subject,
+    // Send email with Resend
+    const { emailId } = await ResendEmailService.sendEmail({
+      to: [subtaskRecord.assignedUser.email],
+      subject,
       html: emailHtml,
       scheduledAt: finalScheduledTime,
     });
@@ -181,41 +176,35 @@ export class NotificationService {
 
     const notificationIds: string[] = [];
 
-    // Create individual notifications for each recipient (since Resend doesn't support batch scheduling)
+    // Create individual notifications for each recipient
     for (const recipient of recipients) {
-      // Generate email content
+      // Generate email content with sanitization
       const templateParams: any = {
-        userName: recipient.name,
-        eventTitle: eventRecord.event.title,
+        userName: sanitizeEmailContent(recipient.name),
+        eventTitle: sanitizeEmailContent(eventRecord.event.title),
         eventDate: eventRecord.event.datetime,
-        projectName: eventRecord.project.name,
+        projectName: sanitizeEmailContent(eventRecord.project.name),
         projectId,
         eventId,
         daysRemaining: daysBefore,
       };
       
       if (eventRecord.event.location) {
-        templateParams.location = eventRecord.event.location;
+        templateParams.location = sanitizeEmailContent(eventRecord.event.location);
       }
       
       if (eventRecord.event.description) {
-        templateParams.description = eventRecord.event.description;
+        templateParams.description = sanitizeEmailContent(eventRecord.event.description);
       }
       
       const emailHtml = generateEventReminderTemplate(templateParams);
 
-      const subject = `Event Reminder: ${eventRecord.event.title} in ${daysBefore} ${daysBefore === 1 ? 'day' : 'days'}`;
+      const subject = `Event Reminder: ${sanitizeEmailContent(eventRecord.event.title)} in ${daysBefore} ${daysBefore === 1 ? 'day' : 'days'}`;
 
-      // For development: Only send to verified email if domain not set up
-      const isDevMode = !process.env.FROM_EMAIL || process.env.FROM_EMAIL.includes('noreply@collavo.com');
-      const recipientEmail = isDevMode ? 'linmyatphyo03@gmail.com' : recipient.email;
-
-      console.log(`${isDevMode ? '[DEV MODE]' : '[PROD MODE]'} Sending event notification to: ${recipientEmail}`);
-
-      // Schedule email with Resend
-      const { emailId } = await ResendEmailService.scheduleNotification({
-        recipientEmails: [recipientEmail],
-        subject: isDevMode ? `[DEV] ${subject}` : subject,
+      // Send email with Resend
+      const { emailId } = await ResendEmailService.sendEmail({
+        to: [recipient.email],
+        subject,
         html: emailHtml,
         scheduledAt: finalScheduledTime,
       });
@@ -269,9 +258,10 @@ export class NotificationService {
     // Cancel with Resend if emailId exists
     if (notificationData.emailId) {
       try {
-        await ResendEmailService.cancelNotification(notificationData.emailId);
+        await ResendEmailService.cancelEmail(notificationData.emailId);
       } catch (error) {
         // Log error but don't fail the operation since the notification might already be processed
+        console.warn(`Failed to cancel email with Resend: ${error}`);
       }
     }
 
@@ -344,7 +334,7 @@ export class NotificationService {
     // Update with Resend if emailId exists
     if (notificationRecord.notification.emailId) {
       try {
-        await ResendEmailService.updateNotification(notificationRecord.notification.emailId, newScheduledFor);
+        await ResendEmailService.updateEmail(notificationRecord.notification.emailId, newScheduledFor);
       } catch (error) {
         throw new Error('Failed to update email schedule with Resend');
       }

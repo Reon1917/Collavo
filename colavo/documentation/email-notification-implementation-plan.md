@@ -8,7 +8,8 @@
 - Timezone: Bangkok (UTC+7)
 - Database already has `scheduledNotifications` table
 - Resend API keys ready in environment
-- Focus on backend functionality first, simple UI
+- Domain: collavo.me configured
+- Production-ready implementation (no dev mode)
 
 **Critical Variables**:
 - Subtasks: User-defined days before deadline + specific time
@@ -31,57 +32,45 @@
 - emailId: Resend email ID for tracking
 ```
 
-### 2. Core Backend Components
+### 2. Core Backend Components (COMPLETED ✅)
 
-#### A. Resend Service Layer (`/lib/email/resend-service.ts`)
+#### A. Resend Service Layer (`/lib/email/resend-service.ts`) ✅
 ```typescript
 class ResendEmailService {
-  // Schedule email notification
-  async scheduleNotification(params: {
-    recipientEmails: string[];
+  // Simplified unified email method
+  static async sendEmail(params: {
+    to: string[];
     subject: string;
     html: string;
-    scheduledAt: Date; // Bangkok time converted to UTC
+    scheduledAt?: Date; // Optional scheduling
   }): Promise<{ emailId: string }>;
 
   // Cancel scheduled email
-  async cancelNotification(emailId: string): Promise<void>;
+  static async cancelEmail(emailId: string): Promise<void>;
 
   // Update scheduled email
-  async updateNotification(emailId: string, newScheduledAt: Date): Promise<void>;
+  static async updateEmail(emailId: string, newScheduledAt: Date): Promise<void>;
 }
 ```
 
-#### B. Notification Service Layer (`/lib/email/notification-service.ts`)
+#### B. Notification Service Layer (`/lib/email/notification-service.ts`) ✅
 ```typescript
 class NotificationService {
-  // Create subtask notification
-  async createSubtaskNotification(params: {
-    subtaskId: string;
-    userId: string;
-    daysBefore: number;
-    time: string; // "09:00" format
-    projectId: string;
-  }): Promise<void>;
-
-  // Create event notification  
-  async createEventNotification(params: {
-    eventId: string;
-    recipientUserIds: string[];
-    daysBefore: number;
-    time: string;
-    projectId: string;
-  }): Promise<void>;
-
+  // Create subtask notification (with input sanitization)
+  static async createSubtaskNotification(params): Promise<string>;
+  
+  // Create event notification (with input sanitization)
+  static async createEventNotification(params): Promise<string[]>;
+  
   // Cancel notification
-  async cancelNotification(notificationId: string): Promise<void>;
+  static async cancelNotification(notificationId: string): Promise<void>;
   
   // Update notification
-  async updateNotification(notificationId: string, params: UpdateParams): Promise<void>;
+  static async updateNotification(notificationId: string, params): Promise<void>;
 }
 ```
 
-#### C. Timezone Utilities (`/utils/timezone.ts`)
+#### C. Timezone Utilities (`/utils/timezone.ts`) ✅
 ```typescript
 // Bangkok timezone handling
 function toBangkokTime(date: Date): Date;
@@ -89,9 +78,9 @@ function fromBangkokTime(date: Date): Date;
 function calculateScheduleTime(deadline: Date, daysBefore: number, time: string): Date;
 ```
 
-### 3. API Endpoints
+### 3. API Endpoints (COMPLETED ✅)
 
-#### A. Subtask Notifications
+#### A. Subtask Notifications ✅
 ```
 POST /api/projects/[id]/tasks/[taskId]/subtasks/[subtaskId]/notifications
 PUT  /api/projects/[id]/tasks/[taskId]/subtasks/[subtaskId]/notifications/[notificationId]
@@ -99,7 +88,7 @@ DELETE /api/projects/[id]/tasks/[taskId]/subtasks/[subtaskId]/notifications/[not
 GET  /api/projects/[id]/tasks/[taskId]/subtasks/[subtaskId]/notifications
 ```
 
-#### B. Event Notifications
+#### B. Event Notifications ✅
 ```
 POST /api/projects/[id]/events/[eventId]/notifications
 PUT  /api/projects/[id]/events/[eventId]/notifications/[notificationId]
@@ -107,9 +96,9 @@ DELETE /api/projects/[id]/events/[eventId]/notifications/[notificationId]
 GET  /api/projects/[id]/events/[eventId]/notifications
 ```
 
-### 4. Email Templates (`/lib/email/templates/`)
+### 4. Email Templates (`/lib/email/templates/`) ✅
 ```typescript
-// subtask-reminder.tsx
+// subtask-reminder.tsx ✅
 function SubtaskReminderTemplate(params: {
   userName: string;
   subtaskTitle: string;
@@ -118,7 +107,7 @@ function SubtaskReminderTemplate(params: {
   daysRemaining: number;
 }): string;
 
-// event-reminder.tsx
+// event-reminder.tsx ✅
 function EventReminderTemplate(params: {
   userName: string;
   eventTitle: string;
@@ -128,114 +117,109 @@ function EventReminderTemplate(params: {
 }): string;
 ```
 
-## EXECUTION FRAMEWORK
+## ENVIRONMENT CONFIGURATION
 
-### Phase 1: Core Infrastructure (Day 1)
-1. **Environment Setup**
-   - Verify Resend API keys in `.env`
-   - Install Resend SDK: `npm install resend`
+### Required Environment Variables:
+```bash
+# Required - Your Resend API key
+RESEND_API_KEY=re_your_actual_key_here
 
-2. **Timezone Utils**
-   - Implement Bangkok timezone conversion functions
-   - Add date calculation utilities
+# Required - Email address for sending (domain must be verified in Resend)
+FROM_EMAIL=notifications@collavo.me
 
-3. **Resend Service**
-   - Basic email scheduling with Resend API
-   - Error handling and retry logic
+# Optional - Node environment
+NODE_ENV=production
+```
 
-### Phase 2: Notification Services (Day 1-2)
-1. **Database Operations**
-   - CRUD operations for `scheduledNotifications`
-   - Permission checks integration
+### Domain Setup in Resend Dashboard:
+1. Add domain: `collavo.me`
+2. Configure DNS records (provided by Resend dashboard)
+3. Verify domain
+4. Can use any email prefix: `notifications@collavo.me`, `noreply@collavo.me`, etc.
 
-2. **Notification Service**
-   - Subtask notification creation/management
-   - Event notification creation/management
-   - Cancellation and update logic
+## IMPLEMENTATION STATUS
 
-### Phase 3: API Endpoints (Day 2)
-1. **Subtask Notification APIs**
-   - CREATE: Set up notification for subtask
-   - UPDATE: Modify timing/settings
-   - DELETE: Cancel notification
-   - READ: Get notification settings
+### ✅ COMPLETED PHASES:
 
-2. **Event Notification APIs**
-   - Same CRUD operations but for events
-   - Handle multiple recipients
+#### Phase 1: Core Infrastructure ✅
+- ✅ Environment validation (RESEND_API_KEY + FROM_EMAIL required)
+- ✅ Resend SDK integration
+- ✅ Timezone utilities
+- ✅ Simplified email service
 
-### Phase 4: Email Templates (Day 2-3)
-1. **Template Design**
-   - Professional HTML email templates
-   - Responsive design for mobile
-   - Project branding integration
+#### Phase 2: Notification Services ✅
+- ✅ Database operations
+- ✅ Permission checks integration
+- ✅ Subtask notification creation/management
+- ✅ Event notification creation/management
+- ✅ Cancellation and update logic
+- ✅ Input sanitization for security
 
-2. **Content Logic**
-   - Dynamic content based on notification type
-   - Localization-ready structure
+#### Phase 3: API Endpoints ✅
+- ✅ Subtask notification APIs (CREATE, UPDATE, DELETE, READ)
+- ✅ Event notification APIs (CREATE, UPDATE, DELETE, READ)
+- ✅ Multiple recipient handling
 
-### Phase 5: UI Integration (Day 3)
-1. **Subtask Dialog Enhancement**
-   - Add notification setup section
-   - Days before selector (1-30 days)
-   - Time picker (Bangkok timezone)
+#### Phase 4: Email Templates ✅
+- ✅ Professional HTML email templates
+- ✅ Dynamic content based on notification type
+- ✅ Responsive design
 
-2. **Event Dialog Enhancement**
-   - User selection checkboxes
-   - Same timing controls as subtasks
-   - Bulk notification management
+### 🔄 CURRENT STATUS: READY FOR TESTING
+- Backend implementation complete
+- Production mode enabled (no dev fallbacks)
+- Input sanitization added
+- Simplified email service architecture
 
-## SUCCESS METRICS
+### ⏳ PENDING: UI Integration
+- Subtask dialog enhancement for notification setup
+- Event dialog enhancement for user selection
+- Notification management interface
 
-**Technical Metrics**:
-- Email delivery rate > 95%
-- Notification scheduling accuracy ±1 minute
-- API response time < 500ms
-- Zero data loss during cancellations
+## SECURITY IMPROVEMENTS IMPLEMENTED
 
-**User Experience Metrics**:
-- Notification setup time < 30 seconds
-- Intuitive timezone display (Bangkok)
-- Clear confirmation feedback
+**Input Sanitization** ✅:
+- All user-generated content sanitized before email templates
+- Protection against HTML injection in email content
 
-## RISK MITIGATION
+**Environment Security** ✅:
+- Required environment variables with validation
+- No hardcoded dev emails or fallbacks
 
-**1. Resend Rate Limits**
-- Implement exponential backoff
-- Queue system for bulk notifications
-- Monitor API usage
+**Permission Validation** ✅:
+- Project access checks before notification creation
+- User permission validation in API endpoints
 
-**2. Timezone Confusion**
-- Always display "Bangkok Time" in UI
-- Store UTC in database, convert for display
-- Validate user input against Bangkok timezone
+## READY FOR PRODUCTION TESTING
 
-**3. Permission Failures**  
-- Check user permissions before scheduling
-- Graceful handling of permission changes
-- Audit trail for notification actions
+**What to test**:
+1. **Environment Setup**: Verify `FROM_EMAIL=notifications@collavo.me` is set
+2. **Domain Verification**: Ensure collavo.me is verified in Resend
+3. **Basic Email**: Create a subtask with deadline and test notification
+4. **Scheduling Logic**: Test different `daysBefore` values
+5. **Cancellation**: Test notification cancellation
+6. **Event Notifications**: Test multi-user event notifications
 
-**4. Email Delivery Failures**
-- Retry mechanism with Resend
-- Fallback notification methods
-- User notification of failures
+**Test Command**:
+```bash
+# Add to your .env
+echo "FROM_EMAIL=notifications@collavo.me" >> .env
 
-## IMMEDIATE NEXT ACTIONS
+# Test the notification system through your UI
+```
 
-1. **Install Resend SDK** - 5 minutes
-2. **Create timezone utility functions** - 30 minutes  
-3. **Build Resend service wrapper** - 1 hour
-4. **Implement notification service** - 2 hours
-5. **Create first API endpoint (subtask notifications)** - 1 hour
-6. **Test with basic email template** - 30 minutes
+## VULNERABILITIES ADDRESSED
 
-**Total estimated time: 1-2 days for full backend implementation**
+**FIXED**:
+- ✅ Removed dev mode email hardcoding
+- ✅ Added input sanitization
+- ✅ Required environment validation
+- ✅ Simplified error-prone logic
 
-## COURSE CORRECTION TRIGGERS
+**REMAINING CONSIDERATIONS**:
+- Rate limiting (implement if email volume becomes high)
+- Webhook handling for delivery confirmation
+- Email template versioning
+- Retry mechanism for failed deliveries
 
-- **If Resend scheduling fails**: Fallback to cron job approach
-- **If timezone handling is complex**: Use established library like `date-fns-tz`
-- **If permission checks slow down API**: Implement caching layer
-- **If email templates look poor**: Use Resend's template system instead
-
-This plan delivers a robust, scalable email notification system with Bangkok timezone support, leveraging your existing database schema and Resend's scheduling capabilities. 
+The system is now production-ready and simplified for immediate testing with your verified collavo.me domain. 
