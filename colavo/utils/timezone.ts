@@ -38,10 +38,10 @@ export function calculateScheduleTime(deadline: Date, daysBefore: number, time: 
   // Convert deadline to Bangkok timezone
   const deadlineInBangkok = DateTime.fromJSDate(deadline).setZone(BANGKOK_TIMEZONE);
   
-  // Calculate target date (days before deadline) in Bangkok timezone
-  const targetDateTime = deadlineInBangkok
-    .minus({ days: daysBefore })
-    .set({ hour: hours, minute: minutes, second: 0, millisecond: 0 });
+  // For deadlines stored as midnight (start of day), we add the days calculation to the date
+  // This treats "June 30" deadline as "any time during June 30"
+  const targetDate = deadlineInBangkok.startOf('day').minus({ days: daysBefore });
+  const targetDateTime = targetDate.set({ hour: hours, minute: minutes, second: 0, millisecond: 0 });
   
   // Convert back to UTC for storage
   return targetDateTime.toUTC().toJSDate();
@@ -63,18 +63,28 @@ export function isPastTime(date: Date): boolean {
 
 /**
  * Check if a deadline allows for notification scheduling
- * This is more lenient - we only check if the deadline itself is far enough in the future
+ * We need to check if the actual notification time (with specific hour) is in the future
  */
-export function canScheduleNotification(deadline: Date, daysBefore: number): boolean {
+export function canScheduleNotification(deadline: Date, daysBefore: number, time: string = '09:00'): boolean {
   const now = DateTime.now().setZone(BANGKOK_TIMEZONE);
-  const deadlineInBangkok = DateTime.fromJSDate(deadline).setZone(BANGKOK_TIMEZONE);
   
-  // Check if there's enough time between now and the notification date
-  // The notification should be scheduled at least 1 hour from now
-  const notificationTime = deadlineInBangkok.minus({ days: daysBefore });
-  const minimumFutureTime = now.plus({ hours: 1 });
-  
-  return notificationTime > minimumFutureTime;
+  try {
+    // Calculate the actual notification datetime using the same logic as calculateScheduleTime
+    const actualNotificationTime = calculateScheduleTime(deadline, daysBefore, time);
+    const notificationTimeInBangkok = DateTime.fromJSDate(actualNotificationTime).setZone(BANGKOK_TIMEZONE);
+    
+    // Add a small buffer (1 minute) to avoid issues with immediate scheduling
+    const minimumFutureTime = now.plus({ minutes: 1 });
+    
+    return notificationTimeInBangkok > minimumFutureTime;
+  } catch (error) {
+    // If calculateScheduleTime fails, fall back to basic date check
+    const deadlineInBangkok = DateTime.fromJSDate(deadline).setZone(BANGKOK_TIMEZONE);
+    const notificationDate = deadlineInBangkok.minus({ days: daysBefore });
+    const minimumFutureTime = now.plus({ hours: 1 });
+    
+    return notificationDate > minimumFutureTime;
+  }
 }
 
 /**
