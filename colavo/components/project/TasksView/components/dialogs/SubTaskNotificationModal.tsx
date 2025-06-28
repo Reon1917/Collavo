@@ -46,8 +46,8 @@ export function SubTaskNotificationModal({ subTask, projectId, isOpen, onOpenCha
 
       toast.success('Email reminder scheduled successfully');
       onOpenChange(false);
-    } catch {
-      toast.error('Failed to set up notification');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to set up notification');
     }
   };
 

@@ -81,8 +81,8 @@ export class NotificationService {
     }
 
     // Check if deadline allows for notification scheduling
-    if (!canScheduleNotification(subtaskRecord.subtask.deadline, daysBefore)) {
-      throw new Error('Deadline is too close or in the past to schedule notifications');
+    if (!canScheduleNotification(subtaskRecord.subtask.deadline, daysBefore, time)) {
+      throw new Error('The notification time has already passed. Please choose a different time or fewer days before the deadline.');
     }
 
     // Calculate scheduled time
@@ -154,8 +154,8 @@ export class NotificationService {
     const eventRecord = eventData[0]!;
 
     // Check if event allows for notification scheduling
-    if (!canScheduleNotification(eventRecord.event.datetime, daysBefore)) {
-      throw new Error('Event date is too close or in the past to schedule notifications');
+    if (!canScheduleNotification(eventRecord.event.datetime, daysBefore, time)) {
+      throw new Error('The notification time has already passed. Please choose a different time or fewer days before the event.');
     }
 
     // Calculate scheduled time
