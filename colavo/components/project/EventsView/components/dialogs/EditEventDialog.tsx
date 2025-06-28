@@ -165,6 +165,8 @@ export function EditEventDialog({ event, projectId, projectData, onEventUpdated,
             />
           </div>
 
+
+
           <div className="flex justify-end space-x-2 pt-4">
             <Button
               type="button"

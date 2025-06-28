@@ -1,16 +1,15 @@
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
+import { CalendarIcon, AlertCircle } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, AlertCircle } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, addDays, addWeeks, addMonths } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { DetailsFormData } from '../types';
 import { Member } from '../../../../types';
-import { getMaxDate } from '../utils';
 
 interface DetailsEditFormProps {
   detailsFormData: DetailsFormData;
@@ -29,11 +28,42 @@ export function DetailsEditForm({
   projectDeadline, 
   isLoading 
 }: DetailsEditFormProps) {
-  const maxDate = getMaxDate(mainTaskDeadline, projectDeadline);
-  
-  // Get the selected member's name for display
-  const selectedMember = members.find(m => m.userId === detailsFormData.assignedId);
-  const selectedMemberName = selectedMember?.userName;
+  // Find the selected member's name
+  const selectedMemberName = members.find(m => m.userId === detailsFormData.assignedId)?.userName;
+
+  // Get maximum allowed date based on task and project deadlines
+  const getMaxDate = () => {
+    const dates = [mainTaskDeadline, projectDeadline].filter(Boolean).map(d => new Date(d!));
+    if (dates.length === 0) return undefined;
+    return new Date(Math.min(...dates.map(d => d.getTime())));
+  };
+
+  // Generate deadline options based on constraints
+  const getDeadlineOptions = () => {
+    const today = new Date();
+    const standardOptions = [
+      { label: 'Tomorrow', value: addDays(today, 1) },
+      { label: 'This week', value: addDays(today, 7) },
+      { label: 'Next week', value: addWeeks(today, 1) },
+      { label: 'This month', value: addMonths(today, 1) },
+    ];
+
+    // Filter options based on task/project deadlines
+    const maxDate = getMaxDate();
+    
+    return standardOptions.filter(option => {
+      if (maxDate && option.value > maxDate) return false;
+      return true;
+    });
+  };
+
+  const deadlineOptions = getDeadlineOptions();
+
+  const isDateValid = (date: Date) => {
+    const maxDate = getMaxDate();
+    if (maxDate && date > maxDate) return false;
+    return true;
+  };
 
   return (
     <div className="space-y-6">
@@ -152,19 +182,32 @@ export function DetailsEditForm({
               {detailsFormData.deadline ? format(detailsFormData.deadline, "PPP") : "Select deadline *"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+          <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
               selected={detailsFormData.deadline}
               onSelect={(date) => setDetailsFormData(prev => ({ ...prev, deadline: date }))}
-              disabled={(date) => {
-                const today = new Date();
-                if (date < today) return true;
-                if (maxDate && date > maxDate) return true;
-                return false;
-              }}
+              disabled={(date) => date < new Date() || !isDateValid(date)}
               initialFocus
             />
+            {deadlineOptions.length > 0 && (
+              <div className="p-3 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Quick Select:</p>
+                <div className="space-y-1">
+                  {deadlineOptions.map((option, index) => (
+                    <Button
+                      key={index}
+                      variant="ghost"
+                      size="sm"
+                      className="w-full text-xs text-left justify-start h-auto py-1 px-2"
+                      onClick={() => setDetailsFormData(prev => ({ ...prev, deadline: option.value }))}
+                    >
+                      {option.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
           </PopoverContent>
         </Popover>
       </div>

@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { SubTaskDetailsDialog } from './dialogs/SubTaskDetails';
+import { SubTaskNotificationModal } from './dialogs/SubTaskNotificationModal';
 import { Task, SubTask, Project } from '../types';
+import { Bell } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface SubTaskMiniItemProps {
   subtask: SubTask;
@@ -18,6 +21,7 @@ export function SubTaskMiniItem({
   onSubTaskDeleted
 }: SubTaskMiniItemProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   
   // Check if user can update this subtask
   const canUpdateSubtask = subtask.assignedId === project.currentUserId || 
@@ -58,6 +62,19 @@ export function SubTaskMiniItem({
             </span>
           )}
         </div>
+        {subtask.deadline && subtask.assignedId && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsNotificationModalOpen(true);
+            }}
+            className="h-6 w-6 p-0 opacity-60 hover:opacity-100 hover:bg-blue-50 dark:hover:bg-blue-950/20"
+          >
+            <Bell className="h-3 w-3 text-blue-600" />
+          </Button>
+        )}
         <span className="text-gray-400 text-xs">
           {canUpdateSubtask ? 'Click to edit' : 'Click to view'}
         </span>
@@ -79,6 +96,16 @@ export function SubTaskMiniItem({
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
       />
+
+      {/* Notification Modal */}
+      {subtask.deadline && subtask.assignedId && (
+        <SubTaskNotificationModal
+          subTask={subtask}
+          projectId={project.id}
+          isOpen={isNotificationModalOpen}
+          onOpenChange={setIsNotificationModalOpen}
+        />
+      )}
     </>
   );
 } 

@@ -22,6 +22,7 @@ interface SelectItemProps {
 interface SelectTriggerProps {
   children: React.ReactNode;
   className?: string;
+  disabled?: boolean;
 }
 
 interface SelectValueProps {
@@ -68,13 +69,14 @@ export function Select({ value, onValueChange, children }: SelectProps) {
   );
 }
 
-export function SelectTrigger({ children, className }: SelectTriggerProps) {
+export function SelectTrigger({ children, className, disabled }: SelectTriggerProps) {
   const context = React.useContext(SelectContext);
   if (!context) throw new Error("SelectTrigger must be used within Select");
 
   return (
     <button
       type="button"
+      disabled={disabled}
       className={cn(
         "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         className
@@ -124,25 +126,29 @@ export function SelectItem({ value, children }: SelectItemProps) {
     }
   }, [context.value, value, children, context]);
 
+  const handleClick = () => {
+    if (context && typeof context.onValueChange === 'function') {
+      context.onValueChange(value);
+      
+      // Set display value immediately
+      if (typeof children === 'string') {
+        context.setDisplayValue(children);
+      } else if (React.isValidElement(children)) {
+        const textContent = React.Children.toArray(children)
+          .filter(child => typeof child === 'string')
+          .join('');
+        context.setDisplayValue(textContent);
+      }
+      
+      context.setOpen(false);
+    }
+  };
+
   return (
     <button
       type="button"
       className="w-full px-3 py-2 text-left text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-800 focus:outline-none"
-      onClick={() => {
-        context.onValueChange(value);
-        
-        // Set display value immediately
-        if (typeof children === 'string') {
-          context.setDisplayValue(children);
-        } else if (React.isValidElement(children)) {
-          const textContent = React.Children.toArray(children)
-            .filter(child => typeof child === 'string')
-            .join('');
-          context.setDisplayValue(textContent);
-        }
-        
-        context.setOpen(false);
-      }}
+      onClick={handleClick}
     >
       {children}
     </button>

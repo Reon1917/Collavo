@@ -154,6 +154,7 @@ export function CreateSubTaskForm({
           </DialogTitle>
           <DialogDescription className="text-gray-600 dark:text-gray-400">
             Create a new subtask that must be assigned to a team member with a deadline.
+            You can set up email reminders after creation.
           </DialogDescription>
         </DialogHeader>
 
@@ -196,77 +197,84 @@ export function CreateSubTaskForm({
             </Label>
             <Textarea
               id="description"
-              placeholder="Describe the subtask requirements..."
+              placeholder="Enter subtask description (optional)..."
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] min-h-[80px] resize-none"
+              className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] resize-none min-h-[80px]"
+              maxLength={1000}
               disabled={isLoading}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Assign to *
-              </Label>
-              <Select
-                value={formData.assignedId}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, assignedId: value }))}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Assign To *
+            </Label>
+            <Select 
+              value={formData.assignedId} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, assignedId: value }))}
+            >
+              <SelectTrigger 
+                className={cn(
+                  "bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]",
+                  isLoading && "opacity-50 cursor-not-allowed"
+                )}
+                disabled={isLoading}
               >
-                <SelectTrigger 
+                <SelectValue placeholder="Select a team member *" />
+              </SelectTrigger>
+              <SelectContent>
+                {members.map((member) => (
+                  <SelectItem key={member.userId} value={member.userId}>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                        <span className="text-xs font-medium text-white">
+                          {member.userName.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <span>{member.userName}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Deadline *
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
                   className={cn(
-                    "bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]",
+                    "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700",
+                    !formData.deadline && "text-gray-500 dark:text-gray-400",
                     isLoading && "opacity-50 cursor-not-allowed"
                   )}
+                  disabled={isLoading}
                 >
-                  <SelectValue placeholder="Select member *" />
-                </SelectTrigger>
-                <SelectContent>
-                  {members.map((member) => (
-                    <SelectItem key={member.userId} value={member.userId}>
-                      {member.userName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Deadline *
-              </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 hover:bg-white dark:hover:bg-gray-900 hover:border-[#008080] dark:hover:border-[#00FFFF]",
-                      !formData.deadline && "text-gray-500 dark:text-gray-400",
-                      isLoading && "opacity-50 cursor-not-allowed"
-                    )}
-                    disabled={isLoading}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.deadline ? format(formData.deadline, "PPP") : "Select deadline *"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-                  <Calendar
-                    mode="single"
-                    selected={formData.deadline}
-                    onSelect={(date) => setFormData(prev => ({ ...prev, deadline: date }))}
-                    disabled={(date) => {
-                      const today = new Date();
-                      const maxDate = getMaxDate();
-                      if (date < today) return true;
-                      if (maxDate && date > maxDate) return true;
-                      return false;
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.deadline ? format(formData.deadline, "PPP") : "Select deadline *"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={formData.deadline}
+                  onSelect={(date) => setFormData(prev => ({ ...prev, deadline: date }))}
+                  disabled={(date) => {
+                    const today = new Date();
+                    const maxDate = getMaxDate();
+                    if (date < today) return true;
+                    if (maxDate && date > maxDate) return true;
+                    return false;
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="flex gap-3 pt-4">

@@ -37,7 +37,7 @@ export function EventForm({
   onCancel 
 }: EventFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedTime, setSelectedTime] = useState('12:00');
+  const [selectedTime, setSelectedTime] = useState({ hour: '12', minute: '00' });
 
   // Get project deadline for validation
   const projectDeadline = projectData?.deadline ? new Date(projectData.deadline) : null;
@@ -62,21 +62,8 @@ export function EventForm({
     }
 
     // Combine date and time
-    const timeParts = selectedTime.split(':');
-    if (timeParts.length !== 2) {
-      toast.error('Invalid time format');
-      return;
-    }
-    const hours = timeParts[0];
-    const minutes = timeParts[1];
-    
-    if (!hours || !minutes) {
-      toast.error('Invalid time format');
-      return;
-    }
-    
     const eventDateTime = new Date(eventData.datetime);
-    eventDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+    eventDateTime.setHours(parseInt(selectedTime.hour), parseInt(selectedTime.minute));
 
     // Additional validation for combined datetime against project deadline
     if (projectDeadline && eventDateTime > projectDeadline) {
@@ -115,6 +102,18 @@ export function EventForm({
     }
   };
 
+  const handleDateSelect = (date: Date | undefined) => {
+    setEventData((prev: EventFormData) => ({ ...prev, datetime: date }));
+  };
+
+  const generateTimeOptions = () => {
+    const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
+    const minutes = ['00', '15', '30', '45'];
+    return { hours, minutes };
+  };
+
+  const { hours, minutes } = generateTimeOptions();
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Project Deadline Warning */}
@@ -138,7 +137,7 @@ export function EventForm({
           type="text"
           placeholder="Enter event title..."
           value={eventData.title}
-          onChange={(e) => setEventData(prev => ({ ...prev, title: e.target.value }))}
+          onChange={(e) => setEventData((prev: EventFormData) => ({ ...prev, title: e.target.value }))}
           className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]"
           maxLength={500}
           required
@@ -155,7 +154,7 @@ export function EventForm({
           id="description"
           placeholder="Describe the event details, agenda, or purpose..."
           value={eventData.description}
-          onChange={(e) => setEventData(prev => ({ ...prev, description: e.target.value }))}
+          onChange={(e) => setEventData((prev: EventFormData) => ({ ...prev, description: e.target.value }))}
           className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] min-h-[80px] resize-none"
           disabled={isLoading}
         />
@@ -171,20 +170,21 @@ export function EventForm({
             <Button
               variant="outline"
               className={cn(
-                "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 hover:bg-white dark:hover:bg-gray-900 hover:border-[#008080] dark:hover:border-[#00FFFF]",
-                !eventData.datetime && "text-gray-500 dark:text-gray-400"
+                "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700",
+                !eventData.datetime && "text-gray-500 dark:text-gray-400",
+                isLoading && "opacity-50 cursor-not-allowed"
               )}
               disabled={isLoading}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {eventData.datetime ? format(eventData.datetime, "PPP") : "Select event date *"}
+              {eventData.datetime ? format(eventData.datetime, "PPP") : "Select date *"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+          <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
               selected={eventData.datetime}
-              onSelect={(date) => setEventData(prev => ({ ...prev, datetime: date }))}
+              onSelect={handleDateSelect}
               disabled={(date) => {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
@@ -217,20 +217,16 @@ export function EventForm({
           <div>
             <Label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Hour</Label>
             <Select
-              value={selectedTime.split(':')[0] || '12'}
-              onValueChange={(hour) => {
-                const parts = selectedTime.split(':');
-                const minute = parts[1] || '00';
-                setSelectedTime(`${hour}:${minute}`);
-              }}
+              value={selectedTime.hour}
+              onValueChange={(hour) => setSelectedTime(prev => ({ ...prev, hour }))}
             >
-              <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
+              <SelectTrigger disabled={isLoading} className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
                 <SelectValue placeholder="Hour" />
               </SelectTrigger>
               <SelectContent>
-                {Array.from({ length: 24 }, (_, i) => (
-                  <SelectItem key={i} value={i.toString().padStart(2, '0')}>
-                    {i.toString().padStart(2, '0')}:00
+                {hours.map((hour) => (
+                  <SelectItem key={hour} value={hour}>
+                    {hour}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -241,20 +237,16 @@ export function EventForm({
           <div>
             <Label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Minute</Label>
             <Select
-              value={selectedTime.split(':')[1] || '00'}
-              onValueChange={(minute) => {
-                const parts = selectedTime.split(':');
-                const hour = parts[0] || '12';
-                setSelectedTime(`${hour}:${minute}`);
-              }}
+              value={selectedTime.minute}
+              onValueChange={(minute) => setSelectedTime(prev => ({ ...prev, minute }))}
             >
-              <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
+              <SelectTrigger disabled={isLoading} className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
                 <SelectValue placeholder="Min" />
               </SelectTrigger>
               <SelectContent>
-                {Array.from({ length: 4 }, (_, i) => (
-                  <SelectItem key={i} value={(i * 15).toString().padStart(2, '0')}>
-                    :{(i * 15).toString().padStart(2, '0')}
+                {minutes.map((minute) => (
+                  <SelectItem key={minute} value={minute}>
+                    :{minute}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -273,7 +265,7 @@ export function EventForm({
           type="text"
           placeholder="Enter event location (optional)"
           value={eventData.location}
-          onChange={(e) => setEventData(prev => ({ ...prev, location: e.target.value }))}
+          onChange={(e) => setEventData((prev: EventFormData) => ({ ...prev, location: e.target.value }))}
           className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]"
           maxLength={500}
           disabled={isLoading}
@@ -293,7 +285,7 @@ export function EventForm({
         </Button>
         <Button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || !eventData.title.trim() || !eventData.datetime}
           className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
         >
           {isLoading ? (
