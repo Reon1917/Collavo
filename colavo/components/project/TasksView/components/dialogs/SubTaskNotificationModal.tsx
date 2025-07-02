@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Bell, AlertCircle, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -31,9 +30,7 @@ export function SubTaskNotificationModal({ subTask, projectId, isOpen, onOpenCha
   const { 
     hasActiveNotification, 
     activeNotification, 
-    notifications,
-    isLoading,
-    error 
+    isLoading
   } = useHasActiveNotification(projectId, subTask.id, isOpen);
 
   const cancelMutation = useCancelNotification();
