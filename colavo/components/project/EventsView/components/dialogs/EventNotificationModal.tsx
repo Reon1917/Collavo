@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Bell, AlertCircle, Users, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { createEventNotification } from '@/lib/actions/email-notifications';
+import { TimePicker } from '@/components/ui/time-picker';
 
 interface EventNotificationModalProps {
   event: {
@@ -86,10 +87,10 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border border-gray-200 dark:border-gray-700 shadow-xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5 text-green-600" />
+          <DialogTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
+            <Bell className="h-5 w-5 text-green-600 dark:text-green-400" />
             Event Reminder
           </DialogTitle>
         </DialogHeader>
@@ -150,14 +151,12 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
                     <Label className="text-xs text-gray-600 dark:text-gray-400">
                       Time (Bangkok)
                     </Label>
-                    <Input
-                      type="time"
+                    <TimePicker
                       value={notificationSettings.time}
-                      onChange={(e) => setNotificationSettings(prev => ({ 
+                      onChange={(time) => setNotificationSettings(prev => ({ 
                         ...prev, 
-                        time: e.target.value 
+                        time 
                       }))}
-                      className="h-8 text-sm"
                     />
                   </div>
                 </div>

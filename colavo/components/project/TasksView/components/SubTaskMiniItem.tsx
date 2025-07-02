@@ -63,17 +63,31 @@ export function SubTaskMiniItem({
           )}
         </div>
         {subtask.deadline && subtask.assignedId && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsNotificationModalOpen(true);
-            }}
-            className="h-6 w-6 p-0 opacity-60 hover:opacity-100 hover:bg-blue-50 dark:hover:bg-blue-950/20"
-          >
-            <Bell className="h-3 w-3 text-blue-600" />
-          </Button>
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsNotificationModalOpen(true);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsNotificationModalOpen(true);
+                }
+              }}
+              aria-label={`Set up email reminder for ${subtask.title}`}
+              className="h-7 w-7 p-0 rounded-md border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm 
+                         hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:border-blue-300 dark:hover:border-blue-600 
+                         hover:shadow-md hover:shadow-blue-200/50 dark:hover:shadow-blue-900/30
+                         transition-all duration-200 ease-out group"
+              title="Set up email reminder"
+            >
+              <Bell className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors" />
+            </Button>
+          </div>
         )}
         <span className="text-gray-400 text-xs">
           {canUpdateSubtask ? 'Click to edit' : 'Click to view'}
