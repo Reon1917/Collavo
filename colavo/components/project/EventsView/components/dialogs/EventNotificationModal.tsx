@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Bell, AlertCircle, Users, UserCheck } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Bell, AlertCircle, Users, UserCheck, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { createEventNotification } from '@/lib/actions/email-notifications';
 import { TimePicker } from '@/components/ui/time-picker';
+import { useHasActiveEventNotification, useCancelEventNotification } from '@/hooks/useEventNotifications';
 
 interface EventNotificationModalProps {
   event: {
@@ -32,20 +33,25 @@ interface EventNotificationModalProps {
 
 export function EventNotificationModal({ event, members, projectId, isOpen, onOpenChange }: EventNotificationModalProps) {
   const [notificationSettings, setNotificationSettings] = useState({
-    enabled: false,
     daysBefore: '1',
     time: '09:00',
     recipientType: 'all' as 'all' | 'select',
     selectedMembers: [] as string[]
   });
 
-  const handleSave = async () => {
-    if (!notificationSettings.enabled) {
-      toast.success('Notification disabled');
-      onOpenChange(false);
-      return;
-    }
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
+  // Use React Query for notifications data
+  const { 
+    hasActiveNotification, 
+    activeNotifications,
+    notificationCount,
+    isLoading
+  } = useHasActiveEventNotification(projectId, event.id, isOpen);
+
+  const cancelMutation = useCancelEventNotification();
+
+  const handleSave = async () => {
     try {
       // Schedule notifications for selected recipients
       const recipientIds = notificationSettings.recipientType === 'all' 
@@ -76,6 +82,25 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
     }
   };
 
+  const handleCancelAllNotifications = async () => {
+    if (!activeNotifications?.length) return;
+
+    try {
+      // Cancel all active notifications
+      for (const notification of activeNotifications) {
+        await cancelMutation.mutateAsync({
+          notificationId: notification.id,
+          projectId
+        });
+      }
+
+      toast.success(`${activeNotifications.length} email reminder(s) cancelled successfully`);
+      setShowCancelConfirm(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to cancel notifications');
+    }
+  };
+
   const toggleMemberSelection = (userId: string) => {
     setNotificationSettings(prev => ({
       ...prev,
@@ -103,25 +128,80 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
             </p>
           </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="enable-notification"
-                checked={notificationSettings.enabled}
-                onChange={(e) => setNotificationSettings(prev => ({ 
-                  ...prev, 
-                  enabled: e.target.checked 
-                }))}
-                className="rounded border-gray-300"
-              />
-              <Label htmlFor="enable-notification" className="text-sm">
-                Send email reminder
-              </Label>
+          {isLoading ? (
+            <div className="text-center py-4">
+              <p className="text-sm text-gray-500">Loading...</p>
             </div>
-
-            {notificationSettings.enabled && (
-              <div className="space-y-4 pl-6">
+          ) : hasActiveNotification ? (
+            // Show cancellation UI if notifications exist
+            <>
+              <div className="flex items-start gap-2 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                <Bell className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-xs text-green-800 dark:text-green-200 font-medium mb-1">
+                    Email reminders are active
+                  </p>
+                  <p className="text-xs text-green-700 dark:text-green-300">
+                    {notificationCount} reminder(s) scheduled for {activeNotifications?.[0]?.daysBefore} day(s) before the event
+                  </p>
+                </div>
+              </div>
+              
+              {!showCancelConfirm ? (
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => onOpenChange(false)}
+                    className="flex-1"
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    onClick={() => setShowCancelConfirm(true)}
+                    variant="destructive"
+                    className="flex-1"
+                  >
+                    Cancel Reminders
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg">
+                    <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-xs text-red-800 dark:text-red-200 font-medium mb-1">
+                        Are you sure?
+                      </p>
+                      <p className="text-xs text-red-700 dark:text-red-300">
+                        All {notificationCount} email reminder(s) will be permanently cancelled. This action cannot be undone.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-3 pt-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowCancelConfirm(false)}
+                      className="flex-1"
+                    >
+                      Keep Reminders
+                    </Button>
+                    <Button
+                      onClick={handleCancelAllNotifications}
+                      disabled={cancelMutation.isPending}
+                      variant="destructive"
+                      className="flex-1 disabled:opacity-50"
+                    >
+                      {cancelMutation.isPending ? 'Cancelling...' : 'Yes, Cancel All'}
+                    </Button>
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            // Show creation UI if no notifications exist
+            <>
+              <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label className="text-xs text-gray-600 dark:text-gray-400">
@@ -217,11 +297,15 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
                             className="rounded border-gray-300"
                           />
                           <div className="flex items-center gap-2 flex-1">
-                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-                              <span className="text-xs font-medium text-white">
+                            <Avatar className="w-6 h-6">
+                              <AvatarImage 
+                                src={member.userImage || undefined} 
+                                alt={member.userName}
+                              />
+                              <AvatarFallback className="text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
                                 {member.userName.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
+                              </AvatarFallback>
+                            </Avatar>
                             <div className="flex-1">
                               <div className="text-xs font-medium">{member.userName}</div>
                               <div className="text-xs text-gray-500">{member.userEmail}</div>
@@ -249,24 +333,24 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
                   </p>
                 </div>
               </div>
-            )}
-          </div>
 
-          <div className="flex gap-3 pt-2">
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-            >
-              {notificationSettings.enabled ? 'Save Reminder' : 'Disable'}
-            </Button>
-          </div>
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                >
+                  Save Reminder
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
