@@ -3,11 +3,19 @@ import { getEventNotifications, cancelNotification } from '@/lib/actions/email-n
 
 interface EventNotificationData {
   id: string;
-  status: 'pending' | 'sent' | 'cancelled' | 'failed';
+  createdAt: Date;
+  projectId: string;
+  createdBy: string;
+  status: 'pending' | 'cancelled' | 'sent' | 'failed';
+  type: 'subtask' | 'event';
+  entityId: string;
+  recipientUserId: string | null;
+  recipientUserIds: string[] | null;
+  scheduledFor: Date;
   daysBefore: number;
-  scheduledFor: string;
-  recipientUserId: string;
-  createdAt: string;
+  qstashMessageId: string | null;
+  emailId: string | null;
+  sentAt: Date | null;
 }
 
 /**

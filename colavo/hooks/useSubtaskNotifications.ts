@@ -3,10 +3,19 @@ import { cancelNotification, createSubtaskNotification } from '@/lib/actions/ema
 
 interface NotificationData {
   id: string;
-  status: 'pending' | 'sent' | 'cancelled' | 'failed';
+  createdAt: Date;
+  projectId: string;
+  createdBy: string;
+  status: 'pending' | 'cancelled' | 'sent' | 'failed';
+  type: 'subtask' | 'event';
+  entityId: string;
+  recipientUserId: string | null;
+  recipientUserIds: string[] | null;
+  scheduledFor: Date;
   daysBefore: number;
-  scheduledFor: string;
-  createdAt: string;
+  qstashMessageId: string | null;
+  emailId: string | null;
+  sentAt: Date | null;
 }
 
 interface NotificationsResponse {
@@ -34,7 +43,7 @@ export function useSubtaskNotifications(projectId: string, subtaskId: string, en
     queryFn: () => fetchSubtaskNotifications(projectId, subtaskId),
     enabled: enabled && !!subtaskId && !!projectId,
     staleTime: 30 * 1000, // Consider data fresh for 30 seconds
-    cacheTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes (replaced cacheTime)
     retry: 1,
     refetchOnWindowFocus: false,
   });
