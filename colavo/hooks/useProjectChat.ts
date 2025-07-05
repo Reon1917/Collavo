@@ -23,9 +23,6 @@ interface UseChatReturn {
   startTyping: () => void;
   stopTyping: () => void;
   isTyping: string[];
-  // Debug functions
-  manualRefresh: () => Promise<void>;
-  testRealTime: () => Promise<void>;
 }
 
 export function useProjectChat(
@@ -191,7 +188,7 @@ export function useProjectChat(
       // Return a context object with the snapshotted value
       return { previousMessages };
     },
-    onError: (error, variables, context) => {
+    onError: (error, _variables, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousMessages) {
         queryClient.setQueryData(['chat-messages', projectId], context.previousMessages);
@@ -248,7 +245,7 @@ export function useProjectChat(
       // Return a context object with the snapshotted value
       return { previousMessages };
     },
-    onError: (error, variables, context) => {
+    onError: (error, _variables, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousMessages) {
         queryClient.setQueryData(['chat-messages', projectId], context.previousMessages);
@@ -308,6 +305,94 @@ export function useProjectChat(
     // TODO: Implement pagination with React Query
     console.log('Load more messages - implement pagination');
   }, []);
+
+  // Test delete message with comprehensive diagnostics
+  const testDeleteMessage = useCallback(async (messageId: string) => {
+    console.log('🧪 TEST: Starting delete message test for:', messageId);
+    
+    try {
+      // Step 1: Test the debug endpoint first
+      console.log('🧪 TEST: Step 1 - Testing debug GET endpoint');
+      const debugResponse = await fetch(`/api/projects/${projectId}/chat/${messageId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const debugData = await debugResponse.json();
+      console.log('🧪 TEST: Debug GET endpoint result:', {
+        status: debugResponse.status,
+        ok: debugResponse.ok,
+        data: debugData
+      });
+      
+      if (!debugResponse.ok) {
+        console.error('🧪 TEST: Debug GET endpoint failed:', debugData);
+        toast.error(`Debug endpoint failed: ${debugData.error}`);
+        return;
+      }
+      
+      // Step 1.5: Test if the route exists by trying OPTIONS method
+      console.log('🧪 TEST: Step 1.5 - Testing route availability with OPTIONS');
+      try {
+        const optionsResponse = await fetch(`/api/projects/${projectId}/chat/${messageId}`, {
+          method: 'OPTIONS',
+        });
+        console.log('🧪 TEST: OPTIONS response:', {
+          status: optionsResponse.status,
+          headers: Object.fromEntries(optionsResponse.headers.entries())
+        });
+      } catch (optionsError) {
+        console.log('🧪 TEST: OPTIONS test failed (this is normal):', optionsError);
+      }
+      
+      // Step 2: Test the actual delete
+      console.log('🧪 TEST: Step 2 - Testing DELETE operation');
+      const deleteResponse = await fetch(`/api/projects/${projectId}/chat/${messageId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const deleteData = await deleteResponse.json();
+      console.log('🧪 TEST: Delete response:', {
+        ok: deleteResponse.ok,
+        status: deleteResponse.status,
+        statusText: deleteResponse.statusText,
+        data: deleteData
+      });
+      
+      // Step 3: Test if message still exists
+      console.log('🧪 TEST: Step 3 - Verifying deletion');
+      const verifyResponse = await fetch(`/api/projects/${projectId}/chat/${messageId}`, {
+        method: 'GET',
+      });
+      const verifyData = await verifyResponse.json();
+      console.log('🧪 TEST: Verification result:', {
+        status: verifyResponse.status,
+        data: verifyData
+      });
+      
+      // Step 4: Check real-time events
+      console.log('🧪 TEST: Step 4 - Checking real-time subscription status');
+      console.log('🧪 TEST: Real-time connected:', isConnected);
+      console.log('🧪 TEST: Current messages count:', messages.length);
+      
+      // Step 5: Force refresh cache
+      console.log('🧪 TEST: Step 5 - Force refreshing cache');
+      await queryClient.invalidateQueries({ 
+        queryKey: ['chat-messages', projectId],
+        refetchType: 'active'
+      });
+      
+      toast.info('Delete test completed - check console for details');
+      
+    } catch (error) {
+      console.error('🧪 TEST: Error during delete test:', error);
+      toast.error('Delete test failed - check console');
+    }
+  }, [projectId, isConnected, messages.length, queryClient]);
 
   // Manual refresh function for debugging
   const manualRefresh = useCallback(async () => {
@@ -472,7 +557,30 @@ export function useProjectChat(
         (payload) => {
           if (!mounted) return;
           console.log('🗑️ DELETE: Real-time DELETE event received:', payload);
-          // Immediately invalidate and refetch for message deletions
+          console.log('🗑️ DELETE: Payload details:', {
+            eventType: payload.eventType,
+            old: payload.old,
+            new: payload.new,
+            table: payload.table,
+            schema: payload.schema,
+            commit_timestamp: payload.commit_timestamp
+          });
+          
+          // Immediately update the cache by removing the deleted message
+          queryClient.setQueryData(['chat-messages', projectId], (old: any) => {
+            if (!old) return old;
+            
+            const deletedId = payload.old?.id;
+            if (!deletedId) return old;
+            
+            console.log('🗑️ DELETE: Removing message from cache:', deletedId);
+            return {
+              ...old,
+              messages: old.messages.filter((msg: ChatMessage) => msg.id !== deletedId)
+            };
+          });
+          
+          // Also invalidate and refetch to ensure consistency
           queryClient.invalidateQueries({ 
             queryKey: ['chat-messages', projectId],
             refetchType: 'active'
@@ -612,8 +720,5 @@ export function useProjectChat(
     startTyping,
     stopTyping,
     isTyping,
-    // Debug functions
-    manualRefresh,
-    testRealTime,
   };
 } 

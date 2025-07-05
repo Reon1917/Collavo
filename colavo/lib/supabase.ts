@@ -95,9 +95,16 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
 });
 
 // Create a server-side client for API routes
-// We'll use anon key and rely on application-level security + RLS
+// Uses service role key for authorized operations only
+// SECURITY: Only use after verifying user authentication and permissions
 export const createServerSupabaseClient = () => {
-  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!serviceRoleKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for server operations');
+  }
+  
+  return createClient<Database>(supabaseUrl, serviceRoleKey, {
     auth: {
       persistSession: false,
     },

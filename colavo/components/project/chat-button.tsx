@@ -19,7 +19,7 @@ export function ChatButton({ projectId, projectName, className }: ChatButtonProp
       <div className="fixed bottom-6 right-6">
         <Button 
           size="lg" 
-          className={`rounded-full h-14 w-14 shadow-lg bg-blue-600 hover:bg-blue-700 ${className}`}
+          className={`rounded-full h-14 w-14 shadow-lg ${className}`}
           onClick={() => setIsOpen(true)}
         >
           <MessageCircle className="h-6 w-6" />

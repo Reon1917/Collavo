@@ -12,7 +12,6 @@ import { ChatMessage } from './chat/ChatMessage';
 import { TypingIndicator } from './chat/TypingIndicator';
 import { OnlineMembers } from './chat/OnlineMembers';
 import { ChatMessage as ChatMessageType } from '@/types';
-import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 interface ChatBoxProps {
@@ -31,6 +30,7 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const chatBoxRef = useRef<HTMLDivElement>(null);
 
   // Get chat state
   const {
@@ -65,6 +65,20 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, isAtBottom]);
+
+  // Handle click outside to close chat box
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (chatBoxRef.current && !chatBoxRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onClose]);
 
   // Handle scroll to detect if user is at bottom
   const handleScroll = () => {
@@ -160,7 +174,10 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
 
   if (!session?.user?.id) {
     return (
-      <div className={cn("fixed bottom-24 right-6 w-96 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700", className)}>
+      <div 
+        ref={chatBoxRef}
+        className={cn("fixed bottom-24 right-6 w-96 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700", className)}
+      >
         <div className="p-4 text-center text-gray-500 dark:text-gray-400">
           Please log in to use chat
         </div>
@@ -169,12 +186,15 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
   }
 
   return (
-    <div className={cn("fixed bottom-24 right-6 w-96 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden", className)}>
+    <div 
+      ref={chatBoxRef}
+      className={cn("fixed bottom-24 right-6 w-96 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden", className)}
+    >
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-950/50">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-secondary/30 dark:bg-secondary/10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
+            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
               {projectName.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
@@ -216,6 +236,8 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
           </div>
         )}
       </div>
+
+
 
       {/* Messages */}
       <div className="relative h-96">
