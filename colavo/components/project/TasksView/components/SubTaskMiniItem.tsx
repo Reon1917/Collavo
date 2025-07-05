@@ -116,6 +116,7 @@ export function SubTaskMiniItem({
         <SubTaskNotificationModal
           subTask={subtask}
           projectId={project.id}
+          taskId={task.id}
           isOpen={isNotificationModalOpen}
           onOpenChange={setIsNotificationModalOpen}
         />

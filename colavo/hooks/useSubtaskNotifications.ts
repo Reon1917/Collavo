@@ -24,10 +24,11 @@ interface NotificationsResponse {
 
 // Fetch notifications for a specific subtask
 const fetchSubtaskNotifications = async (
-  projectId: string, 
+  projectId: string,
+  taskId: string,
   subtaskId: string
 ): Promise<NotificationData[]> => {
-  const response = await fetch(`/api/projects/${projectId}/tasks/0/subtasks/${subtaskId}/notifications`);
+  const response = await fetch(`/api/projects/${projectId}/tasks/${taskId}/subtasks/${subtaskId}/notifications`);
   
   if (!response.ok) {
     throw new Error('Failed to fetch notifications');
@@ -37,11 +38,16 @@ const fetchSubtaskNotifications = async (
   return data.notifications || [];
 };
 
-export function useSubtaskNotifications(projectId: string, subtaskId: string, enabled = true) {
+export function useSubtaskNotifications(
+  projectId: string,
+  taskId: string,
+  subtaskId: string,
+  enabled = true
+) {
   return useQuery({
     queryKey: ['subtask-notifications', subtaskId],
-    queryFn: () => fetchSubtaskNotifications(projectId, subtaskId),
-    enabled: enabled && !!subtaskId && !!projectId,
+    queryFn: () => fetchSubtaskNotifications(projectId, taskId, subtaskId),
+    enabled: enabled && !!subtaskId && !!projectId && !!taskId,
     staleTime: 30 * 1000, // Consider data fresh for 30 seconds
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes (replaced cacheTime)
     retry: 1,
@@ -97,8 +103,13 @@ export function useCreateNotification() {
 }
 
 // Helper hook to get active notification status quickly
-export function useHasActiveNotification(projectId: string, subtaskId: string, enabled = true) {
-  const { data: notifications, ...query } = useSubtaskNotifications(projectId, subtaskId, enabled);
+export function useHasActiveNotification(
+  projectId: string,
+  taskId: string,
+  subtaskId: string,
+  enabled = true
+) {
+  const { data: notifications, ...query } = useSubtaskNotifications(projectId, taskId, subtaskId, enabled);
   
   const hasActiveNotification = notifications?.some(n => n.status === 'pending') || false;
   const activeNotification = notifications?.find(n => n.status === 'pending');

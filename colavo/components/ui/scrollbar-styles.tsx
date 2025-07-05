@@ -5,12 +5,20 @@ interface ScrollbarStylesProps {
 }
 
 /**
- * Reusable component for consistent scrollbar styling across the app
+ * Consolidated scrollbar styling component for consistent scrollbar appearance across the app
  * Provides thin, styled scrollbars that work well in both light and dark themes
+ * Also includes scrollbar-none utility for hiding scrollbars when needed
+ * 
+ * @param className - Optional custom class name for dynamic styling (defaults to 'scrollbar-thin')
+ * 
+ * Usage:
+ * - <ScrollbarStyles /> - Applies default scrollbar-thin styles
+ * - <ScrollbarStyles className="custom-scrollbar" /> - Applies custom scrollbar styles
+ * - Use 'scrollbar-none' class to hide scrollbars completely
  */
 export function ScrollbarStyles({ className = 'scrollbar-thin' }: ScrollbarStylesProps) {
   return (
-    <style jsx>{`
+    <style>{`
       .${className} {
         scrollbar-width: thin;
         scrollbar-color: rgb(156 163 175) transparent;
@@ -40,66 +48,15 @@ export function ScrollbarStyles({ className = 'scrollbar-thin' }: ScrollbarStyle
       }
       
       /* Dark theme styles */
-      :global(.dark) .${className} {
+      .dark .${className} {
         scrollbar-color: rgb(75 85 99) transparent;
       }
       
-      :global(.dark) .${className}::-webkit-scrollbar-thumb {
+      .dark .${className}::-webkit-scrollbar-thumb {
         background-color: rgb(75 85 99);
       }
       
-      :global(.dark) .${className}::-webkit-scrollbar-thumb:hover {
-        background-color: rgb(107 114 128);
-      }
-    `}</style>
-  );
-}
-
-/**
- * Alternative implementation using CSS-in-JS for better performance
- * Use this when you need multiple scrollbar variants
- */
-export function ScrollbarStylesCSS() {
-  return (
-    <style>{`
-      .scrollbar-thin {
-        scrollbar-width: thin;
-        scrollbar-color: rgb(156 163 175) transparent;
-      }
-      
-      .scrollbar-thin::-webkit-scrollbar {
-        width: 4px;
-        height: 4px;
-      }
-      
-      .scrollbar-thin::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      
-      .scrollbar-thin::-webkit-scrollbar-thumb {
-        background-color: rgb(156 163 175);
-        border-radius: 2px;
-        border: none;
-      }
-      
-      .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-        background-color: rgb(107 114 128);
-      }
-      
-      .scrollbar-thin::-webkit-scrollbar-corner {
-        background: transparent;
-      }
-      
-      /* Dark theme styles */
-      .dark .scrollbar-thin {
-        scrollbar-color: rgb(75 85 99) transparent;
-      }
-      
-      .dark .scrollbar-thin::-webkit-scrollbar-thumb {
-        background-color: rgb(75 85 99);
-      }
-      
-      .dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+      .dark .${className}::-webkit-scrollbar-thumb:hover {
         background-color: rgb(107 114 128);
       }
       
@@ -113,4 +70,7 @@ export function ScrollbarStylesCSS() {
       }
     `}</style>
   );
-} 
+}
+
+// For backward compatibility, export the main component as ScrollbarStylesCSS
+export const ScrollbarStylesCSS = ScrollbarStyles; 

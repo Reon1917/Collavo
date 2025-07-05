@@ -14,11 +14,12 @@ import { useHasActiveNotification, useCancelNotification, useCreateNotification 
 interface SubTaskNotificationModalProps {
   subTask: SubTask;
   projectId: string;
+  taskId: string;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function SubTaskNotificationModal({ subTask, projectId, isOpen, onOpenChange }: SubTaskNotificationModalProps) {
+export function SubTaskNotificationModal({ subTask, projectId, taskId, isOpen, onOpenChange }: SubTaskNotificationModalProps) {
   const [notificationSettings, setNotificationSettings] = useState({
     daysBefore: '3',
     time: '09:00'
@@ -31,7 +32,7 @@ export function SubTaskNotificationModal({ subTask, projectId, isOpen, onOpenCha
     hasActiveNotification, 
     activeNotification, 
     isLoading
-  } = useHasActiveNotification(projectId, subTask.id, isOpen);
+  } = useHasActiveNotification(projectId, taskId, subTask.id, isOpen);
 
   const cancelMutation = useCancelNotification();
   const createMutation = useCreateNotification();
