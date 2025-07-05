@@ -1,11 +1,31 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { ChatMessage, UserPresence, UseChatReturn, CreateChatMessageData } from '@/types';
+import { ChatMessage, UserPresence, CreateChatMessageData } from '@/types';
 import { toast } from 'sonner';
 
 interface UseChatOptions {
   enabled?: boolean;
   pageSize?: number;
+}
+
+interface UseChatReturn {
+  messages: ChatMessage[];
+  sendMessage: (content: string, replyTo?: string) => Promise<void>;
+  updateMessage: (messageId: string, content: string) => Promise<void>;
+  deleteMessage: (messageId: string) => Promise<void>;
+  loadMoreMessages: () => Promise<void>;
+  onlineMembers: UserPresence[];
+  isLoading: boolean;
+  isConnected: boolean;
+  hasMore: boolean;
+  error: string | null;
+  startTyping: () => void;
+  stopTyping: () => void;
+  isTyping: string[];
+  // Debug functions
+  manualRefresh: () => Promise<void>;
+  testRealTime: () => Promise<void>;
 }
 
 export function useProjectChat(
@@ -14,102 +34,87 @@ export function useProjectChat(
   options: UseChatOptions = {}
 ): UseChatReturn {
   const { enabled = true, pageSize = 50 } = options;
+  const queryClient = useQueryClient();
   
-  // State management
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [onlineMembers, setOnlineMembers] = useState<UserPresence[]>([]);
+  // State management for real-time features
   const [isTyping, setIsTyping] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Refs for managing subscriptions and typing timeout
   const messageChannelRef = useRef<any>(null);
   const presenceChannelRef = useRef<any>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastMessageIdRef = useRef<string | null>(null);
 
-  // Fetch initial messages
-  const fetchMessages = useCallback(async (before?: string) => {
-    if (!enabled) return;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const url = new URL(`/api/projects/${projectId}/chat`, window.location.origin);
-      url.searchParams.set('limit', pageSize.toString());
-      if (before) {
-        url.searchParams.set('before', before);
-      }
-
-      const response = await fetch(url.toString());
+  // Fetch messages with React Query
+  const {
+    data: messagesData,
+    error: messagesError,
+    isLoading: isLoadingMessages,
+  } = useQuery({
+    queryKey: ['chat-messages', projectId],
+    queryFn: async (): Promise<{ messages: ChatMessage[]; hasMore: boolean }> => {
+      console.log('Fetching messages for project:', projectId);
+      const response = await fetch(`/api/projects/${projectId}/chat?limit=${pageSize}`);
       if (!response.ok) {
         throw new Error('Failed to fetch messages');
       }
-
       const data = await response.json();
-      
-      if (before) {
-        // Loading more messages (prepend to existing)
-        setMessages(prev => [...data.messages, ...prev]);
-      } else {
-        // Initial load or refresh
-        setMessages(data.messages);
-      }
-      
-      setHasMore(data.hasMore);
-      
-      // Update last message ID for real-time subscription
-      if (data.messages.length > 0) {
-        lastMessageIdRef.current = data.messages[0].id;
-      }
+      console.log('Fetched messages:', data.messages.length);
+      // Messages are already in correct order (oldest first, newest last)
+      return { messages: data.messages, hasMore: data.hasMore };
+    },
+    enabled: enabled && !!projectId && !!currentUserId,
+    staleTime: 0, // Always consider data stale for real-time updates
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+  });
 
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load messages';
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [projectId, pageSize, enabled]);
-
-  // Fetch online members
-  const fetchOnlineMembers = useCallback(async () => {
-    if (!enabled) return;
-
-    try {
+  // Fetch online members with React Query
+  const {
+    data: onlineMembers = [],
+    error: presenceError,
+  } = useQuery({
+    queryKey: ['chat-presence', projectId],
+    queryFn: async (): Promise<UserPresence[]> => {
       const response = await fetch(`/api/projects/${projectId}/presence`);
-      if (!response.ok) return;
-
+      if (!response.ok) {
+        throw new Error('Failed to fetch presence');
+      }
       const data = await response.json();
-      setOnlineMembers(data.onlineMembers || []);
-    } catch (err) {
-      console.error('Failed to fetch online members:', err);
-    }
-  }, [projectId, enabled]);
+      return data.onlineMembers || [];
+    },
+    enabled: enabled && !!projectId && !!currentUserId,
+    staleTime: 30000, // Consider data fresh for 30 seconds
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+  });
 
-  // Update presence
-  const updatePresence = useCallback(async (isOnline: boolean = true) => {
-    if (!enabled) return;
+  // Add polling as fallback for real-time updates
+  useEffect(() => {
+    if (!enabled || !projectId || !currentUserId) return;
 
-    try {
-      await fetch(`/api/projects/${projectId}/presence`, {
-        method: isOnline ? 'POST' : 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isOnline })
+    const interval = setInterval(() => {
+      console.log('Polling for new messages...');
+      queryClient.invalidateQueries({ 
+        queryKey: ['chat-messages', projectId],
+        refetchType: 'active'
       });
-    } catch (err) {
-      console.error('Failed to update presence:', err);
-    }
-  }, [projectId, enabled]);
+    }, 5000); // Poll every 5 seconds as fallback
 
-  // Send message
-  const sendMessage = useCallback(async (content: string, replyTo?: string) => {
-    if (!enabled) return;
+    return () => clearInterval(interval);
+  }, [projectId, currentUserId, enabled, queryClient]);
 
-    try {
+  const messages = messagesData?.messages || [];
+  const hasMore = messagesData?.hasMore || false;
+  const error = messagesError?.message || presenceError?.message || null;
+
+  // Send message mutation
+  const sendMessageMutation = useMutation({
+    mutationFn: async ({ content, replyTo }: { content: string; replyTo?: string | undefined }) => {
       const messageData: CreateChatMessageData = {
         content: content.trim(),
         replyTo: replyTo || null
@@ -126,18 +131,23 @@ export function useProjectChat(
         throw new Error(errorData.error || 'Failed to send message');
       }
 
-      // Message will be added via real-time subscription
-      // But for better UX, we could add an optimistic update here
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to send message';
-      toast.error(errorMessage);
-      throw err;
-    }
-  }, [projectId, enabled]);
+      return response.json();
+    },
+    onSuccess: () => {
+      // Immediately update cache for our own messages
+      queryClient.invalidateQueries({ 
+        queryKey: ['chat-messages', projectId],
+        refetchType: 'active'
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
-  // Update message
-  const updateMessage = useCallback(async (messageId: string, content: string) => {
-    try {
+  // Update message mutation
+  const updateMessageMutation = useMutation({
+    mutationFn: async ({ messageId, content }: { messageId: string; content: string }) => {
       const response = await fetch(`/api/projects/${projectId}/chat/${messageId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -148,17 +158,23 @@ export function useProjectChat(
         throw new Error('Failed to update message');
       }
 
-      // Message will be updated via real-time subscription
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update message';
-      toast.error(errorMessage);
-      throw err;
-    }
-  }, [projectId]);
+      return response.json();
+    },
+    onSuccess: () => {
+      // Immediately update cache for message edits
+      queryClient.invalidateQueries({ 
+        queryKey: ['chat-messages', projectId],
+        refetchType: 'active'
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
-  // Delete message
-  const deleteMessage = useCallback(async (messageId: string) => {
-    try {
+  // Delete message mutation
+  const deleteMessageMutation = useMutation({
+    mutationFn: async (messageId: string) => {
       const response = await fetch(`/api/projects/${projectId}/chat/${messageId}`, {
         method: 'DELETE'
       });
@@ -167,24 +183,99 @@ export function useProjectChat(
         throw new Error('Failed to delete message');
       }
 
-      // Remove message from local state immediately for better UX
-      setMessages(prev => prev.filter(msg => msg.id !== messageId));
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete message';
-      toast.error(errorMessage);
-      throw err;
-    }
-  }, [projectId]);
+      return response.json();
+    },
+    onSuccess: () => {
+      // Immediately update cache for message deletions
+      queryClient.invalidateQueries({ 
+        queryKey: ['chat-messages', projectId],
+        refetchType: 'active'
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
-  // Load more messages (pagination)
+  // Update presence mutation
+  const updatePresenceMutation = useMutation({
+    mutationFn: async (isOnline: boolean = true) => {
+      const response = await fetch(`/api/projects/${projectId}/presence`, {
+        method: isOnline ? 'POST' : 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isOnline })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update presence');
+      }
+
+      return response.json();
+    },
+    onError: (error) => {
+      console.error('Failed to update presence:', error);
+    },
+  });
+
+  // Wrapper functions for the mutations
+  const sendMessage = useCallback(async (content: string, replyTo?: string) => {
+    await sendMessageMutation.mutateAsync({ content, replyTo: replyTo || undefined });
+  }, [sendMessageMutation]);
+
+  const updateMessage = useCallback(async (messageId: string, content: string) => {
+    await updateMessageMutation.mutateAsync({ messageId, content });
+  }, [updateMessageMutation]);
+
+  const deleteMessage = useCallback(async (messageId: string) => {
+    await deleteMessageMutation.mutateAsync(messageId);
+  }, [deleteMessageMutation]);
+
+
+
+  // Load more messages (pagination) - placeholder for now
   const loadMoreMessages = useCallback(async () => {
-    if (!hasMore || isLoading || messages.length === 0) return;
+    // TODO: Implement pagination with React Query
+    console.log('Load more messages - implement pagination');
+  }, []);
 
-    const oldestMessage = messages[messages.length - 1];
-    if (oldestMessage) {
-      await fetchMessages(oldestMessage.createdAt.toISOString());
-    }
-  }, [hasMore, isLoading, messages, fetchMessages]);
+  // Manual refresh function for debugging
+  const manualRefresh = useCallback(async () => {
+    console.log('Manual refresh triggered');
+    queryClient.invalidateQueries({ 
+      queryKey: ['chat-messages', projectId],
+      refetchType: 'active'
+    });
+  }, [queryClient, projectId]);
+
+  // Test real-time connection
+  const testRealTime = useCallback(async () => {
+    console.log('Testing real-time connection...');
+    
+    // Create a test channel to check if real-time is working
+    const testChannel = supabase
+      .channel('test-channel')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'messages'
+      }, (payload) => {
+        console.log('Test real-time event received:', payload);
+      })
+      .subscribe((status) => {
+        console.log('Test channel status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Real-time is working!');
+        } else {
+          console.log('❌ Real-time subscription failed:', status);
+        }
+      });
+
+    // Clean up after 10 seconds
+    setTimeout(() => {
+      supabase.removeChannel(testChannel);
+      console.log('Test channel cleaned up');
+    }, 10000);
+  }, []);
 
   // Typing indicators
   const startTyping = useCallback(() => {
@@ -233,14 +324,13 @@ export function useProjectChat(
 
   // Set up real-time subscriptions
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !projectId || !currentUserId) return;
 
+    console.log('Setting up real-time subscriptions for project:', projectId);
     let mounted = true;
 
-    // Initialize data
-    fetchMessages();
-    fetchOnlineMembers();
-    updatePresence(true);
+    // Initialize presence
+    updatePresenceMutation.mutate(true);
 
     // Set up message subscription
     const messageChannel = supabase
@@ -255,22 +345,12 @@ export function useProjectChat(
         },
         (payload) => {
           if (!mounted) return;
-          
-          const newMessage = payload.new as any;
-          const transformedMessage: ChatMessage = {
-            id: newMessage.id,
-            projectId: newMessage.project_id,
-            userId: newMessage.user_id,
-            content: newMessage.content,
-            messageType: newMessage.message_type,
-            createdAt: new Date(newMessage.created_at),
-            updatedAt: new Date(newMessage.updated_at),
-            replyTo: newMessage.reply_to,
-            isEdited: newMessage.is_edited,
-            editedAt: newMessage.edited_at ? new Date(newMessage.edited_at) : null
-          };
-
-          setMessages(prev => [transformedMessage, ...prev]);
+          console.log('Real-time INSERT event received:', payload);
+          // Immediately invalidate and refetch for new messages
+          queryClient.invalidateQueries({ 
+            queryKey: ['chat-messages', projectId],
+            refetchType: 'active'
+          });
         }
       )
       .on(
@@ -283,19 +363,12 @@ export function useProjectChat(
         },
         (payload) => {
           if (!mounted) return;
-          
-          const updatedMessage = payload.new as any;
-          setMessages(prev => prev.map(msg => 
-            msg.id === updatedMessage.id 
-              ? {
-                  ...msg,
-                  content: updatedMessage.content,
-                  isEdited: updatedMessage.is_edited,
-                  editedAt: updatedMessage.edited_at ? new Date(updatedMessage.edited_at) : null,
-                  updatedAt: new Date(updatedMessage.updated_at)
-                }
-              : msg
-          ));
+          console.log('Real-time UPDATE event received:', payload);
+          // Immediately invalidate and refetch for message updates
+          queryClient.invalidateQueries({ 
+            queryKey: ['chat-messages', projectId],
+            refetchType: 'active'
+          });
         }
       )
       .on(
@@ -308,12 +381,16 @@ export function useProjectChat(
         },
         (payload) => {
           if (!mounted) return;
-          
-          const deletedMessage = payload.old as any;
-          setMessages(prev => prev.filter(msg => msg.id !== deletedMessage.id));
+          console.log('Real-time DELETE event received:', payload);
+          // Immediately invalidate and refetch for message deletions
+          queryClient.invalidateQueries({ 
+            queryKey: ['chat-messages', projectId],
+            refetchType: 'active'
+          });
         }
       )
       .subscribe((status) => {
+        console.log('Message channel status:', status);
         setIsConnected(status === 'SUBSCRIBED');
       });
 
@@ -330,14 +407,18 @@ export function useProjectChat(
           table: 'user_presence',
           filter: `project_id=eq.${projectId}`
         },
-        () => {
+        (payload) => {
           if (!mounted) return;
-          // Refetch online members when presence changes
-          fetchOnlineMembers();
+          console.log('Real-time presence event received:', payload);
+          queryClient.invalidateQueries({ 
+            queryKey: ['chat-presence', projectId],
+            refetchType: 'active'
+          });
         }
       )
       .on('broadcast', { event: 'typing_start' }, ({ payload }) => {
         if (!mounted || payload.userId === currentUserId) return;
+        console.log('Typing start:', payload);
         
         setIsTyping(prev => {
           if (!prev.includes(payload.userId)) {
@@ -348,17 +429,20 @@ export function useProjectChat(
       })
       .on('broadcast', { event: 'typing_stop' }, ({ payload }) => {
         if (!mounted || payload.userId === currentUserId) return;
+        console.log('Typing stop:', payload);
         
         setIsTyping(prev => prev.filter(id => id !== payload.userId));
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Presence channel status:', status);
+      });
 
     presenceChannelRef.current = presenceChannel;
 
     // Update presence periodically
     const presenceInterval = setInterval(() => {
       if (mounted) {
-        updatePresence(true);
+        updatePresenceMutation.mutate(true);
       }
     }, 30000); // Every 30 seconds
 
@@ -375,7 +459,7 @@ export function useProjectChat(
       clearInterval(presenceInterval);
       
       // Set user offline
-      updatePresence(false);
+      updatePresenceMutation.mutate(false);
       
       // Unsubscribe from channels
       if (messageChannelRef.current) {
@@ -385,24 +469,29 @@ export function useProjectChat(
         supabase.removeChannel(presenceChannelRef.current);
       }
     };
-  }, [projectId, currentUserId, enabled, fetchMessages, fetchOnlineMembers, updatePresence]);
+  }, [projectId, currentUserId, enabled]);
 
   // Handle page visibility change
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !projectId) return;
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        updatePresence(false);
+        updatePresenceMutation.mutate(false);
       } else {
-        updatePresence(true);
-        fetchOnlineMembers();
+        updatePresenceMutation.mutate(true);
+        setTimeout(() => {
+          queryClient.invalidateQueries({ 
+            queryKey: ['chat-presence', projectId],
+            refetchType: 'active'
+          });
+        }, 200);
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [enabled, updatePresence, fetchOnlineMembers]);
+  }, [enabled, projectId]);
 
   return {
     messages,
@@ -411,12 +500,15 @@ export function useProjectChat(
     deleteMessage,
     loadMoreMessages,
     onlineMembers,
-    isLoading,
+    isLoading: isLoadingMessages,
     isConnected,
     hasMore,
     error,
     startTyping,
     stopTyping,
-    isTyping
+    isTyping,
+    // Debug functions
+    manualRefresh,
+    testRealTime,
   };
 } 

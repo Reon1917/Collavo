@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
+
 import { Send, X, Loader2, Wifi, WifiOff, ChevronDown } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { useProjectChat } from '@/hooks/useProjectChat';
@@ -46,7 +46,7 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
     error,
     startTyping,
     stopTyping,
-    isTyping
+    isTyping,
   } = useProjectChat(projectId, session?.user?.id || '', { enabled: !!session?.user?.id });
 
   // Auto-scroll to bottom when new messages arrive (but only if user is at bottom)

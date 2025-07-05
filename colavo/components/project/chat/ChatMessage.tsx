@@ -81,156 +81,160 @@ export function ChatMessage({
   return (
     <div 
       className={cn(
-        "flex gap-3 p-3 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors group",
+        "px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 group transition-colors",
         className
       )}
     >
-      {/* Avatar */}
-      <Avatar className="h-8 w-8 flex-shrink-0">
-        <AvatarImage src={userAvatar || undefined} alt={userName} />
-        <AvatarFallback className="text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-          {userName.charAt(0).toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
+      <div className="flex gap-3">
+        {/* Avatar */}
+        <Avatar className="h-9 w-9 flex-shrink-0 mt-0.5">
+          <AvatarImage src={userAvatar || undefined} alt={userName} />
+          <AvatarFallback className="text-sm font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+            {userName.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
 
-      {/* Message Content */}
-      <div className="flex-1 min-w-0">
-        {/* Header */}
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {userName}
-          </span>
-          {isCurrentUser && (
-            <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
-              You
-            </Badge>
+        {/* Message Content */}
+        <div className="flex-1 min-w-0">
+          {/* Username Line */}
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+              {userName}
+            </span>
+            {isCurrentUser && (
+              <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-4">
+                You
+              </Badge>
+            )}
+            {message.isEdited && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-4">
+                      edited
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {message.editedAt ? format(message.editedAt, 'PPpp') : 'Edited'}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
+
+          {/* Reply to previous message */}
+          {message.replyTo && message.parentMessage && (
+            <div className="mb-2 p-2 border-l-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 rounded-r text-sm">
+              <div className="text-xs mb-1 text-gray-500 dark:text-gray-400">
+                Replying to {message.parentMessage.userId === currentUserId ? 'yourself' : 'someone'}
+              </div>
+              <div className="truncate text-gray-700 dark:text-gray-300">
+                {message.parentMessage.content}
+              </div>
+            </div>
           )}
+
+          {/* Message Content Line */}
+          {isEditing ? (
+            <div className="space-y-2 mb-1">
+              <Input
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder="Edit message..."
+                disabled={isSubmitting}
+                className="text-sm"
+              />
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={handleEditSubmit}
+                  disabled={isSubmitting || editContent.trim() === ''}
+                  className="h-7 px-3 text-xs"
+                >
+                  <Check className="h-3 w-3 mr-1" />
+                  Save
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleEditCancel}
+                  disabled={isSubmitting}
+                  className="h-7 px-3 text-xs"
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-900 dark:text-gray-100 break-words mb-1 leading-relaxed">
+              {message.content}
+            </div>
+          )}
+
+          {/* Timestamp Line */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
+                <div className="text-xs text-gray-500 dark:text-gray-400 cursor-default">
                   {formatDistanceToNow(message.createdAt, { addSuffix: true })}
-                </span>
+                </div>
               </TooltipTrigger>
               <TooltipContent>
                 {format(message.createdAt, 'PPpp')}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          {message.isEdited && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge variant="outline" className="text-xs px-1.5 py-0.5">
-                    edited
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {message.editedAt ? format(message.editedAt, 'PPpp') : 'Edited'}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+
+          {/* System message styling */}
+          {message.messageType === 'system' && (
+            <div className="text-xs italic text-gray-500 dark:text-gray-400 mt-1">
+              System message
+            </div>
           )}
         </div>
 
-        {/* Reply to previous message */}
-        {message.replyTo && message.parentMessage && (
-          <div className="mb-2 p-2 border-l-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 rounded-r text-sm">
-            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-              Replying to {message.parentMessage.userId === currentUserId ? 'yourself' : 'someone'}
-            </div>
-            <div className="text-gray-700 dark:text-gray-300 truncate">
-              {message.parentMessage.content}
-            </div>
-          </div>
-        )}
-
-        {/* Message Content */}
-        {isEditing ? (
-          <div className="space-y-2">
-            <Input
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              onKeyDown={handleKeyPress}
-              placeholder="Edit message..."
-              disabled={isSubmitting}
-              className="text-sm"
-            />
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                onClick={handleEditSubmit}
-                disabled={isSubmitting || editContent.trim() === ''}
-                className="h-7 px-3 text-xs"
-              >
-                <Check className="h-3 w-3 mr-1" />
-                Save
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleEditCancel}
-                disabled={isSubmitting}
-                className="h-7 px-3 text-xs"
-              >
-                <X className="h-3 w-3 mr-1" />
-                Cancel
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="text-sm text-gray-900 dark:text-gray-100 break-words">
-            {message.content}
-          </div>
-        )}
-
-        {/* System message styling */}
-        {message.messageType === 'system' && (
-          <div className="text-xs text-gray-500 dark:text-gray-400 italic mt-1">
-            System message
+        {/* Message Actions */}
+        {!isEditing && (
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-start pt-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                >
+                  <MoreHorizontal className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                {onReply && (
+                  <DropdownMenuItem onClick={() => onReply(message)}>
+                    <Reply className="h-4 w-4 mr-2" />
+                    Reply
+                  </DropdownMenuItem>
+                )}
+                {isCurrentUser && onEdit && (
+                  <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                    <Edit2 className="h-4 w-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                )}
+                {isCurrentUser && onDelete && (
+                  <DropdownMenuItem 
+                    onClick={handleDelete}
+                    className="text-red-600 dark:text-red-400"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
       </div>
-
-      {/* Message Actions */}
-      {!isEditing && (
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 w-7 p-0"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              {onReply && (
-                <DropdownMenuItem onClick={() => onReply(message)}>
-                  <Reply className="h-4 w-4 mr-2" />
-                  Reply
-                </DropdownMenuItem>
-              )}
-              {isCurrentUser && onEdit && (
-                <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                  <Edit2 className="h-4 w-4 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-              )}
-              {isCurrentUser && onDelete && (
-                <DropdownMenuItem 
-                  onClick={handleDelete}
-                  className="text-red-600 dark:text-red-400"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
     </div>
   );
 } 

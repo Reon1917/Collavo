@@ -4,8 +4,8 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 import { checkProjectAccess } from '@/lib/auth-helpers';
 import { db } from '@/db';
 import { user } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { ChatMessage, CreateChatMessageData, MessagePaginationOptions } from '@/types';
+import { eq, inArray } from 'drizzle-orm';
+import { ChatMessage, CreateChatMessageData } from '@/types';
 
 // GET /api/projects/[id]/chat - Get chat messages with pagination
 export async function GET(
@@ -48,7 +48,7 @@ export async function GET(
       .from('messages')
       .select('*')
       .eq('project_id', projectId)
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: true })
       .limit(limit);
 
     if (before) {
@@ -76,7 +76,7 @@ export async function GET(
         image: user.image
       })
       .from(user)
-      .where(eq(user.id, userIds[0])) : []; // This is a simplified approach for now
+      .where(inArray(user.id, userIds)) : [];
 
     // Create a user map for efficient lookup
     const userMap = new Map(users.map(u => [u.id, u]));
@@ -99,8 +99,7 @@ export async function GET(
       };
     }) || [];
 
-    // Sort messages by creation date (newest first for UI)
-    transformedMessages.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    // Messages are already sorted by created_at ASC from database
 
     return NextResponse.json({
       messages: transformedMessages,
