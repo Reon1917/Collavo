@@ -279,7 +279,7 @@ export function useProjectChat(
 
   // Typing indicators
   const startTyping = useCallback(() => {
-    if (!enabled) return;
+    if (!enabled || !currentUserId || !projectId) return;
 
     // Clear existing timeout
     if (typingTimeoutRef.current) {
@@ -303,7 +303,7 @@ export function useProjectChat(
   }, [currentUserId, projectId, enabled]);
 
   const stopTyping = useCallback(() => {
-    if (!enabled) return;
+    if (!enabled || !currentUserId || !projectId) return;
 
     // Clear timeout
     if (typingTimeoutRef.current) {
@@ -418,7 +418,6 @@ export function useProjectChat(
       )
       .on('broadcast', { event: 'typing_start' }, ({ payload }) => {
         if (!mounted || payload.userId === currentUserId) return;
-        console.log('Typing start:', payload);
         
         setIsTyping(prev => {
           if (!prev.includes(payload.userId)) {
@@ -429,7 +428,6 @@ export function useProjectChat(
       })
       .on('broadcast', { event: 'typing_stop' }, ({ payload }) => {
         if (!mounted || payload.userId === currentUserId) return;
-        console.log('Typing stop:', payload);
         
         setIsTyping(prev => prev.filter(id => id !== payload.userId));
       })
@@ -469,7 +467,7 @@ export function useProjectChat(
         supabase.removeChannel(presenceChannelRef.current);
       }
     };
-  }, [projectId, currentUserId, enabled]);
+  }, [projectId, currentUserId, enabled, updatePresenceMutation.mutate]);
 
   // Handle page visibility change
   useEffect(() => {

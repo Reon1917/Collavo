@@ -85,24 +85,43 @@ export function ChatMessage({
         className
       )}
     >
-      <div className="flex gap-3">
+      <div className={cn(
+        "flex gap-3 max-w-[85%]",
+        isCurrentUser ? "ml-auto flex-row-reverse" : "mr-auto"
+      )}>
         {/* Avatar */}
         <Avatar className="h-9 w-9 flex-shrink-0 mt-0.5">
           <AvatarImage src={userAvatar || undefined} alt={userName} />
-          <AvatarFallback className="text-sm font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+          <AvatarFallback className={cn(
+            "text-sm font-medium",
+            isCurrentUser 
+              ? "bg-blue-600 text-white" 
+              : "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200"
+          )}>
             {userName.charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
 
         {/* Message Content */}
-        <div className="flex-1 min-w-0">
+        <div className={cn(
+          "flex-1 min-w-0 rounded-2xl px-4 py-3 shadow-sm",
+          isCurrentUser
+            ? "bg-blue-600 text-white"
+            : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+        )}>
           {/* Username Line */}
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+          <div className={cn(
+            "flex items-center gap-2 mb-1",
+            isCurrentUser ? "flex-row-reverse" : ""
+          )}>
+            <span className={cn(
+              "text-sm font-semibold",
+              isCurrentUser ? "text-blue-100" : "text-gray-900 dark:text-gray-100"
+            )}>
               {userName}
             </span>
             {isCurrentUser && (
-              <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-4">
+              <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-4 bg-blue-500 text-white border-blue-400">
                 You
               </Badge>
             )}
@@ -110,7 +129,12 @@ export function ChatMessage({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-4">
+                    <Badge variant="outline" className={cn(
+                      "text-xs px-1.5 py-0.5 h-4",
+                      isCurrentUser 
+                        ? "border-blue-400 text-blue-200" 
+                        : "border-gray-300 text-gray-600 dark:border-gray-600 dark:text-gray-400"
+                    )}>
                       edited
                     </Badge>
                   </TooltipTrigger>
@@ -124,11 +148,22 @@ export function ChatMessage({
 
           {/* Reply to previous message */}
           {message.replyTo && message.parentMessage && (
-            <div className="mb-2 p-2 border-l-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 rounded-r text-sm">
-              <div className="text-xs mb-1 text-gray-500 dark:text-gray-400">
+            <div className={cn(
+              "mb-2 p-2 border-l-2 rounded-r text-sm",
+              isCurrentUser
+                ? "border-blue-300 bg-blue-500/20"
+                : "border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700"
+            )}>
+              <div className={cn(
+                "text-xs mb-1",
+                isCurrentUser ? "text-blue-200" : "text-gray-500 dark:text-gray-400"
+              )}>
                 Replying to {message.parentMessage.userId === currentUserId ? 'yourself' : 'someone'}
               </div>
-              <div className="truncate text-gray-700 dark:text-gray-300">
+              <div className={cn(
+                "truncate",
+                isCurrentUser ? "text-blue-100" : "text-gray-700 dark:text-gray-300"
+              )}>
                 {message.parentMessage.content}
               </div>
             </div>
@@ -145,7 +180,10 @@ export function ChatMessage({
                 disabled={isSubmitting}
                 className="text-sm"
               />
-              <div className="flex gap-2">
+              <div className={cn(
+                "flex gap-2",
+                isCurrentUser ? "flex-row-reverse" : ""
+              )}>
                 <Button
                   size="sm"
                   onClick={handleEditSubmit}
@@ -168,7 +206,10 @@ export function ChatMessage({
               </div>
             </div>
           ) : (
-            <div className="text-sm text-gray-900 dark:text-gray-100 break-words mb-1 leading-relaxed">
+            <div className={cn(
+              "text-sm break-words mb-1 leading-relaxed",
+              isCurrentUser ? "text-white" : "text-gray-900 dark:text-gray-100"
+            )}>
               {message.content}
             </div>
           )}
@@ -177,7 +218,10 @@ export function ChatMessage({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="text-xs text-gray-500 dark:text-gray-400 cursor-default">
+                <div className={cn(
+                  "text-xs cursor-default",
+                  isCurrentUser ? "text-blue-200" : "text-gray-500 dark:text-gray-400"
+                )}>
                   {formatDistanceToNow(message.createdAt, { addSuffix: true })}
                 </div>
               </TooltipTrigger>
@@ -189,7 +233,10 @@ export function ChatMessage({
 
           {/* System message styling */}
           {message.messageType === 'system' && (
-            <div className="text-xs italic text-gray-500 dark:text-gray-400 mt-1">
+            <div className={cn(
+              "text-xs italic mt-1",
+              isCurrentUser ? "text-blue-200" : "text-gray-500 dark:text-gray-400"
+            )}>
               System message
             </div>
           )}
@@ -197,7 +244,10 @@ export function ChatMessage({
 
         {/* Message Actions */}
         {!isEditing && (
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-start pt-1">
+          <div className={cn(
+            "opacity-0 group-hover:opacity-100 transition-opacity flex items-start pt-1",
+            isCurrentUser ? "order-first" : ""
+          )}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -208,7 +258,7 @@ export function ChatMessage({
                   <MoreHorizontal className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuContent align={isCurrentUser ? "start" : "end"} className="w-40">
                 {onReply && (
                   <DropdownMenuItem onClick={() => onReply(message)}>
                     <Reply className="h-4 w-4 mr-2" />
