@@ -21,6 +21,7 @@ import { EventDetailsDialog } from './dialogs/EventDetailsDialog';
 import { EventDeleteModal } from './dialogs/EventDeleteModal';
 import { EventNotificationModal } from './dialogs/EventNotificationModal';
 import { Event, Project,formatEventDateTime } from '../types';
+import { useHasActiveEventNotification } from '@/hooks/useEventNotifications';
 
 interface EventCardProps {
   event: Event;
@@ -45,6 +46,13 @@ export function EventCard({
   const eventDate = new Date(event.datetime);
   const now = new Date();
   const isUpcoming = isAfter(eventDate, now);
+  
+  // Check for existing event notifications
+  const { hasActiveNotification, notificationCount } = useHasActiveEventNotification(
+    project.id, 
+    event.id, 
+    isUpcoming // Only check for upcoming events
+  );
   const isPast = isBefore(eventDate, now);
   const isEventToday = isToday(eventDate);
   
@@ -183,12 +191,27 @@ export function EventCard({
 
           {/* Notification Setup */}
           {isUpcoming && (
-            <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg mb-4 border border-green-200 dark:border-green-800">
+            <div className={`flex items-center justify-between p-2 rounded-lg mb-4 border ${
+              hasActiveNotification 
+                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' 
+                : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+            }`}>
               <div className="flex items-center gap-2">
-                <Bell className="h-4 w-4 text-green-600" />
-                <span className="text-sm text-green-800 dark:text-green-200 font-medium">
-                  Email Reminder
+                <Bell className={`h-4 w-4 ${
+                  hasActiveNotification ? 'text-blue-600' : 'text-green-600'
+                }`} />
+                <span className={`text-sm font-medium ${
+                  hasActiveNotification 
+                    ? 'text-blue-800 dark:text-blue-200' 
+                    : 'text-green-800 dark:text-green-200'
+                }`}>
+                  {hasActiveNotification ? 'Email Reminder Active' : 'Email Reminder'}
                 </span>
+                {hasActiveNotification && notificationCount > 1 && (
+                  <span className="text-xs bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200 px-1.5 py-0.5 rounded-full">
+                    {notificationCount}
+                  </span>
+                )}
               </div>
               <Button
                 variant="ghost"
@@ -197,9 +220,13 @@ export function EventCard({
                   e.stopPropagation();
                   setShowNotificationModal(true);
                 }}
-                className="h-7 px-2 text-xs hover:bg-green-100 dark:hover:bg-green-800/30 text-green-700 dark:text-green-300"
+                className={`h-7 px-2 text-xs ${
+                  hasActiveNotification 
+                    ? 'hover:bg-blue-100 dark:hover:bg-blue-800/30 text-blue-700 dark:text-blue-300' 
+                    : 'hover:bg-green-100 dark:hover:bg-green-800/30 text-green-700 dark:text-green-300'
+                }`}
               >
-                Setup
+                {hasActiveNotification ? 'Manage' : 'Setup'}
               </Button>
             </div>
           )}

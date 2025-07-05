@@ -228,4 +228,37 @@ export async function updateNotification(data: UpdateNotificationData, projectId
       error: error instanceof Error ? error.message : 'Failed to update notification',
     };
   }
+}
+
+/**
+ * Get event notifications
+ */
+export async function getEventNotifications(eventId: string, projectId: string) {
+  try {
+    const session = await auth.api.getSession({
+      headers: await import('next/headers').then(mod => mod.headers()),
+    });
+
+    if (!session?.user) {
+      throw new Error('Authentication required');
+    }
+
+    // Check project access
+    const access = await checkProjectAccess(projectId, session.user.id);
+    if (!access.hasAccess) {
+      throw new Error('Access denied to project');
+    }
+
+    const notifications = await NotificationService.getEventNotifications(eventId);
+
+    return {
+      success: true,
+      notifications,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch notifications',
+    };
+  }
 } 
