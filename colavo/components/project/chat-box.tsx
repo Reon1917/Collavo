@@ -69,9 +69,32 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
   // Handle click outside to close chat box
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (chatBoxRef.current && !chatBoxRef.current.contains(event.target as Node)) {
-        onClose();
+      const target = event.target as Element;
+      
+      // Don't close if clicking inside the chat box
+      if (chatBoxRef.current && chatBoxRef.current.contains(target)) {
+        return;
       }
+      
+      // Don't close if clicking on dropdown menus or other floating elements
+      // that might be related to the chat interface
+      if (target.closest('[data-radix-collection-item]') || 
+          target.closest('[data-radix-dropdown-menu-content]') ||
+          target.closest('[data-radix-popper-content-wrapper]') ||
+          target.closest('[role="menu"]') ||
+          target.closest('[role="menuitem"]') ||
+          target.closest('.radix-dropdown-menu') ||
+          target.closest('[data-state="open"]')) {
+        return;
+      }
+
+      // Don't close if clicking on tooltip content
+      if (target.closest('[data-radix-tooltip-content]')) {
+        return;
+      }
+
+      // Close the chat box
+      onClose();
     };
 
     document.addEventListener('mousedown', handleClickOutside);

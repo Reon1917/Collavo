@@ -37,16 +37,16 @@ export async function GET(
 
     const supabase = createServerSupabaseClient();
     
-    // Get all presence records for this project
-    // Consider users online if they were active in the last 5 minutes
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    // Get all presence records for this project  
+    // Consider users online if they were active in the last 2 minutes (more responsive)
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
     
     const { data: presenceData, error } = await supabase
       .from('user_presence')
       .select('*')
       .eq('project_id', projectId)
       .eq('is_online', true)
-      .gte('last_seen', fiveMinutesAgo.toISOString());
+      .gte('last_seen', twoMinutesAgo.toISOString());
 
     if (error) {
       console.error('Error fetching presence data:', error);

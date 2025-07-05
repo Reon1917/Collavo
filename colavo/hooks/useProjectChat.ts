@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { ChatMessage, UserPresence, CreateChatMessageData } from '@/types';
 import { toast } from 'sonner';
+import { useUserActivity } from './useUserActivity';
 
 interface UseChatOptions {
   enabled?: boolean;
@@ -41,6 +42,8 @@ export function useProjectChat(
   const messageChannelRef = useRef<any>(null);
   const presenceChannelRef = useRef<any>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastPresenceUpdateRef = useRef<Date | null>(null);
+  const presenceIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch messages with React Query
   const {
@@ -68,7 +71,7 @@ export function useProjectChat(
     refetchOnReconnect: true,
   });
 
-  // Fetch online members with React Query
+  // Fetch online members with React Query - more responsive settings
   const {
     data: onlineMembers = [],
     error: presenceError,
@@ -80,14 +83,15 @@ export function useProjectChat(
         throw new Error('Failed to fetch presence');
       }
       const data = await response.json();
+      console.log('👥 PRESENCE: Fetched online members:', data.onlineMembers?.length || 0);
       return data.onlineMembers || [];
     },
     enabled: enabled && !!projectId && !!currentUserId,
-    staleTime: 30000, // Consider data fresh for 30 seconds
-    refetchInterval: 30000, // Auto-refresh every 30 seconds
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
+    staleTime: 10000, // Consider data fresh for 10 seconds (more responsive)
+    refetchInterval: 20000, // Auto-refresh every 20 seconds
+    refetchOnWindowFocus: true, // Refresh when user comes back to tab
+    refetchOnMount: true,
+    refetchOnReconnect: true,
   });
 
   // Add polling as fallback for real-time updates
@@ -266,9 +270,11 @@ export function useProjectChat(
     },
   });
 
-  // Update presence mutation
+  // Update presence mutation with better error handling and cache updates
   const updatePresenceMutation = useMutation({
     mutationFn: async (isOnline: boolean = true) => {
+      console.log('🟢 PRESENCE: Updating presence to:', isOnline ? 'online' : 'offline');
+      
       const response = await fetch(`/api/projects/${projectId}/presence`, {
         method: isOnline ? 'POST' : 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -279,11 +285,46 @@ export function useProjectChat(
         throw new Error('Failed to update presence');
       }
 
-      return response.json();
+      const result = await response.json();
+      console.log('🟢 PRESENCE: Update successful:', result);
+      return result;
+    },
+    onSuccess: (data, isOnline) => {
+      // Immediately update the presence cache for instant UI feedback
+      if (isOnline && data) {
+        queryClient.setQueryData(['chat-presence', projectId], (old: UserPresence[] = []) => {
+          // Remove existing entry for current user and add updated one
+          const filtered = old.filter(member => member.userId !== currentUserId);
+          return [...filtered, data];
+        });
+      } else if (!isOnline) {
+        queryClient.setQueryData(['chat-presence', projectId], (old: UserPresence[] = []) => {
+          return old.filter(member => member.userId !== currentUserId);
+        });
+      }
     },
     onError: (error) => {
-      console.error('Failed to update presence:', error);
+      console.error('🔴 PRESENCE: Failed to update presence:', error);
     },
+  });
+
+  // Enhanced activity detection for real-time presence
+  const handleUserActivity = useCallback(() => {
+    const now = new Date();
+    const lastUpdate = lastPresenceUpdateRef.current;
+    
+    // Only update if more than 10 seconds have passed since last update
+    if (!lastUpdate || now.getTime() - lastUpdate.getTime() > 10000) {
+      console.log('🟢 ACTIVITY: User activity detected, updating presence');
+      lastPresenceUpdateRef.current = now;
+      updatePresenceMutation.mutate(true);
+    }
+  }, [updatePresenceMutation]);
+
+  // Use the activity detection hook
+  useUserActivity({
+    onActivity: handleUserActivity,
+    debounceMs: 1000, // Debounce activity detection by 1 second
   });
 
   // Wrapper functions for the mutations
@@ -594,24 +635,78 @@ export function useProjectChat(
 
     messageChannelRef.current = messageChannel;
 
-    // Set up presence and typing subscription
+    // Set up presence and typing subscription with real-time cache updates
     const presenceChannel = supabase
       .channel(`project_${projectId}_presence`)
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
+          schema: 'public',
+          table: 'user_presence',
+          filter: `project_id=eq.${projectId}`
+        },
+        async (payload) => {
+          if (!mounted) return;
+          console.log('🟢 PRESENCE: User came online:', payload.new);
+          
+          // Directly update cache for immediate UI response
+          if (payload.new && payload.new.is_online) {
+            // Fetch user details for the new online user
+            try {
+              const response = await fetch(`/api/projects/${projectId}/presence`);
+              if (response.ok) {
+                const data = await response.json();
+                queryClient.setQueryData(['chat-presence', projectId], data.onlineMembers || []);
+              }
+            } catch (error) {
+              console.error('Failed to refresh presence data:', error);
+            }
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'user_presence',
+          filter: `project_id=eq.${projectId}`
+        },
+        async (payload) => {
+          if (!mounted) return;
+          console.log('🔄 PRESENCE: User presence updated:', payload.new);
+          
+          // Refresh presence data for updates
+          try {
+            const response = await fetch(`/api/projects/${projectId}/presence`);
+            if (response.ok) {
+              const data = await response.json();
+              queryClient.setQueryData(['chat-presence', projectId], data.onlineMembers || []);
+            }
+          } catch (error) {
+            console.error('Failed to refresh presence data:', error);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
           schema: 'public',
           table: 'user_presence',
           filter: `project_id=eq.${projectId}`
         },
         (payload) => {
           if (!mounted) return;
-          console.log('Real-time presence event received:', payload);
-          queryClient.invalidateQueries({ 
-            queryKey: ['chat-presence', projectId],
-            refetchType: 'active'
-          });
+          console.log('🔴 PRESENCE: User went offline:', payload.old);
+          
+          // Remove user from cache immediately
+          if (payload.old?.user_id) {
+            queryClient.setQueryData(['chat-presence', projectId], (old: UserPresence[] = []) => {
+              return old.filter(member => member.userId !== payload.old.user_id);
+            });
+          }
         }
       )
       .on('broadcast', { event: 'typing_start' }, ({ payload }) => {
@@ -652,12 +747,22 @@ export function useProjectChat(
 
     presenceChannelRef.current = presenceChannel;
 
-    // Update presence periodically
-    const presenceInterval = setInterval(() => {
+    // Set initial presence
+    updatePresenceMutation.mutate(true);
+
+    // Set up heartbeat interval for active users (every 15 seconds)
+    presenceIntervalRef.current = setInterval(() => {
       if (mounted) {
-        updatePresenceMutation.mutate(true);
+        const now = new Date();
+        const lastUpdate = lastPresenceUpdateRef.current;
+        
+        // Send heartbeat if user has been active in the last 2 minutes
+        if (lastUpdate && now.getTime() - lastUpdate.getTime() < 2 * 60 * 1000) {
+          console.log('💓 HEARTBEAT: Sending presence heartbeat');
+          updatePresenceMutation.mutate(true);
+        }
       }
-    }, 30000); // Every 30 seconds
+    }, 15000); // Every 15 seconds
 
     // Cleanup function
     return () => {
@@ -669,7 +774,9 @@ export function useProjectChat(
       }
       
       // Clear presence interval
-      clearInterval(presenceInterval);
+      if (presenceIntervalRef.current) {
+        clearInterval(presenceIntervalRef.current);
+      }
       
       // Set user offline
       updatePresenceMutation.mutate(false);
@@ -684,27 +791,38 @@ export function useProjectChat(
     };
   }, [projectId, currentUserId, enabled, updatePresenceMutation.mutate]);
 
-  // Handle page visibility change
+  // Handle page visibility and user going offline
   useEffect(() => {
     if (!enabled || !projectId) return;
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
+        console.log('📱 VISIBILITY: Page hidden, user going offline');
         updatePresenceMutation.mutate(false);
       } else {
+        console.log('📱 VISIBILITY: Page visible, user coming online');
+        lastPresenceUpdateRef.current = new Date();
         updatePresenceMutation.mutate(true);
-        setTimeout(() => {
-          queryClient.invalidateQueries({ 
-            queryKey: ['chat-presence', projectId],
-            refetchType: 'active'
-          });
-        }, 200);
       }
     };
 
+    const handleBeforeUnload = () => {
+      console.log('🚪 UNLOAD: User leaving page, going offline');
+      // Use sendBeacon for reliability when page is unloading
+      navigator.sendBeacon(
+        `/api/projects/${projectId}/presence`,
+        JSON.stringify({ isOnline: false })
+      );
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [enabled, projectId]);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [enabled, projectId, updatePresenceMutation]);
 
   return {
     messages,
