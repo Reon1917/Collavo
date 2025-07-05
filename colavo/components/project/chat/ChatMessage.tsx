@@ -82,6 +82,7 @@ export function ChatMessage({
     <div 
       className={cn(
         "px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 group transition-colors",
+        message.replyTo && "pt-0", // Remove top padding when there's a reply to show the reply header flush
         className
       )}
     >
@@ -164,11 +165,14 @@ export function ChatMessage({
 
             {/* Reply to previous message */}
             {message.replyTo && message.parentMessage && (
-              <div className="mb-2 p-2 border-l-2 rounded-r text-sm border-primary-foreground/30 bg-primary-foreground/10">
-                <div className="text-xs mb-1 text-primary-foreground/70">
-                  Replying to {message.parentMessage.userId === currentUserId ? 'yourself' : 'someone'}
+              <div className="mb-3 -mx-4 -mt-3 pt-2 pb-3 px-4 bg-blue-50/30 dark:bg-blue-900/10 border-b border-blue-200/30 dark:border-blue-800/30">
+                <div className="flex items-center gap-1 mb-2">
+                  <Reply className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                  <div className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                    {userName} replied to {message.parentMessage.userId === currentUserId ? 'yourself' : message.parentMessage.user?.name || 'someone'}
+                  </div>
                 </div>
-                <div className="truncate text-primary-foreground/90">
+                                  <div className="text-xs text-gray-600 dark:text-gray-300 bg-white/60 dark:bg-gray-800/60 p-2.5 rounded border-l-4 border-blue-400 dark:border-blue-500 italic leading-relaxed">
                   {message.parentMessage.content}
                 </div>
               </div>
@@ -269,13 +273,16 @@ export function ChatMessage({
                )}
              </div>
 
-             {/* Reply to previous message */}
+                          {/* Reply to previous message */}
              {message.replyTo && message.parentMessage && (
-               <div className="mb-2 p-2 border-l-2 rounded-r text-sm border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
-                 <div className="text-xs mb-1 text-gray-500 dark:text-gray-400">
-                   Replying to {message.parentMessage.userId === currentUserId ? 'yourself' : 'someone'}
+               <div className="mb-3 -mx-4 -mt-3 pt-2 pb-3 px-4 bg-blue-50/30 dark:bg-blue-900/10 border-b border-blue-200/30 dark:border-blue-800/30">
+                 <div className="flex items-center gap-1 mb-2">
+                   <Reply className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                   <div className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                     {userName} replied to {message.parentMessage.userId === currentUserId ? 'yourself' : message.parentMessage.user?.name || 'someone'}
+                   </div>
                  </div>
-                 <div className="truncate text-gray-700 dark:text-gray-300">
+                 <div className="text-xs text-gray-600 dark:text-gray-300 bg-white/60 dark:bg-gray-800/60 p-2.5 rounded border-l-4 border-blue-400 dark:border-blue-500 italic leading-relaxed">
                    {message.parentMessage.content}
                  </div>
                </div>

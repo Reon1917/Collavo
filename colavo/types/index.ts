@@ -259,7 +259,7 @@ export interface ChatMessage {
     name: string;
     image?: string | null;
   };
-  parentMessage?: Pick<ChatMessage, 'id' | 'content' | 'userId'>;
+  parentMessage?: Pick<ChatMessage, 'id' | 'content' | 'userId' | 'user'>;
 }
 
 /** Data for creating a new chat message */

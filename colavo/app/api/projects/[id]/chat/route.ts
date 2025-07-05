@@ -81,9 +81,43 @@ export async function GET(
     // Create a user map for efficient lookup
     const userMap = new Map(users.map(u => [u.id, u]));
 
-    // Transform messages and add user data
+    // Get parent messages for replies
+    const parentMessageIds = [...new Set(messages?.filter(m => m.reply_to).map(m => m.reply_to) || [])];
+    const parentMessages = parentMessageIds.length > 0 ? await supabase
+      .from('messages')
+      .select('*')
+      .in('id', parentMessageIds) : { data: [] };
+
+    // Get user details for parent messages
+    const parentUserIds = [...new Set(parentMessages.data?.map(m => m.user_id) || [])];
+    const parentUsers = parentUserIds.length > 0 ? await db
+      .select({
+        id: user.id,
+        name: user.name,
+        image: user.image
+      })
+      .from(user)
+      .where(inArray(user.id, parentUserIds)) : [];
+
+    // Create parent user map
+    const parentUserMap = new Map(parentUsers.map(u => [u.id, u]));
+    
+    // Create parent message map
+    const parentMessageMap = new Map(parentMessages.data?.map(msg => {
+      const userData = parentUserMap.get(msg.user_id);
+      return [msg.id, {
+        id: msg.id,
+        userId: msg.user_id,
+        content: msg.content,
+        ...(userData && { user: userData })
+      }];
+    }) || []);
+
+    // Transform messages and add user data + parent message data
     const transformedMessages: ChatMessage[] = messages?.map(msg => {
       const userData = userMap.get(msg.user_id);
+      const parentMessage = msg.reply_to ? parentMessageMap.get(msg.reply_to) : null;
+      
       return {
         id: msg.id,
         projectId: msg.project_id,
@@ -95,7 +129,8 @@ export async function GET(
         replyTo: msg.reply_to,
         isEdited: msg.is_edited,
         editedAt: msg.edited_at ? new Date(msg.edited_at) : null,
-        ...(userData && { user: userData })
+        ...(userData && { user: userData }),
+        ...(parentMessage && { parentMessage })
       };
     }) || [];
 
@@ -212,6 +247,36 @@ export async function POST(
       .where(eq(user.id, session.user.id))
       .limit(1);
 
+    // Get parent message data if this is a reply
+    let parentMessage = null;
+    if (message.reply_to) {
+      const { data: parentMessageData, error: parentError } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('id', message.reply_to)
+        .single();
+
+      if (parentMessageData && !parentError) {
+        // Get parent message user data
+        const parentUserData = await db
+          .select({
+            id: user.id,
+            name: user.name,
+            image: user.image
+          })
+          .from(user)
+          .where(eq(user.id, parentMessageData.user_id))
+          .limit(1);
+
+        parentMessage = {
+          id: parentMessageData.id,
+          userId: parentMessageData.user_id,
+          content: parentMessageData.content,
+          ...(parentUserData[0] && { user: parentUserData[0] })
+        };
+      }
+    }
+
     // Transform response
     const transformedMessage: ChatMessage = {
       id: message.id,
@@ -224,7 +289,8 @@ export async function POST(
       replyTo: message.reply_to,
       isEdited: message.is_edited,
       editedAt: message.edited_at ? new Date(message.edited_at) : null,
-      ...(userData[0] && { user: userData[0] })
+      ...(userData[0] && { user: userData[0] }),
+      ...(parentMessage && { parentMessage })
     };
 
     return NextResponse.json(transformedMessage, { status: 201 });

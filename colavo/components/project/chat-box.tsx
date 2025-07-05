@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-import { Send, X, Loader2, Wifi, WifiOff, ChevronDown } from 'lucide-react';
+import { Send, X, Loader2, Wifi, WifiOff, ChevronDown, Reply } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { useProjectChat } from '@/hooks/useProjectChat';
 import { ChatMessage } from './chat/ChatMessage';
@@ -149,6 +149,7 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
     if (!inputValue.trim() || !session?.user?.id) return;
 
     try {
+      console.log('💬 SEND: Sending message with reply to:', replyingTo?.id);
       await sendMessage(inputValue.trim(), replyingTo?.id);
       setInputValue('');
       setReplyingTo(null);
@@ -188,6 +189,7 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
 
   // Handle message replies
   const handleReply = (message: ChatMessageType) => {
+    console.log('💬 REPLY: Setting reply to message:', message);
     setReplyingTo(message);
     inputRef.current?.focus();
   };
@@ -375,13 +377,16 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
 
       {/* Reply indicator */}
       {replyingTo && (
-        <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-          <div className="flex items-center justify-between">
+        <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-500">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                Replying to {replyingTo.user?.name || 'Unknown User'}
+              <div className="flex items-center gap-2 mb-1">
+                <Reply className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                <div className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                  Replying to {replyingTo.user?.name || 'Unknown User'}
+                </div>
               </div>
-              <div className="text-sm text-gray-700 dark:text-gray-300 truncate">
+              <div className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2 bg-white dark:bg-gray-800 p-2 rounded border-l-2 border-l-gray-300 dark:border-l-gray-600">
                 {replyingTo.content}
               </div>
             </div>
@@ -389,7 +394,7 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
               variant="ghost"
               size="sm"
               onClick={() => setReplyingTo(null)}
-              className="h-6 w-6 p-0 flex-shrink-0"
+              className="h-6 w-6 p-0 flex-shrink-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
               <X className="h-3 w-3" />
             </Button>
