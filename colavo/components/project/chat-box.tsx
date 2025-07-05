@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -32,22 +32,32 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Use our custom chat hook
+  // Get chat state
   const {
     messages,
     sendMessage,
     updateMessage,
     deleteMessage,
-    loadMoreMessages,
     onlineMembers,
     isLoading,
+    error,
     isConnected,
     hasMore,
-    error,
+    loadMoreMessages,
     startTyping,
     stopTyping,
     isTyping,
   } = useProjectChat(projectId, session?.user?.id || '', { enabled: !!session?.user?.id });
+
+  // Debug current typing state
+  useEffect(() => {
+    console.log('⌨️ CHAT: Current typing state:', isTyping);
+  }, [isTyping]);
+
+  // Debug online members
+  useEffect(() => {
+    console.log('👥 CHAT: Online members:', onlineMembers);
+  }, [onlineMembers]);
 
   // Auto-scroll to bottom when new messages arrive (but only if user is at bottom)
   useEffect(() => {
@@ -87,9 +97,13 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
     const value = e.target.value;
     setInputValue(value);
 
+    console.log('⌨️ CHAT: Input changed, value length:', value.trim().length);
+    
     if (value.trim().length > 0) {
+      console.log('⌨️ CHAT: Calling startTyping');
       startTyping();
     } else {
+      console.log('⌨️ CHAT: Calling stopTyping');
       stopTyping();
     }
   };
@@ -114,18 +128,20 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
     try {
       await updateMessage(messageId, content);
     } catch (error) {
-      toast.error('Failed to edit message');
+      // Error toast is already handled in the mutation
       throw error;
     }
   };
 
   // Handle message deletion
   const handleDelete = async (messageId: string) => {
+    console.log('🗑️ CHAT: handleDelete called with messageId:', messageId);
     try {
       await deleteMessage(messageId);
-      toast.success('Message deleted');
+      console.log('🗑️ CHAT: deleteMessage completed successfully');
     } catch (error) {
-      toast.error('Failed to delete message');
+      console.error('🗑️ CHAT: deleteMessage failed:', error);
+      // Error toast is already handled in the mutation
       throw error;
     }
   };

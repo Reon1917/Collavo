@@ -155,45 +155,117 @@ export function useProjectChat(
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update message');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update message');
       }
 
       return response.json();
     },
-    onSuccess: () => {
-      // Immediately update cache for message edits
+    onMutate: async ({ messageId, content }) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ['chat-messages', projectId] });
+
+      // Snapshot the previous value
+      const previousMessages = queryClient.getQueryData(['chat-messages', projectId]);
+
+      // Optimistically update the cache
+      queryClient.setQueryData(['chat-messages', projectId], (old: any) => {
+        if (!old) return old;
+        
+        return {
+          ...old,
+          messages: old.messages.map((msg: ChatMessage) => 
+            msg.id === messageId
+              ? { 
+                  ...msg, 
+                  content: content.trim(),
+                  isEdited: true,
+                  editedAt: new Date(),
+                  updatedAt: new Date()
+                }
+              : msg
+          )
+        };
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousMessages };
+    },
+    onError: (error, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousMessages) {
+        queryClient.setQueryData(['chat-messages', projectId], context.previousMessages);
+      }
+      toast.error(error.message);
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure we have the latest data
       queryClient.invalidateQueries({ 
         queryKey: ['chat-messages', projectId],
         refetchType: 'active'
       });
-    },
-    onError: (error) => {
-      toast.error(error.message);
     },
   });
 
   // Delete message mutation
   const deleteMessageMutation = useMutation({
     mutationFn: async (messageId: string) => {
+      console.log('🗑️ DELETE: Starting deletion for message:', messageId);
+      
       const response = await fetch(`/api/projects/${projectId}/chat/${messageId}`, {
         method: 'DELETE'
       });
 
+      console.log('🗑️ DELETE: Response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Failed to delete message');
+        const errorData = await response.json();
+        console.error('🗑️ DELETE: Error response:', errorData);
+        throw new Error(errorData.error || 'Failed to delete message');
       }
 
-      return response.json();
+      const result = await response.json();
+      console.log('🗑️ DELETE: Success response:', result);
+      return result;
+    },
+    onMutate: async (messageId) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ['chat-messages', projectId] });
+
+      // Snapshot the previous value
+      const previousMessages = queryClient.getQueryData(['chat-messages', projectId]);
+
+      // Optimistically remove the message from the cache
+      queryClient.setQueryData(['chat-messages', projectId], (old: any) => {
+        if (!old) return old;
+        
+        return {
+          ...old,
+          messages: old.messages.filter((msg: ChatMessage) => msg.id !== messageId)
+        };
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousMessages };
+    },
+    onError: (error, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousMessages) {
+        queryClient.setQueryData(['chat-messages', projectId], context.previousMessages);
+      }
+      console.error('🗑️ DELETE: Error callback triggered:', error);
+      toast.error(error.message);
     },
     onSuccess: () => {
-      // Immediately update cache for message deletions
+      console.log('🗑️ DELETE: Success callback triggered');
+      toast.success('Message deleted successfully');
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure we have the latest data
       queryClient.invalidateQueries({ 
         queryKey: ['chat-messages', projectId],
         refetchType: 'active'
       });
-    },
-    onError: (error) => {
-      toast.error(error.message);
     },
   });
 
@@ -227,10 +299,9 @@ export function useProjectChat(
   }, [updateMessageMutation]);
 
   const deleteMessage = useCallback(async (messageId: string) => {
+    console.log('🗑️ DELETE: deleteMessage called with:', messageId);
     await deleteMessageMutation.mutateAsync(messageId);
   }, [deleteMessageMutation]);
-
-
 
   // Load more messages (pagination) - placeholder for now
   const loadMoreMessages = useCallback(async () => {
@@ -279,15 +350,22 @@ export function useProjectChat(
 
   // Typing indicators
   const startTyping = useCallback(() => {
-    if (!enabled || !currentUserId || !projectId) return;
+    console.log('⌨️ TYPING: startTyping called', { enabled, currentUserId, projectId });
+    
+    if (!enabled || !currentUserId || !projectId) {
+      console.log('⌨️ TYPING: startTyping skipped - missing requirements');
+      return;
+    }
 
     // Clear existing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
+    console.log('⌨️ TYPING: Sending typing_start event');
+    
     // Send typing start event
-    presenceChannelRef.current?.send({
+    const result = presenceChannelRef.current?.send({
       type: 'broadcast',
       event: 'typing_start',
       payload: {
@@ -296,14 +374,22 @@ export function useProjectChat(
       }
     });
 
+    console.log('⌨️ TYPING: Send result:', result);
+
     // Auto-stop typing after 3 seconds
     typingTimeoutRef.current = setTimeout(() => {
+      console.log('⌨️ TYPING: Auto-stopping typing after 3 seconds');
       stopTyping();
     }, 3000);
   }, [currentUserId, projectId, enabled]);
 
   const stopTyping = useCallback(() => {
-    if (!enabled || !currentUserId || !projectId) return;
+    console.log('⌨️ TYPING: stopTyping called', { enabled, currentUserId, projectId });
+    
+    if (!enabled || !currentUserId || !projectId) {
+      console.log('⌨️ TYPING: stopTyping skipped - missing requirements');
+      return;
+    }
 
     // Clear timeout
     if (typingTimeoutRef.current) {
@@ -311,8 +397,10 @@ export function useProjectChat(
       typingTimeoutRef.current = null;
     }
 
+    console.log('⌨️ TYPING: Sending typing_stop event');
+    
     // Send typing stop event
-    presenceChannelRef.current?.send({
+    const result = presenceChannelRef.current?.send({
       type: 'broadcast',
       event: 'typing_stop',
       payload: {
@@ -320,6 +408,8 @@ export function useProjectChat(
         projectId
       }
     });
+
+    console.log('⌨️ TYPING: Send result:', result);
   }, [currentUserId, projectId, enabled]);
 
   // Set up real-time subscriptions
@@ -381,7 +471,7 @@ export function useProjectChat(
         },
         (payload) => {
           if (!mounted) return;
-          console.log('Real-time DELETE event received:', payload);
+          console.log('🗑️ DELETE: Real-time DELETE event received:', payload);
           // Immediately invalidate and refetch for message deletions
           queryClient.invalidateQueries({ 
             queryKey: ['chat-messages', projectId],
@@ -417,19 +507,36 @@ export function useProjectChat(
         }
       )
       .on('broadcast', { event: 'typing_start' }, ({ payload }) => {
-        if (!mounted || payload.userId === currentUserId) return;
+        console.log('⌨️ TYPING: typing_start event received:', payload);
+        if (!mounted || payload.userId === currentUserId) {
+          console.log('⌨️ TYPING: typing_start ignored - not mounted or own user');
+          return;
+        }
         
+        console.log('⌨️ TYPING: Adding user to typing list:', payload.userId);
         setIsTyping(prev => {
           if (!prev.includes(payload.userId)) {
-            return [...prev, payload.userId];
+            const newTyping = [...prev, payload.userId];
+            console.log('⌨️ TYPING: New typing list:', newTyping);
+            return newTyping;
           }
+          console.log('⌨️ TYPING: User already in typing list');
           return prev;
         });
       })
       .on('broadcast', { event: 'typing_stop' }, ({ payload }) => {
-        if (!mounted || payload.userId === currentUserId) return;
+        console.log('⌨️ TYPING: typing_stop event received:', payload);
+        if (!mounted || payload.userId === currentUserId) {
+          console.log('⌨️ TYPING: typing_stop ignored - not mounted or own user');
+          return;
+        }
         
-        setIsTyping(prev => prev.filter(id => id !== payload.userId));
+        console.log('⌨️ TYPING: Removing user from typing list:', payload.userId);
+        setIsTyping(prev => {
+          const newTyping = prev.filter(id => id !== payload.userId);
+          console.log('⌨️ TYPING: New typing list:', newTyping);
+          return newTyping;
+        });
       })
       .subscribe((status) => {
         console.log('Presence channel status:', status);

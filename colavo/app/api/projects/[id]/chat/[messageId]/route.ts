@@ -23,8 +23,8 @@ export async function PUT(
     const { id: projectId, messageId } = await params;
 
     // Check if user has access to this project
-    const hasAccess = await checkProjectAccess(projectId, session.user.id);
-    if (!hasAccess) {
+    const projectAccess = await checkProjectAccess(projectId, session.user.id);
+    if (!projectAccess.hasAccess) {
       return NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
@@ -113,8 +113,8 @@ export async function DELETE(
     const { id: projectId, messageId } = await params;
 
     // Check if user has access to this project
-    const hasAccess = await checkProjectAccess(projectId, session.user.id);
-    if (!hasAccess) {
+    const projectAccess = await checkProjectAccess(projectId, session.user.id);
+    if (!projectAccess.hasAccess) {
       return NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
