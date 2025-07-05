@@ -143,6 +143,7 @@ export default function ProjectLayout({
   params: Promise<{ id: string }>;
 }) {
   const [projectId, setProjectId] = useState<string>('');
+  const [projectName, setProjectName] = useState<string>('');
   
   // Initialize navigation loading
   useNavigationLoading();
@@ -152,6 +153,30 @@ export default function ProjectLayout({
       setProjectId(id);
     });
   }, [params]);
+
+  useEffect(() => {
+    const fetchProject = async () => {
+      if (!projectId) return;
+      
+      try {
+        const response = await fetch(`/api/projects/${projectId}`, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+        
+        if (response.ok) {
+          const projectData: Project = await response.json();
+          setProjectName(projectData.name);
+        }
+      } catch (error) {
+        console.error('Failed to fetch project:', error);
+      }
+    };
+
+    fetchProject();
+  }, [projectId]);
 
   if (!projectId) {
     return (
@@ -222,7 +247,10 @@ export default function ProjectLayout({
           {children}
         </div>
         
-        <ChatButton />
+        <ChatButton 
+          projectId={projectId}
+          projectName={projectName || `Project ${projectId}`}
+        />
       </div>
     </div>
   );

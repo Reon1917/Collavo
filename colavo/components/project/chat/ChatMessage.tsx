@@ -1,0 +1,236 @@
+'use client';
+
+import { useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
+import { ChatMessage as ChatMessageType } from '@/types';
+import { formatDistanceToNow, format } from 'date-fns';
+import { MoreHorizontal, Reply, Edit2, Trash2, Check, X } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+
+interface ChatMessageProps {
+  message: ChatMessageType;
+  currentUserId: string;
+  onReply?: (message: ChatMessageType) => void;
+  onEdit?: (messageId: string, content: string) => Promise<void>;
+  onDelete?: (messageId: string) => Promise<void>;
+  className?: string;
+}
+
+export function ChatMessage({
+  message,
+  currentUserId,
+  onReply,
+  onEdit,
+  onDelete,
+  className
+}: ChatMessageProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(message.content);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isCurrentUser = message.userId === currentUserId;
+  const userName = message.user?.name || 'Unknown User';
+  const userAvatar = message.user?.image;
+
+  const handleEditSubmit = async () => {
+    if (!onEdit || editContent.trim() === message.content.trim()) {
+      setIsEditing(false);
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await onEdit(message.id, editContent.trim());
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to edit message:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditContent(message.content);
+    setIsEditing(false);
+  };
+
+  const handleDelete = async () => {
+    if (!onDelete) return;
+    
+    try {
+      await onDelete(message.id);
+    } catch (error) {
+      console.error('Failed to delete message:', error);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleEditSubmit();
+    } else if (e.key === 'Escape') {
+      handleEditCancel();
+    }
+  };
+
+  return (
+    <div 
+      className={cn(
+        "flex gap-3 p-3 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors group",
+        className
+      )}
+    >
+      {/* Avatar */}
+      <Avatar className="h-8 w-8 flex-shrink-0">
+        <AvatarImage src={userAvatar || undefined} alt={userName} />
+        <AvatarFallback className="text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+          {userName.charAt(0).toUpperCase()}
+        </AvatarFallback>
+      </Avatar>
+
+      {/* Message Content */}
+      <div className="flex-1 min-w-0">
+        {/* Header */}
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            {userName}
+          </span>
+          {isCurrentUser && (
+            <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
+              You
+            </Badge>
+          )}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {formatDistanceToNow(message.createdAt, { addSuffix: true })}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                {format(message.createdAt, 'PPpp')}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          {message.isEdited && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="outline" className="text-xs px-1.5 py-0.5">
+                    edited
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {message.editedAt ? format(message.editedAt, 'PPpp') : 'Edited'}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
+
+        {/* Reply to previous message */}
+        {message.replyTo && message.parentMessage && (
+          <div className="mb-2 p-2 border-l-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 rounded-r text-sm">
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+              Replying to {message.parentMessage.userId === currentUserId ? 'yourself' : 'someone'}
+            </div>
+            <div className="text-gray-700 dark:text-gray-300 truncate">
+              {message.parentMessage.content}
+            </div>
+          </div>
+        )}
+
+        {/* Message Content */}
+        {isEditing ? (
+          <div className="space-y-2">
+            <Input
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              onKeyDown={handleKeyPress}
+              placeholder="Edit message..."
+              disabled={isSubmitting}
+              className="text-sm"
+            />
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                onClick={handleEditSubmit}
+                disabled={isSubmitting || editContent.trim() === ''}
+                className="h-7 px-3 text-xs"
+              >
+                <Check className="h-3 w-3 mr-1" />
+                Save
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleEditCancel}
+                disabled={isSubmitting}
+                className="h-7 px-3 text-xs"
+              >
+                <X className="h-3 w-3 mr-1" />
+                Cancel
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="text-sm text-gray-900 dark:text-gray-100 break-words">
+            {message.content}
+          </div>
+        )}
+
+        {/* System message styling */}
+        {message.messageType === 'system' && (
+          <div className="text-xs text-gray-500 dark:text-gray-400 italic mt-1">
+            System message
+          </div>
+        )}
+      </div>
+
+      {/* Message Actions */}
+      {!isEditing && (
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              {onReply && (
+                <DropdownMenuItem onClick={() => onReply(message)}>
+                  <Reply className="h-4 w-4 mr-2" />
+                  Reply
+                </DropdownMenuItem>
+              )}
+              {isCurrentUser && onEdit && (
+                <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+              )}
+              {isCurrentUser && onDelete && (
+                <DropdownMenuItem 
+                  onClick={handleDelete}
+                  className="text-red-600 dark:text-red-400"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
+    </div>
+  );
+} 
