@@ -183,14 +183,14 @@ export function ChatMessage({
                   onKeyDown={handleKeyPress}
                   placeholder="Edit message..."
                   disabled={isSubmitting}
-                  className="text-sm"
+                  className="text-sm bg-background text-foreground border-border"
                 />
                 <div className="flex gap-2">
                   <Button
                     size="sm"
                     onClick={handleEditSubmit}
                     disabled={isSubmitting || editContent.trim() === ''}
-                    className="h-7 px-3 text-xs"
+                    className="h-7 px-3 text-xs bg-background text-foreground hover:bg-background/80 border border-border"
                   >
                     <Check className="h-3 w-3 mr-1" />
                     Save
@@ -200,7 +200,7 @@ export function ChatMessage({
                     variant="outline"
                     onClick={handleEditCancel}
                     disabled={isSubmitting}
-                    className="h-7 px-3 text-xs"
+                    className="h-7 px-3 text-xs bg-background text-foreground hover:bg-background/80 border border-border"
                   >
                     <X className="h-3 w-3 mr-1" />
                     Cancel
@@ -290,14 +290,14 @@ export function ChatMessage({
                    onKeyDown={handleKeyPress}
                    placeholder="Edit message..."
                    disabled={isSubmitting}
-                   className="text-sm"
+                   className="text-sm bg-background text-foreground border-border"
                  />
                  <div className="flex gap-2">
                    <Button
                      size="sm"
                      onClick={handleEditSubmit}
                      disabled={isSubmitting || editContent.trim() === ''}
-                     className="h-7 px-3 text-xs"
+                     className="h-7 px-3 text-xs bg-background text-foreground hover:bg-background/80 border border-border"
                    >
                      <Check className="h-3 w-3 mr-1" />
                      Save
@@ -307,7 +307,7 @@ export function ChatMessage({
                      variant="outline"
                      onClick={handleEditCancel}
                      disabled={isSubmitting}
-                     className="h-7 px-3 text-xs"
+                     className="h-7 px-3 text-xs bg-background text-foreground hover:bg-background/80 border border-border"
                    >
                      <X className="h-3 w-3 mr-1" />
                      Cancel
