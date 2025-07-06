@@ -26,7 +26,6 @@ export async function GET(request: NextRequest) {
       .rpc('get_cleanup_stats');
 
     if (statsError) {
-      console.error('Error fetching cleanup stats:', statsError);
       return NextResponse.json(
         { error: 'Failed to fetch cleanup statistics' },
         { status: 500 }
@@ -39,7 +38,6 @@ export async function GET(request: NextRequest) {
       .select('*');
 
     if (historyError) {
-      console.error('Error fetching cleanup history:', historyError);
       return NextResponse.json(
         { error: 'Failed to fetch cleanup history' },
         { status: 500 }
@@ -52,7 +50,6 @@ export async function GET(request: NextRequest) {
       .select('*', { count: 'exact', head: true });
 
     if (countError) {
-      console.error('Error fetching message count:', countError);
       return NextResponse.json(
         { error: 'Failed to fetch message count' },
         { status: 500 }
@@ -69,7 +66,6 @@ export async function GET(request: NextRequest) {
       .lt('created_at', sevenDaysAgo.toISOString());
 
     if (oldCountError) {
-      console.error('Error fetching old message count:', oldCountError);
       return NextResponse.json(
         { error: 'Failed to fetch old message count' },
         { status: 500 }
@@ -89,8 +85,7 @@ export async function GET(request: NextRequest) {
       cleanup_threshold_days: 7
     });
 
-  } catch (error) {
-    console.error('Chat cleanup stats error:', error);
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -127,7 +122,6 @@ export async function POST(request: NextRequest) {
       .lt('created_at', sevenDaysAgo.toISOString());
 
     if (countError) {
-      console.error('Error counting messages to delete:', countError);
       return NextResponse.json(
         { error: 'Failed to count messages for deletion' },
         { status: 500 }
@@ -139,7 +133,6 @@ export async function POST(request: NextRequest) {
       .rpc('manual_cleanup_old_messages');
 
     if (cleanupError) {
-      console.error('Error during manual cleanup:', cleanupError);
       return NextResponse.json(
         { error: 'Failed to perform cleanup', details: cleanupError.message },
         { status: 500 }
@@ -156,8 +149,7 @@ export async function POST(request: NextRequest) {
       messages_found_for_deletion: messagesToDelete || 0
     });
 
-  } catch (error) {
-    console.error('Manual cleanup error:', error);
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -188,7 +180,6 @@ export async function DELETE(request: NextRequest) {
       .eq('jobname', 'cleanup-old-messages');
 
     if (error) {
-      console.error('Error removing cleanup schedule:', error);
       return NextResponse.json(
         { error: 'Failed to remove cleanup schedule' },
         { status: 500 }
@@ -200,8 +191,7 @@ export async function DELETE(request: NextRequest) {
       message: 'Cleanup schedule removed successfully'
     });
 
-  } catch (error) {
-    console.error('Remove cleanup schedule error:', error);
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

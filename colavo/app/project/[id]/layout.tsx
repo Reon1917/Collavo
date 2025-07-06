@@ -170,8 +170,8 @@ export default function ProjectLayout({
           const projectData: Project = await response.json();
           setProjectName(projectData.name);
         }
-      } catch (error) {
-        console.error('Failed to fetch project:', error);
+      } catch (_error) {
+        // Error is silently handled
       }
     };
 

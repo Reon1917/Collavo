@@ -56,8 +56,6 @@ export async function POST(request: NextRequest) {
       });
 
     } catch (error: any) {
-      console.error('Change password error:', error);
-      
       // Handle specific better-auth errors
       if (error.message?.includes('Invalid password') || 
           error.message?.includes('current password') ||
@@ -81,8 +79,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-  } catch (error: any) {
-    console.error('Change password API error:', error);
+  } catch (_error: any) {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -47,8 +47,8 @@ export function ChatMessage({
     try {
       await onEdit(message.id, editContent.trim());
       setIsEditing(false);
-    } catch (error) {
-      console.error('Failed to edit message:', error);
+    } catch (_error) {
+      // Error toast is already handled in the mutation
     } finally {
       setIsSubmitting(false);
     }
@@ -64,8 +64,8 @@ export function ChatMessage({
     
     try {
       await onDelete(message.id);
-    } catch (error) {
-      console.error('Failed to delete message:', error);
+    } catch (_error) {
+      // Error toast is already handled in the mutation
     }
   };
 
@@ -169,7 +169,12 @@ export function ChatMessage({
                 <div className="flex items-center gap-1 mb-2">
                   <Reply className="h-3 w-3 text-blue-600 dark:text-blue-400" />
                   <div className="text-xs font-medium text-blue-700 dark:text-blue-300">
-                    {message.parentMessage.userId === currentUserId ? 'replied to you' : `${userName} replied to ${message.parentMessage.user?.name || 'someone'}`}
+                    {message.parentMessage.userId === currentUserId 
+                      ? 'replied to you' 
+                      : isCurrentUser 
+                        ? `you replied to ${message.parentMessage.user?.name || 'someone'}`
+                        : `${userName} replied to ${message.parentMessage.user?.name || 'someone'}`
+                    }
                   </div>
                 </div>
                                   <div className="text-xs text-gray-600 dark:text-gray-300 bg-white/60 dark:bg-gray-800/60 p-2.5 rounded border-l-4 border-blue-400 dark:border-blue-500 italic leading-relaxed">
@@ -279,7 +284,12 @@ export function ChatMessage({
                  <div className="flex items-center gap-1 mb-2">
                    <Reply className="h-3 w-3 text-blue-600 dark:text-blue-400" />
                    <div className="text-xs font-medium text-blue-700 dark:text-blue-300">
-                     {message.parentMessage.userId === currentUserId ? 'replied to you' : `${userName} replied to ${message.parentMessage.user?.name || 'someone'}`}
+                     {message.parentMessage.userId === currentUserId 
+                       ? 'replied to you' 
+                       : isCurrentUser 
+                         ? `you replied to ${message.parentMessage.user?.name || 'someone'}`
+                         : `${userName} replied to ${message.parentMessage.user?.name || 'someone'}`
+                     }
                    </div>
                  </div>
                  <div className="text-xs text-gray-600 dark:text-gray-300 bg-white/60 dark:bg-gray-800/60 p-2.5 rounded border-l-4 border-blue-400 dark:border-blue-500 italic leading-relaxed">

@@ -60,7 +60,6 @@ export async function GET(
     const { data: messages, error } = await query;
 
     if (error) {
-      console.error('Error fetching messages:', error);
       return NextResponse.json(
         { error: 'Failed to fetch messages' },
         { status: 500 }
@@ -142,8 +141,7 @@ export async function GET(
       total: messages?.length || 0
     });
 
-  } catch (error) {
-    console.error('Chat messages fetch error:', error);
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -229,7 +227,6 @@ export async function POST(
       .single();
 
     if (error) {
-      console.error('Error creating message:', error);
       return NextResponse.json(
         { error: 'Failed to send message' },
         { status: 500 }
@@ -295,8 +292,7 @@ export async function POST(
 
     return NextResponse.json(transformedMessage, { status: 201 });
 
-  } catch (error) {
-    console.error('Chat message creation error:', error);
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

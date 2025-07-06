@@ -27,7 +27,6 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
   const [replyingTo, setReplyingTo] = useState<ChatMessageType | null>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
 
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -50,16 +49,6 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
     isTyping,
   } = useProjectChat(projectId, session?.user?.id || '', { enabled: !!session?.user?.id });
 
-  // Debug current typing state
-  useEffect(() => {
-    console.log('⌨️ CHAT: Current typing state:', isTyping);
-  }, [isTyping]);
-
-  // Debug online members
-  useEffect(() => {
-    console.log('👥 CHAT: Online members:', onlineMembers);
-  }, [onlineMembers]);
-
   // Auto-scroll to bottom when new messages arrive (but only if user is at bottom)
   useEffect(() => {
     if (isAtBottom && messagesEndRef.current) {
@@ -72,25 +61,14 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
       
-      console.log('🖱️ CHAT: Click outside handler triggered');
-      console.log('🖱️ CHAT: Target element:', target);
-      console.log('🖱️ CHAT: Target closest dropdown:', target.closest('[data-radix-dropdown-menu-content]'));
-      
       // Don't close if clicking inside the chat box
       if (chatBoxRef.current && chatBoxRef.current.contains(target)) {
-        console.log('🖱️ CHAT: Click inside chat box, not closing');
         return;
       }
       
       // Check for any open dropdowns in the DOM - focus on truly visible dropdown content
       const visibleDropdowns = document.querySelectorAll('[data-radix-dropdown-menu-content][data-state="open"], [data-slot="dropdown-menu-content"]:not([style*="display: none"])');
       const activeMenuItems = document.querySelectorAll('[role="menuitem"][data-radix-collection-item]');
-      
-      console.log('🖱️ CHAT: Visible dropdowns found:', visibleDropdowns.length);
-      console.log('🖱️ CHAT: Active menu items found:', activeMenuItems.length);
-      
-      if (visibleDropdowns.length > 0) console.log('🖱️ CHAT: Visible dropdowns:', visibleDropdowns);
-      if (activeMenuItems.length > 0) console.log('🖱️ CHAT: Active menu items:', activeMenuItems);
       
       // Don't close if clicking on dropdown content or any Radix UI portal content
       if (target.closest('[data-radix-dropdown-menu-content]') ||
@@ -101,13 +79,11 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
           target.closest('[data-slot="dropdown-menu-content"]') ||
           target.closest('[data-slot="dropdown-menu-item"]') ||
           target.closest('[data-radix-collection-item]')) {
-        console.log('🖱️ CHAT: Click on dropdown/portal content, not closing');
         return;
       }
       
       // If there are any dropdown menus visible, don't close
       if (visibleDropdowns.length > 0 || activeMenuItems.length > 0) {
-        console.log('🖱️ CHAT: Dropdown menus are open, not closing chat');
         return;
       }
       
@@ -117,14 +93,8 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
         const stillVisibleDropdowns = document.querySelectorAll('[data-radix-dropdown-menu-content][data-state="open"], [data-slot="dropdown-menu-content"]:not([style*="display: none"])');
         const stillActiveMenuItems = document.querySelectorAll('[role="menuitem"][data-radix-collection-item]');
         
-        console.log('🖱️ CHAT: Visible dropdowns after delay:', stillVisibleDropdowns.length);
-        console.log('🖱️ CHAT: Active menu items after delay:', stillActiveMenuItems.length);
-        
         if (stillVisibleDropdowns.length === 0 && stillActiveMenuItems.length === 0) {
-          console.log('🖱️ CHAT: Closing chat box');
           onClose();
-        } else {
-          console.log('🖱️ CHAT: Dropdown still open, not closing');
         }
       }, 10);
     };
@@ -149,7 +119,6 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
     if (!inputValue.trim() || !session?.user?.id) return;
 
     try {
-      console.log('💬 SEND: Sending message with reply to:', replyingTo?.id);
       await sendMessage(inputValue.trim(), replyingTo?.id);
       setInputValue('');
       setReplyingTo(null);
@@ -157,8 +126,8 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
       
       // Focus back to input
       inputRef.current?.focus();
-    } catch (error) {
-      console.error('Failed to send message:', error);
+    } catch (_error) {
+      // Error toast is already handled in the mutation
     }
   };
 
@@ -166,14 +135,10 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInputValue(value);
-
-    console.log('⌨️ CHAT: Input changed, value length:', value.trim().length);
     
     if (value.trim().length > 0) {
-      console.log('⌨️ CHAT: Calling startTyping');
       startTyping();
     } else {
-      console.log('⌨️ CHAT: Calling stopTyping');
       stopTyping();
     }
   };
@@ -189,7 +154,6 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
 
   // Handle message replies
   const handleReply = (message: ChatMessageType) => {
-    console.log('💬 REPLY: Setting reply to message:', message);
     setReplyingTo(message);
     inputRef.current?.focus();
   };
@@ -206,12 +170,9 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
 
   // Handle message deletion
   const handleDelete = async (messageId: string) => {
-    console.log('🗑️ CHAT: handleDelete called with messageId:', messageId);
     try {
       await deleteMessage(messageId);
-      console.log('🗑️ CHAT: deleteMessage completed successfully');
     } catch (error) {
-      console.error('🗑️ CHAT: deleteMessage failed:', error);
       // Error toast is already handled in the mutation
       throw error;
     }
@@ -294,8 +255,6 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
         )}
       </div>
 
-
-
       {/* Messages */}
       <div className="relative h-96">
         <ScrollArea 
@@ -339,15 +298,14 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
             ) : (
               <div className="space-y-1">
                 {messages.map((message) => (
-                                                            <ChatMessage
-                  key={message.id}
-                  message={message}
-                  currentUserId={session.user.id}
-                  onReply={handleReply}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-
-                />
+                  <ChatMessage
+                    key={message.id}
+                    message={message}
+                    currentUserId={session.user.id}
+                    onReply={handleReply}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
                 ))}
               </div>
             )}

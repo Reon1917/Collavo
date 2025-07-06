@@ -1,13 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { auth } from '@/lib/auth';
 import { checkProjectAccess } from '@/lib/auth-helpers';
 import { db } from '@/db';
 import { user } from '@/db/schema';
 import { eq, inArray } from 'drizzle-orm';
-import { UserPresence } from '@/types';
 
-// GET /api/projects/[id]/presence - Get online users for project
+// Types
+interface UserPresence {
+  id: string;
+  userId: string;
+  projectId: string;
+  lastSeen: Date;
+  isOnline: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  user?: {
+    id: string;
+    name: string;
+    image: string | null;
+  };
+}
+
+// GET /api/projects/[id]/presence - Get online users for a project
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -37,10 +52,8 @@ export async function GET(
 
     const supabase = createServerSupabaseClient();
     
-    // Get all presence records for this project  
-    // Consider users online if they were active in the last 2 minutes (more responsive)
+    // Get online users (last seen within 2 minutes)
     const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
-    
     const { data: presenceData, error } = await supabase
       .from('user_presence')
       .select('*')
@@ -49,7 +62,6 @@ export async function GET(
       .gte('last_seen', twoMinutesAgo.toISOString());
 
     if (error) {
-      console.error('Error fetching presence data:', error);
       return NextResponse.json(
         { error: 'Failed to fetch presence data' },
         { status: 500 }
@@ -90,8 +102,7 @@ export async function GET(
       count: transformedPresence.length
     });
 
-  } catch (error) {
-    console.error('Presence fetch error:', error);
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -147,7 +158,6 @@ export async function POST(
       .single();
 
     if (error) {
-      console.error('Error updating presence:', error);
       return NextResponse.json(
         { error: 'Failed to update presence' },
         { status: 500 }
@@ -179,8 +189,7 @@ export async function POST(
 
     return NextResponse.json(transformedPresence);
 
-  } catch (error) {
-    console.error('Presence update error:', error);
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -229,7 +238,6 @@ export async function DELETE(
       .eq('project_id', projectId);
 
     if (error) {
-      console.error('Error setting user offline:', error);
       return NextResponse.json(
         { error: 'Failed to update presence' },
         { status: 500 }
@@ -238,8 +246,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
 
-  } catch (error) {
-    console.error('Presence offline error:', error);
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

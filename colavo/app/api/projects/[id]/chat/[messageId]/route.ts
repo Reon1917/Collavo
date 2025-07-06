@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { auth } from '@/lib/auth';
 import { checkProjectAccess } from '@/lib/auth-helpers';
 
-// GET /api/projects/[id]/chat/[messageId] - Debug endpoint to check message details
+// GET /api/projects/[id]/chat/[messageId] - Get message details (for debugging)
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; messageId: string }> }
@@ -21,12 +21,6 @@ export async function GET(
     }
 
     const { id: projectId, messageId } = await params;
-
-    console.log('🔍 DEBUG: Getting message details', {
-      projectId,
-      messageId,
-      userId: session.user.id
-    });
 
     // Check if user has access to this project
     const projectAccess = await checkProjectAccess(projectId, session.user.id);
@@ -46,24 +40,14 @@ export async function GET(
       .eq('id', messageId)
       .single();
 
-    console.log('🔍 DEBUG: Message lookup result', {
-      found: !!message,
-      error: fetchError,
-      messageData: message
-    });
-
     // Test if we can perform a dummy update on this message (if it belongs to user)
     if (message && message.user_id === session.user.id) {
-      const { error: updateTestError } = await supabase
+      await supabase
         .from('messages')
         .update({ updated_at: new Date().toISOString() })
         .eq('id', messageId)
         .eq('project_id', projectId)
         .eq('user_id', session.user.id);
-
-      console.log('🔍 DEBUG: Update test result', {
-        updateError: updateTestError
-      });
     }
 
     return NextResponse.json({
@@ -77,8 +61,7 @@ export async function GET(
       }
     });
 
-  } catch (error) {
-    console.error('🔍 DEBUG: Error in GET endpoint:', error);
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -155,7 +138,6 @@ export async function PUT(
       .single();
 
     if (updateError) {
-      console.error('Error updating message:', updateError);
       return NextResponse.json(
         { error: 'Failed to update message' },
         { status: 500 }
@@ -167,8 +149,7 @@ export async function PUT(
       message: updatedMessage
     });
 
-  } catch (error) {
-    console.error('Error in PUT /api/projects/[id]/chat/[messageId]:', error);
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -186,15 +167,12 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; messageId: string }> }
 ) {
-  console.log('🗑️ DELETE: Function called - starting deletion process');
-  
   try {
     const session = await auth.api.getSession({
       headers: request.headers
     });
 
     if (!session?.user) {
-      console.log('🗑️ DELETE: Unauthorized - no session');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -202,13 +180,10 @@ export async function DELETE(
     }
 
     const { id: projectId, messageId } = await params;
-    console.log('🗑️ DELETE: Parameters received:', { projectId, messageId, userId: session.user.id });
-
 
     // Check if user has access to this project
     const projectAccess = await checkProjectAccess(projectId, session.user.id);
     if (!projectAccess.hasAccess) {
-      console.log('🗑️ DELETE: Access denied to project');
       return NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
@@ -217,7 +192,7 @@ export async function DELETE(
 
     const supabase = createServerSupabaseClient();
 
-    // First, check if the message exists and belongs to the user
+    // First, verify the message exists and belongs to the user
     const { data: existingMessage, error: fetchError } = await supabase
       .from('messages')
       .select('*')
@@ -226,13 +201,7 @@ export async function DELETE(
       .eq('user_id', session.user.id)
       .single();
 
-    console.log('🗑️ DELETE: Message lookup result:', {
-      found: !!existingMessage,
-      error: fetchError?.code
-    });
-
     if (fetchError || !existingMessage) {
-      console.log('🗑️ DELETE: Message not found or no permission');
       return NextResponse.json(
         { error: 'Message not found or you do not have permission to delete it' },
         { status: 404 }
@@ -240,60 +209,48 @@ export async function DELETE(
     }
 
     // Delete the message
-    console.log('🗑️ DELETE: Attempting to delete message:', messageId);
-
     const { error: deleteError, count } = await supabase
       .from('messages')
-      .delete({ count: 'exact' })
+      .delete()
       .eq('id', messageId)
       .eq('project_id', projectId)
       .eq('user_id', session.user.id);
 
-    console.log('🗑️ DELETE: Deletion result:', {
-      success: !deleteError && (count || 0) > 0,
-      error: deleteError?.code,
-      deletedCount: count || 0
-    });
-
     if (deleteError) {
-      console.error('🗑️ DELETE: Error deleting message:', deleteError);
       return NextResponse.json(
-        { error: 'Failed to delete message', details: deleteError.message },
+        { error: 'Failed to delete message' },
         { status: 500 }
       );
     }
 
-    // Check if any rows were actually deleted
-    if ((count || 0) === 0) {
-      console.log('🗑️ DELETE: No rows were deleted - message may not exist or user lacks permission');
+    // Check if deletion was successful
+    if (count === 0) {
       return NextResponse.json(
         { error: 'Message not found or you do not have permission to delete it' },
         { status: 404 }
       );
     }
 
-    // Verify deletion was successful
-    const { data: verifyMessage, error: verifyError } = await supabase
+    // Double-check that the message is actually deleted
+    const { data: verifyDeleted } = await supabase
       .from('messages')
       .select('id')
       .eq('id', messageId)
       .single();
 
-    console.log('🗑️ DELETE: Verification result:', {
-      messageStillExists: !!verifyMessage,
-      verifyError: verifyError?.code // Should be 'PGRST116' if not found
-    });
+    if (verifyDeleted) {
+      return NextResponse.json(
+        { error: 'Message deletion failed' },
+        { status: 500 }
+      );
+    }
 
-    console.log('🗑️ DELETE: Successfully deleted message');
     return NextResponse.json({
       success: true,
-      message: 'Message deleted successfully',
-      deletedMessageId: messageId,
-      timestamp: new Date().toISOString()
+      message: 'Message deleted successfully'
     });
 
-  } catch (error) {
-    console.error('🗑️ DELETE: Error in DELETE endpoint:', error);
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
