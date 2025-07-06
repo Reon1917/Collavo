@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Eye, EyeOff, Lock, Loader2, AlertCircle } from 'lucide-react';
-import { authClient } from '@/lib/auth-client';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -79,11 +78,28 @@ export function ChangePasswordModal({
 
     setIsLoading(true);
     try {
-      await authClient.changePassword({
-        currentPassword,
-        newPassword,
-        revokeOtherSessions: true, // Security: revoke all other sessions
+      const response = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+          revokeOtherSessions: true, // Security: revoke all other sessions
+        }),
       });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        if (result.error === 'Current password is incorrect') {
+          setErrors({ currentPassword: 'Current password is incorrect' });
+        } else {
+          toast.error(result.error || 'Failed to change password. Please try again.');
+        }
+        return;
+      }
 
       toast.success('Password changed successfully');
       resetForm();
@@ -91,15 +107,7 @@ export function ChangePasswordModal({
     } catch (error: any) {
       // eslint-disable-next-line no-console
       console.error('Password change error:', error);
-      
-      // Handle specific error cases
-      if (error?.message?.includes('Invalid password') || error?.message?.includes('current password')) {
-        setErrors({ currentPassword: 'Current password is incorrect' });
-      } else if (error?.message?.includes('Password')) {
-        toast.error(error.message);
-      } else {
-        toast.error('Failed to change password. Please try again.');
-      }
+      toast.error('Failed to change password. Please try again.');
     } finally {
       setIsLoading(false);
     }
