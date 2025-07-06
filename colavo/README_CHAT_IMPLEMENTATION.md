@@ -91,19 +91,28 @@ CREATE POLICY "Allow authenticated operations" ON user_presence FOR ALL USING (t
 **Recommendation**: Use Option A (no RLS) since we have robust application-level security.
 
 ### Automatic Cleanup
-```sql
--- Function to clean up old messages (1 week retention)
-CREATE OR REPLACE FUNCTION cleanup_old_messages()
-RETURNS void AS $$
-BEGIN
-  DELETE FROM messages 
-  WHERE created_at < NOW() - INTERVAL '7 days';
-END;
-$$ LANGUAGE plpgsql;
 
--- Schedule cleanup (run daily)
-SELECT cron.schedule('cleanup-old-messages', '0 2 * * *', 'SELECT cleanup_old_messages();');
-```
+**✅ FULLY IMPLEMENTED & OPERATIONAL** - Chat messages are automatically deleted after 7 days.
+
+**Status:** ✅ Verified working and saving storage space.
+
+**Runtime Files:**
+- `app/api/admin/chat-cleanup/route.ts` - API endpoints for monitoring and manual control
+
+**Features:**
+- ✅ Automatic daily cleanup at 2 AM UTC  
+- ✅ Global cleanup across all projects (7-day retention)
+- ✅ Comprehensive logging and statistics
+- ✅ Manual cleanup via API endpoints
+- ✅ Real-time monitoring and reporting
+- ✅ Storage space optimization confirmed
+
+**Monitoring:**
+- View stats: `GET /api/admin/chat-cleanup`
+- Manual cleanup: `POST /api/admin/chat-cleanup`
+- Database logs: Available in `message_cleanup_log` table
+
+The system is fully operational and self-maintaining.
 
 ## Components
 
