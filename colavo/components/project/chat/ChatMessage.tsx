@@ -7,10 +7,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Badge } from '@/components/ui/badge';
 import { ChatMessage as ChatMessageType } from '@/types';
 import { formatDistanceToNow, format } from 'date-fns';
-import { MoreHorizontal, Reply, Edit2, Trash2, Check, X } from 'lucide-react';
+import { MoreHorizontal, Reply, Edit2, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { EditingInterface } from './EditingInterface';
+import { ReplyDisplay } from './ReplyDisplay';
 
 interface ChatMessageProps {
   message: ChatMessageType;
@@ -164,58 +165,23 @@ export function ChatMessage({
             </div>
 
             {/* Reply to previous message */}
-            {message.replyTo && message.parentMessage && (
-              <div className="mb-3 -mx-4 -mt-3 pt-2 pb-3 px-4 bg-blue-50/30 dark:bg-blue-900/10 border-b border-blue-200/30 dark:border-blue-800/30">
-                <div className="flex items-center gap-1 mb-2">
-                  <Reply className="h-3 w-3 text-blue-600 dark:text-blue-400" />
-                  <div className="text-xs font-medium text-blue-700 dark:text-blue-300">
-                    {message.parentMessage.userId === currentUserId 
-                      ? 'replied to you' 
-                      : isCurrentUser 
-                        ? `you replied to ${message.parentMessage.user?.name || 'someone'}`
-                        : `${userName} replied to ${message.parentMessage.user?.name || 'someone'}`
-                    }
-                  </div>
-                </div>
-                                  <div className="text-xs text-gray-600 dark:text-gray-300 bg-white/60 dark:bg-gray-800/60 p-2.5 rounded border-l-4 border-blue-400 dark:border-blue-500 italic leading-relaxed">
-                  {message.parentMessage.content}
-                </div>
-              </div>
-            )}
+            <ReplyDisplay 
+              message={message}
+              currentUserId={currentUserId}
+              isCurrentUser={isCurrentUser}
+              userName={userName}
+            />
 
             {/* Message Content Line */}
             {isEditing ? (
-              <div className="space-y-2 mb-1">
-                <Input
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  placeholder="Edit message..."
-                  disabled={isSubmitting}
-                  className="text-sm bg-background text-foreground border-border"
-                />
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={handleEditSubmit}
-                    disabled={isSubmitting || editContent.trim() === ''}
-                    className="h-7 px-3 text-xs bg-background text-foreground hover:bg-background/80 border border-border"
-                  >
-                    <Check className="h-3 w-3 mr-1" />
-                    Save
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleEditCancel}
-                    disabled={isSubmitting}
-                    className="h-7 px-3 text-xs bg-background text-foreground hover:bg-background/80 border border-border"
-                  >
-                    <X className="h-3 w-3 mr-1" />
-                    Cancel
-                  </Button>
-                </div>
-              </div>
+              <EditingInterface
+                editContent={editContent}
+                onContentChange={setEditContent}
+                onSubmit={handleEditSubmit}
+                onCancel={handleEditCancel}
+                onKeyDown={handleKeyPress}
+                isSubmitting={isSubmitting}
+              />
             ) : (
               <div className="text-sm break-words mb-1 leading-relaxed text-primary-foreground">
                 {message.content}
@@ -278,59 +244,24 @@ export function ChatMessage({
                )}
              </div>
 
-                          {/* Reply to previous message */}
-             {message.replyTo && message.parentMessage && (
-               <div className="mb-3 -mx-4 -mt-3 pt-2 pb-3 px-4 bg-blue-50/30 dark:bg-blue-900/10 border-b border-blue-200/30 dark:border-blue-800/30">
-                 <div className="flex items-center gap-1 mb-2">
-                   <Reply className="h-3 w-3 text-blue-600 dark:text-blue-400" />
-                   <div className="text-xs font-medium text-blue-700 dark:text-blue-300">
-                     {message.parentMessage.userId === currentUserId 
-                       ? 'replied to you' 
-                       : isCurrentUser 
-                         ? `you replied to ${message.parentMessage.user?.name || 'someone'}`
-                         : `${userName} replied to ${message.parentMessage.user?.name || 'someone'}`
-                     }
-                   </div>
-                 </div>
-                 <div className="text-xs text-gray-600 dark:text-gray-300 bg-white/60 dark:bg-gray-800/60 p-2.5 rounded border-l-4 border-blue-400 dark:border-blue-500 italic leading-relaxed">
-                   {message.parentMessage.content}
-                 </div>
-               </div>
-             )}
+             {/* Reply to previous message */}
+             <ReplyDisplay 
+               message={message}
+               currentUserId={currentUserId}
+               isCurrentUser={isCurrentUser}
+               userName={userName}
+             />
 
              {/* Message Content Line */}
              {isEditing ? (
-               <div className="space-y-2 mb-1">
-                 <Input
-                   value={editContent}
-                   onChange={(e) => setEditContent(e.target.value)}
-                   onKeyDown={handleKeyPress}
-                   placeholder="Edit message..."
-                   disabled={isSubmitting}
-                   className="text-sm bg-background text-foreground border-border"
-                 />
-                 <div className="flex gap-2">
-                   <Button
-                     size="sm"
-                     onClick={handleEditSubmit}
-                     disabled={isSubmitting || editContent.trim() === ''}
-                     className="h-7 px-3 text-xs bg-background text-foreground hover:bg-background/80 border border-border"
-                   >
-                     <Check className="h-3 w-3 mr-1" />
-                     Save
-                   </Button>
-                   <Button
-                     size="sm"
-                     variant="outline"
-                     onClick={handleEditCancel}
-                     disabled={isSubmitting}
-                     className="h-7 px-3 text-xs bg-background text-foreground hover:bg-background/80 border border-border"
-                   >
-                     <X className="h-3 w-3 mr-1" />
-                     Cancel
-                   </Button>
-                 </div>
-               </div>
+               <EditingInterface
+                 editContent={editContent}
+                 onContentChange={setEditContent}
+                 onSubmit={handleEditSubmit}
+                 onCancel={handleEditCancel}
+                 onKeyDown={handleKeyPress}
+                 isSubmitting={isSubmitting}
+               />
              ) : (
                <div className="text-sm break-words mb-1 leading-relaxed text-gray-900 dark:text-gray-100">
                  {message.content}

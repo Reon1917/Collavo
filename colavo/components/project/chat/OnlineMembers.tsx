@@ -27,23 +27,23 @@ export function OnlineMembers({ onlineMembers, currentUserId, className }: Onlin
   const extraCount = Math.max(0, onlineMembers.length - 5);
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
-      <div className="flex items-center gap-1">
-        <Users className="h-4 w-4 text-green-600 dark:text-green-400" />
-        <Badge variant="secondary" className="text-xs px-2 py-1">
-          {onlineMembers.length} online
-        </Badge>
-      </div>
+    <TooltipProvider>
+      <div className={cn("flex items-center gap-2", className)}>
+        <div className="flex items-center gap-1">
+          <Users className="h-4 w-4 text-green-600 dark:text-green-400" />
+          <Badge variant="secondary" className="text-xs px-2 py-1">
+            {onlineMembers.length} online
+          </Badge>
+        </div>
 
-      {/* Online member avatars */}
-      <div className="flex -space-x-1">
-        {displayMembers.map((member) => {
-          const isCurrentUser = member.userId === currentUserId;
-          const userName = member.user?.name || 'Unknown User';
-          
-          return (
-            <TooltipProvider key={member.userId}>
-              <Tooltip>
+        {/* Online member avatars */}
+        <div className="flex -space-x-1">
+          {displayMembers.map((member) => {
+            const isCurrentUser = member.userId === currentUserId;
+            const userName = member.user?.name || 'Unknown User';
+            
+            return (
+              <Tooltip key={member.userId}>
                 <TooltipTrigger asChild>
                   <div className="relative">
                     <Avatar className="h-6 w-6 border-2 border-white dark:border-gray-800">
@@ -62,13 +62,11 @@ export function OnlineMembers({ onlineMembers, currentUserId, className }: Onlin
                   </p>
                 </TooltipContent>
               </Tooltip>
-            </TooltipProvider>
-          );
-        })}
+            );
+          })}
 
-        {/* Show extra count if there are more members */}
-        {extraCount > 0 && (
-          <TooltipProvider>
+          {/* Show extra count if there are more members */}
+          {extraCount > 0 && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center justify-center h-6 w-6 bg-gray-100 dark:bg-gray-700 border-2 border-white dark:border-gray-800 rounded-full">
@@ -81,9 +79,9 @@ export function OnlineMembers({ onlineMembers, currentUserId, className }: Onlin
                 <p className="text-sm">{extraCount} more online</p>
               </TooltipContent>
             </Tooltip>
-          </TooltipProvider>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 } 

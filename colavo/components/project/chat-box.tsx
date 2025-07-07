@@ -13,6 +13,7 @@ import { TypingIndicator } from './chat/TypingIndicator';
 import { OnlineMembers } from './chat/OnlineMembers';
 import { ChatMessage as ChatMessageType } from '@/types';
 import { cn } from '@/lib/utils';
+import { useClickOutside } from '@/hooks/useClickOutside';
 
 interface ChatBoxProps {
   projectId: string;
@@ -57,53 +58,21 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
   }, [messages, isAtBottom]);
 
   // Handle click outside to close chat box
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      
-      // Don't close if clicking inside the chat box
-      if (chatBoxRef.current && chatBoxRef.current.contains(target)) {
-        return;
-      }
-      
-      // Check for any open dropdowns in the DOM - focus on truly visible dropdown content
-      const visibleDropdowns = document.querySelectorAll('[data-radix-dropdown-menu-content][data-state="open"], [data-slot="dropdown-menu-content"]:not([style*="display: none"])');
-      const activeMenuItems = document.querySelectorAll('[role="menuitem"][data-radix-collection-item]');
-      
-      // Don't close if clicking on dropdown content or any Radix UI portal content
-      if (target.closest('[data-radix-dropdown-menu-content]') ||
-          target.closest('[data-radix-popper-content-wrapper]') ||
-          target.closest('[data-radix-portal]') ||
-          target.closest('[role="menu"]') ||
-          target.closest('[role="menuitem"]') ||
-          target.closest('[data-slot="dropdown-menu-content"]') ||
-          target.closest('[data-slot="dropdown-menu-item"]') ||
-          target.closest('[data-radix-collection-item]')) {
-        return;
-      }
-      
-      // If there are any dropdown menus visible, don't close
-      if (visibleDropdowns.length > 0 || activeMenuItems.length > 0) {
-        return;
-      }
-      
-      // Use a small delay to check if dropdown was just closed
-      setTimeout(() => {
-        // Double-check that no dropdowns are open after a small delay
-        const stillVisibleDropdowns = document.querySelectorAll('[data-radix-dropdown-menu-content][data-state="open"], [data-slot="dropdown-menu-content"]:not([style*="display: none"])');
-        const stillActiveMenuItems = document.querySelectorAll('[role="menuitem"][data-radix-collection-item]');
-        
-        if (stillVisibleDropdowns.length === 0 && stillActiveMenuItems.length === 0) {
-          onClose();
-        }
-      }, 10);
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [onClose]);
+  useClickOutside(chatBoxRef, onClose, {
+    ignoreSelectors: [
+      '[data-radix-dropdown-menu-content]',
+      '[data-radix-popper-content-wrapper]',
+      '[data-radix-portal]',
+      '[role="menu"]',
+      '[role="menuitem"]',
+      '[data-slot="dropdown-menu-content"]',
+      '[data-slot="dropdown-menu-item"]',
+      '[data-radix-collection-item]',
+      '[data-radix-dropdown-menu-content][data-state="open"]',
+      '[data-slot="dropdown-menu-content"]:not([style*="display: none"])'
+    ],
+    delay: 10
+  });
 
   // Handle scroll to detect if user is at bottom
   const handleScroll = () => {

@@ -40,15 +40,6 @@ export async function GET(
       .eq('id', messageId)
       .single();
 
-    // Test if we can perform a dummy update on this message (if it belongs to user)
-    if (message && message.user_id === session.user.id) {
-      await supabase
-        .from('messages')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', messageId)
-        .eq('project_id', projectId)
-        .eq('user_id', session.user.id);
-    }
 
     return NextResponse.json({
       message,
