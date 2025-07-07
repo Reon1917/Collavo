@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
       cleanup_threshold_days: 7
     });
 
-  } catch (_error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
       messages_found_for_deletion: messagesToDelete || 0
     });
 
-  } catch (_error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -191,7 +191,7 @@ export async function DELETE(request: NextRequest) {
       message: 'Cleanup schedule removed successfully'
     });
 
-  } catch (_error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

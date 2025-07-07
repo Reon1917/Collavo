@@ -170,7 +170,7 @@ export default function ProjectLayout({
           const projectData: Project = await response.json();
           setProjectName(projectData.name);
         }
-      } catch (_error) {
+      } catch {
         // Error is silently handled
       }
     };

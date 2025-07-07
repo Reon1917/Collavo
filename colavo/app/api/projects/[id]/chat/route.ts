@@ -141,7 +141,7 @@ export async function GET(
       total: messages?.length || 0
     });
 
-  } catch (_error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -292,7 +292,7 @@ export async function POST(
 
     return NextResponse.json(transformedMessage, { status: 201 });
 
-  } catch (_error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

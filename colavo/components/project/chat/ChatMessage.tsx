@@ -47,7 +47,7 @@ export function ChatMessage({
     try {
       await onEdit(message.id, editContent.trim());
       setIsEditing(false);
-    } catch (_error) {
+    } catch {
       // Error toast is already handled in the mutation
     } finally {
       setIsSubmitting(false);
@@ -64,7 +64,7 @@ export function ChatMessage({
     
     try {
       await onDelete(message.id);
-    } catch (_error) {
+    } catch {
       // Error toast is already handled in the mutation
     }
   };

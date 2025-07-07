@@ -126,7 +126,7 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
       
       // Focus back to input
       inputRef.current?.focus();
-    } catch (_error) {
+    } catch {
       // Error toast is already handled in the mutation
     }
   };

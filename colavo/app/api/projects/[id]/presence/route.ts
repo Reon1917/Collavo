@@ -102,7 +102,7 @@ export async function GET(
       count: transformedPresence.length
     });
 
-  } catch (_error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -189,7 +189,7 @@ export async function POST(
 
     return NextResponse.json(transformedPresence);
 
-  } catch (_error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -246,7 +246,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
 
-  } catch (_error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
