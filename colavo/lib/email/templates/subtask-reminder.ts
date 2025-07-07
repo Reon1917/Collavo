@@ -79,7 +79,7 @@ export function generateSubtaskReminderTemplate(params: SubtaskReminderParams): 
 
           <!-- Action Button -->
           <div style="text-align: center; margin: 32px 0;">
-            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/project/${projectId}?subtask=${subtaskId}" 
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) || (process.env.NODE_ENV === 'production' ? 'https://collavo-alpha.vercel.app' : 'http://localhost:3000')}/project/${projectId}?subtask=${subtaskId}" 
                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block; transition: all 0.2s;">
               View Subtask Details
             </a>

@@ -14,11 +14,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get the proper base URL for redirect
+    const getBaseUrl = () => {
+      if (process.env.NEXT_PUBLIC_APP_URL) {
+        return process.env.NEXT_PUBLIC_APP_URL;
+      }
+      if (process.env.BETTER_AUTH_URL) {
+        return process.env.BETTER_AUTH_URL;
+      }
+      if (process.env.VERCEL_URL) {
+        return `https://${process.env.VERCEL_URL}`;
+      }
+      if (process.env.NODE_ENV === "production") {
+        return "https://collavo-alpha.vercel.app";
+      }
+      return "http://localhost:3000";
+    };
+
     // Call better-auth's forgetPassword method to trigger the sendResetPassword callback
     await auth.api.forgetPassword({
       body: { 
         email,
-        redirectTo: `${process.env.BETTER_AUTH_URL || 'http://localhost:3000'}/reset-password`
+        redirectTo: `${getBaseUrl()}/reset-password`
       },
       headers: request.headers,
     });
