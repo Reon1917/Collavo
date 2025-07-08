@@ -53,25 +53,23 @@ export function useProjectChat(
   } = useQuery({
     queryKey: ['chat-messages', projectId],
     queryFn: async (): Promise<{ messages: ChatMessage[]; hasMore: boolean }> => {
-      console.log('Fetching messages for project:', projectId);
       const response = await fetch(`/api/projects/${projectId}/chat?limit=${pageSize}`);
       if (!response.ok) {
         throw new Error('Failed to fetch messages');
       }
       const data = await response.json();
-      console.log('Fetched messages:', data.messages.length);
       // Messages are already in correct order (oldest first, newest last)
       return { messages: data.messages, hasMore: data.hasMore };
     },
     enabled: enabled && !!projectId && !!currentUserId,
-    staleTime: 0, // Always consider data stale for real-time updates
+    staleTime: 30000, // Keep data fresh for 30 seconds (real-time handles updates)
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     refetchOnReconnect: true,
   });
 
-  // Fetch online members with React Query - more responsive settings
+  // Fetch online members with React Query - real-time updates handle this
   const {
     data: onlineMembers = [],
     error: presenceError,
@@ -83,31 +81,36 @@ export function useProjectChat(
         throw new Error('Failed to fetch presence');
       }
       const data = await response.json();
-      console.log('👥 PRESENCE: Fetched online members:', data.onlineMembers?.length || 0);
       return data.onlineMembers || [];
     },
     enabled: enabled && !!projectId && !!currentUserId,
-    staleTime: 10000, // Consider data fresh for 10 seconds (more responsive)
-    refetchInterval: 20000, // Auto-refresh every 20 seconds
+    staleTime: 60000, // Real-time updates handle changes, keep data fresh for 1 minute
     refetchOnWindowFocus: true, // Refresh when user comes back to tab
     refetchOnMount: true,
     refetchOnReconnect: true,
+    // Remove automatic polling - real-time subscriptions handle updates
   });
 
-  // Add polling as fallback for real-time updates
+  // Emergency fallback polling only when real-time connection fails
   useEffect(() => {
-    if (!enabled || !projectId || !currentUserId) return;
+    if (!enabled || !projectId || !currentUserId || isConnected) return;
 
-    const interval = setInterval(() => {
-      console.log('Polling for new messages...');
-      queryClient.invalidateQueries({ 
-        queryKey: ['chat-messages', projectId],
-        refetchType: 'active'
-      });
-    }, 5000); // Poll every 5 seconds as fallback
+    // Only poll if real-time connection is down for more than 30 seconds
+    const pollTimeout = setTimeout(() => {
+      if (!isConnected) {
+        const interval = setInterval(() => {
+          queryClient.invalidateQueries({ 
+            queryKey: ['chat-messages', projectId],
+            refetchType: 'active'
+          });
+        }, 30000); // Emergency poll every 30 seconds only when disconnected
 
-    return () => clearInterval(interval);
-  }, [projectId, currentUserId, enabled, queryClient]);
+        return () => clearInterval(interval);
+      }
+    }, 30000);
+
+    return () => clearTimeout(pollTimeout);
+  }, [projectId, currentUserId, enabled, queryClient, isConnected]);
 
   const messages = messagesData?.messages || [];
   const hasMore = messagesData?.hasMore || false;
@@ -211,23 +214,16 @@ export function useProjectChat(
   // Delete message mutation
   const deleteMessageMutation = useMutation({
     mutationFn: async (messageId: string) => {
-      console.log('🗑️ DELETE: Starting deletion for message:', messageId);
-      
       const response = await fetch(`/api/projects/${projectId}/chat/${messageId}`, {
         method: 'DELETE'
       });
-
-      console.log('🗑️ DELETE: Response status:', response.status);
       
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('🗑️ DELETE: Error response:', errorData);
         throw new Error(errorData.error || 'Failed to delete message');
       }
 
-      const result = await response.json();
-      console.log('🗑️ DELETE: Success response:', result);
-      return result;
+      return response.json();
     },
     onMutate: async (messageId) => {
       // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
@@ -304,7 +300,7 @@ export function useProjectChat(
       }
     },
     onError: (error) => {
-      console.error('🔴 PRESENCE: Failed to update presence:', error);
+      // Silently handle presence update errors to avoid console spam
     },
   });
 
@@ -315,7 +311,6 @@ export function useProjectChat(
     
     // Only update if more than 10 seconds have passed since last update
     if (!lastUpdate || now.getTime() - lastUpdate.getTime() > 10000) {
-      console.log('🟢 ACTIVITY: User activity detected, updating presence');
       lastPresenceUpdateRef.current = now;
       updatePresenceMutation.mutate(true);
     }
@@ -337,28 +332,17 @@ export function useProjectChat(
   }, [updateMessageMutation]);
 
   const deleteMessage = useCallback(async (messageId: string) => {
-    console.log('🗑️ DELETE: deleteMessage called with:', messageId);
     await deleteMessageMutation.mutateAsync(messageId);
   }, [deleteMessageMutation]);
 
   // Load more messages (pagination) - placeholder for now
   const loadMoreMessages = useCallback(async () => {
     // TODO: Implement pagination with React Query
-    console.log('Load more messages - implement pagination');
   }, []);
-
-
-
-
-
-
 
   // Typing indicators
   const startTyping = useCallback(() => {
-    console.log('⌨️ TYPING: startTyping called', { enabled, currentUserId, projectId });
-    
     if (!enabled || !currentUserId || !projectId) {
-      console.log('⌨️ TYPING: startTyping skipped - missing requirements');
       return;
     }
 
@@ -367,10 +351,8 @@ export function useProjectChat(
       clearTimeout(typingTimeoutRef.current);
     }
 
-    console.log('⌨️ TYPING: Sending typing_start event');
-    
     // Send typing start event
-    const result = presenceChannelRef.current?.send({
+    presenceChannelRef.current?.send({
       type: 'broadcast',
       event: 'typing_start',
       payload: {
@@ -379,20 +361,14 @@ export function useProjectChat(
       }
     });
 
-    console.log('⌨️ TYPING: Send result:', result);
-
     // Auto-stop typing after 3 seconds
     typingTimeoutRef.current = setTimeout(() => {
-      console.log('⌨️ TYPING: Auto-stopping typing after 3 seconds');
       stopTyping();
     }, 3000);
   }, [currentUserId, projectId, enabled]);
 
   const stopTyping = useCallback(() => {
-    console.log('⌨️ TYPING: stopTyping called', { enabled, currentUserId, projectId });
-    
     if (!enabled || !currentUserId || !projectId) {
-      console.log('⌨️ TYPING: stopTyping skipped - missing requirements');
       return;
     }
 
@@ -402,10 +378,8 @@ export function useProjectChat(
       typingTimeoutRef.current = null;
     }
 
-    console.log('⌨️ TYPING: Sending typing_stop event');
-    
     // Send typing stop event
-    const result = presenceChannelRef.current?.send({
+    presenceChannelRef.current?.send({
       type: 'broadcast',
       event: 'typing_stop',
       payload: {
@@ -413,15 +387,12 @@ export function useProjectChat(
         projectId
       }
     });
-
-    console.log('⌨️ TYPING: Send result:', result);
   }, [currentUserId, projectId, enabled]);
 
   // Set up real-time subscriptions
   useEffect(() => {
     if (!enabled || !projectId || !currentUserId) return;
 
-    console.log('Setting up real-time subscriptions for project:', projectId);
     let mounted = true;
 
     // Initialize presence
@@ -440,7 +411,6 @@ export function useProjectChat(
         },
         (payload) => {
           if (!mounted) return;
-          console.log('Real-time INSERT event received:', payload);
           // Immediately invalidate and refetch for new messages
           queryClient.invalidateQueries({ 
             queryKey: ['chat-messages', projectId],
@@ -458,7 +428,6 @@ export function useProjectChat(
         },
         (payload) => {
           if (!mounted) return;
-          console.log('Real-time UPDATE event received:', payload);
           // Immediately invalidate and refetch for message updates
           queryClient.invalidateQueries({ 
             queryKey: ['chat-messages', projectId],
@@ -476,15 +445,6 @@ export function useProjectChat(
         },
         (payload) => {
           if (!mounted) return;
-          console.log('🗑️ DELETE: Real-time DELETE event received:', payload);
-          console.log('🗑️ DELETE: Payload details:', {
-            eventType: payload.eventType,
-            old: payload.old,
-            new: payload.new,
-            table: payload.table,
-            schema: payload.schema,
-            commit_timestamp: payload.commit_timestamp
-          });
           
           // Immediately update the cache by removing the deleted message
           queryClient.setQueryData(['chat-messages', projectId], (old: any) => {
@@ -493,7 +453,6 @@ export function useProjectChat(
             const deletedId = payload.old?.id;
             if (!deletedId) return old;
             
-            console.log('🗑️ DELETE: Removing message from cache:', deletedId);
             return {
               ...old,
               messages: old.messages.filter((msg: ChatMessage) => msg.id !== deletedId)
@@ -508,7 +467,6 @@ export function useProjectChat(
         }
       )
       .subscribe((status) => {
-        console.log('Message channel status:', status);
         setIsConnected(status === 'SUBSCRIBED');
       });
 
@@ -527,7 +485,6 @@ export function useProjectChat(
         },
         async (payload) => {
           if (!mounted) return;
-          console.log('🟢 PRESENCE: User came online:', payload.new);
           
           // Directly update cache for immediate UI response
           if (payload.new && payload.new.is_online) {
@@ -539,7 +496,7 @@ export function useProjectChat(
                 queryClient.setQueryData(['chat-presence', projectId], data.onlineMembers || []);
               }
             } catch (error) {
-              console.error('Failed to refresh presence data:', error);
+              // Silently handle error
             }
           }
         }
@@ -554,7 +511,6 @@ export function useProjectChat(
         },
         async (payload) => {
           if (!mounted) return;
-          console.log('🔄 PRESENCE: User presence updated:', payload.new);
           
           // Refresh presence data for updates
           try {
@@ -564,7 +520,7 @@ export function useProjectChat(
               queryClient.setQueryData(['chat-presence', projectId], data.onlineMembers || []);
             }
           } catch (error) {
-            console.error('Failed to refresh presence data:', error);
+            // Silently handle error
           }
         }
       )
@@ -578,7 +534,6 @@ export function useProjectChat(
         },
         (payload) => {
           if (!mounted) return;
-          console.log('🔴 PRESENCE: User went offline:', payload.old);
           
           // Remove user from cache immediately
           if (payload.old?.user_id) {
@@ -589,39 +544,26 @@ export function useProjectChat(
         }
       )
       .on('broadcast', { event: 'typing_start' }, ({ payload }) => {
-        console.log('⌨️ TYPING: typing_start event received:', payload);
         if (!mounted || payload.userId === currentUserId) {
-          console.log('⌨️ TYPING: typing_start ignored - not mounted or own user');
           return;
         }
         
-        console.log('⌨️ TYPING: Adding user to typing list:', payload.userId);
         setIsTyping(prev => {
           if (!prev.includes(payload.userId)) {
-            const newTyping = [...prev, payload.userId];
-            console.log('⌨️ TYPING: New typing list:', newTyping);
-            return newTyping;
+            return [...prev, payload.userId];
           }
-          console.log('⌨️ TYPING: User already in typing list');
           return prev;
         });
       })
       .on('broadcast', { event: 'typing_stop' }, ({ payload }) => {
-        console.log('⌨️ TYPING: typing_stop event received:', payload);
         if (!mounted || payload.userId === currentUserId) {
-          console.log('⌨️ TYPING: typing_stop ignored - not mounted or own user');
           return;
         }
         
-        console.log('⌨️ TYPING: Removing user from typing list:', payload.userId);
-        setIsTyping(prev => {
-          const newTyping = prev.filter(id => id !== payload.userId);
-          console.log('⌨️ TYPING: New typing list:', newTyping);
-          return newTyping;
-        });
+        setIsTyping(prev => prev.filter(id => id !== payload.userId));
       })
       .subscribe((status) => {
-        console.log('Presence channel status:', status);
+        // Connection status handled silently
       });
 
     presenceChannelRef.current = presenceChannel;
@@ -637,7 +579,6 @@ export function useProjectChat(
         
         // Send heartbeat if user has been active in the last 2 minutes
         if (lastUpdate && now.getTime() - lastUpdate.getTime() < 2 * 60 * 1000) {
-          console.log('💓 HEARTBEAT: Sending presence heartbeat');
           updatePresenceMutation.mutate(true);
         }
       }
@@ -676,17 +617,14 @@ export function useProjectChat(
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        console.log('📱 VISIBILITY: Page hidden, user going offline');
         updatePresenceMutation.mutate(false);
       } else {
-        console.log('📱 VISIBILITY: Page visible, user coming online');
         lastPresenceUpdateRef.current = new Date();
         updatePresenceMutation.mutate(true);
       }
     };
 
     const handleBeforeUnload = () => {
-      console.log('🚪 UNLOAD: User leaving page, going offline');
       // Use sendBeacon for reliability when page is unloading
       navigator.sendBeacon(
         `/api/projects/${projectId}/presence`,
