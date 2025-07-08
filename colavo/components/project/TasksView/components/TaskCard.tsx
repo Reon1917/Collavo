@@ -17,6 +17,7 @@ import { CreateSubTaskForm } from './forms/CreateSubTaskForm';
 import { EditTaskDialog } from './dialogs/EditTaskDialog';
 import { SubTaskMiniItem } from './SubTaskMiniItem';
 import { Task, Project, SubTask, getImportanceColor } from '../types';
+import { ScrollbarStyles } from '@/components/ui/scrollbar-styles';
 
 interface TaskCardProps {
   task: Task;
@@ -175,21 +176,26 @@ export function TaskCard({
                   Subtasks ({visibleSubTasks.length})
                 </h4>
               </div>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {visibleSubTasks.slice(0, 3).map((subtask) => (
-                  <SubTaskMiniItem 
-                    key={subtask.id} 
-                    subtask={subtask} 
-                    task={task}
-                    project={project}
-                    onSubTaskUpdated={(updatedSubTask) => onSubTaskUpdated(task.id, updatedSubTask)}
-                    onSubTaskDeleted={(subtaskId) => onSubTaskDeleted(task.id, subtaskId)}
-                  />
-                ))}
+              <div className="relative">
+                <ScrollbarStyles className="subtask-scroll" />
+                <div className="space-y-2 subtask-scroll overflow-y-auto" style={{ maxHeight: '180px' }}>
+                  {visibleSubTasks.map((subtask) => (
+                    <SubTaskMiniItem 
+                      key={subtask.id} 
+                      subtask={subtask} 
+                      task={task}
+                      project={project}
+                      onSubTaskUpdated={(updatedSubTask) => onSubTaskUpdated(task.id, updatedSubTask)}
+                      onSubTaskDeleted={(subtaskId) => onSubTaskDeleted(task.id, subtaskId)}
+                    />
+                  ))}
+                </div>
                 {visibleSubTasks.length > 3 && (
-                  <p className="text-xs text-gray-500 dark:text-gray-500">
-                    +{visibleSubTasks.length - 3} more
-                  </p>
+                  <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-white dark:from-gray-800 to-transparent pointer-events-none flex items-center justify-center">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-2 rounded-full">
+                      {visibleSubTasks.length - 3} more
+                    </span>
+                  </div>
                 )}
               </div>
             </div>

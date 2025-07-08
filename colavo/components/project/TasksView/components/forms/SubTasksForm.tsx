@@ -172,7 +172,7 @@ export function SubTasksForm({
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 max-h-96 overflow-y-auto">
         {subTasks.map((subTask, index) => (
           <Card key={index} className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
             <CardHeader className="pb-3">

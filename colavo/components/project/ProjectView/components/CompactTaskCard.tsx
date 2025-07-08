@@ -3,6 +3,7 @@
 import { Calendar } from 'lucide-react';
 import { formatDistanceToNow, isAfter } from 'date-fns';
 import { Task } from '@/hooks/shared/useProjectData';
+import { ScrollbarStyles } from '@/components/ui/scrollbar-styles';
 
 interface CompactTaskCardProps {
   task: Task;
@@ -53,22 +54,27 @@ export function CompactTaskCard({ task }: CompactTaskCardProps) {
       )}
 
       {totalSubTasks > 0 && (
-        <div className="flex-1 space-y-1">
-          {task.subTasks.slice(0, 3).map((subtask) => (
-            <div key={subtask.id} className="flex items-center gap-1.5 text-xs">
-              <div className={`w-1 h-1 rounded-full flex-shrink-0 ${
-                subtask.status === 'completed' ? 'bg-green-500' :
-                subtask.status === 'in_progress' ? 'bg-blue-500' : 'bg-gray-300'
-              }`} />
-              <span className="text-gray-600 dark:text-gray-400 truncate flex-1 text-xs">
-                {subtask.title}
+        <div className="flex-1 relative">
+          <ScrollbarStyles className="compact-subtask-scroll" />
+          <div className="space-y-1 compact-subtask-scroll overflow-y-auto" style={{ maxHeight: '84px' }}>
+            {task.subTasks.map((subtask) => (
+              <div key={subtask.id} className="flex items-center gap-1.5 text-xs py-1">
+                <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                  subtask.status === 'completed' ? 'bg-green-500' :
+                  subtask.status === 'in_progress' ? 'bg-blue-500' : 'bg-gray-300'
+                }`} />
+                <span className="text-gray-600 dark:text-gray-400 truncate flex-1 text-xs">
+                  {subtask.title}
+                </span>
+              </div>
+            ))}
+          </div>
+          {totalSubTasks > 3 && (
+            <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-t from-white dark:from-gray-800 to-transparent pointer-events-none flex items-center justify-center">
+              <span className="text-xs text-gray-400 bg-white dark:bg-gray-800 px-1.5 rounded text-center" style={{ fontSize: '10px' }}>
+                +{totalSubTasks - 3}
               </span>
             </div>
-          ))}
-          {totalSubTasks > 3 && (
-            <p className="text-xs text-gray-500 dark:text-gray-500 text-center">
-              +{totalSubTasks - 3}
-            </p>
           )}
         </div>
       )}

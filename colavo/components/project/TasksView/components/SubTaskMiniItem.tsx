@@ -43,14 +43,14 @@ export function SubTaskMiniItem({
   return (
     <>
       <div 
-        className={`flex items-center gap-2 text-xs p-2 rounded border border-gray-200 dark:border-gray-700 transition-colors ${
-          canViewSubtask ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800' : ''
-        }`}
+        className={`flex items-center gap-3 text-xs p-3 rounded-md border border-gray-200 dark:border-gray-700 transition-all duration-200 ${
+          canViewSubtask ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-sm hover:border-gray-300 dark:hover:border-gray-600' : ''
+        } bg-gray-50/30 dark:bg-gray-800/30`}
         onClick={canViewSubtask ? handleOpenDialog : undefined}
       >
-        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+        <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 border-2 border-white dark:border-gray-800 shadow-sm ${
           subtask.status === 'completed' ? 'bg-green-500' :
-          subtask.status === 'in_progress' ? 'bg-blue-500' : 'bg-gray-300'
+          subtask.status === 'in_progress' ? 'bg-blue-500' : 'bg-gray-400'
         }`} />
         <div className="flex-1 min-w-0">
           <span className="truncate text-gray-700 dark:text-gray-300 block">
