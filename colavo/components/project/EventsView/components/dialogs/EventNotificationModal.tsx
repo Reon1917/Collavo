@@ -85,6 +85,8 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
   const handleCancelAllNotifications = async () => {
     if (!activeNotifications?.length) return;
 
+    const cancelledIds: string[] = [];
+
     try {
       // Cancel all active notifications
       for (const notification of activeNotifications) {
@@ -92,15 +94,20 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
           notificationId: notification.id,
           projectId
         });
+        cancelledIds.push(notification.id);
       }
 
       toast.success(`${activeNotifications.length} email reminder(s) cancelled successfully`);
       setShowCancelConfirm(false);
     } catch (error) {
+      if (cancelledIds.length > 0) {
+        toast.warning(
+          `Partially cancelled ${cancelledIds.length} of ${activeNotifications.length} reminders. Please try again.`
+        );
+      }
       toast.error(error instanceof Error ? error.message : 'Failed to cancel notifications');
     }
   };
-
   const toggleMemberSelection = (userId: string) => {
     setNotificationSettings(prev => ({
       ...prev,

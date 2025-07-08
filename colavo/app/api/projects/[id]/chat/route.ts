@@ -141,7 +141,10 @@ export async function GET(
       total: messages?.length || 0
     });
 
-  } catch {
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Chat GET error:', error);
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -292,7 +295,10 @@ export async function POST(
 
     return NextResponse.json(transformedMessage, { status: 201 });
 
-  } catch {
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Chat POST error:', error);
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

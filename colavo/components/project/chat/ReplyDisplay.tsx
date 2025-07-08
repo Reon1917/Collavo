@@ -1,4 +1,4 @@
-'use client';
+
 
 import { Reply } from 'lucide-react';
 import { ChatMessage as ChatMessageType } from '@/types';

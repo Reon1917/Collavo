@@ -45,20 +45,13 @@ export function useUserActivity({
     // Set new timer
     debounceTimerRef.current = setTimeout(() => {
       onActivity();
-      lastActivityRef.current = new Date();
-      isActiveRef.current = true;
     }, debounceMs);
   }, [onActivity, debounceMs]);
 
-  const handleActivity = useCallback((event: Event) => {
-    // Ignore programmatic events or events from specific elements
-    if (event.isTrusted === false) return;
-    
-    // Update activity immediately (for UI state)
-    lastActivityRef.current = new Date();
+  const handleActivity = useCallback(() => {
+    const now = new Date();
+    lastActivityRef.current = now;
     isActiveRef.current = true;
-    
-    // Debounce the callback to prevent server spam
     debouncedOnActivity();
   }, [debouncedOnActivity]);
 
@@ -66,7 +59,6 @@ export function useUserActivity({
     // Add event listeners for all activity types
     events.forEach(eventType => {
       document.addEventListener(eventType, handleActivity, { 
-        passive: true,
         capture: true 
       });
     });
@@ -74,7 +66,9 @@ export function useUserActivity({
     // Cleanup function
     return () => {
       events.forEach(eventType => {
-        document.removeEventListener(eventType, handleActivity, { capture: true });
+        document.removeEventListener(eventType, handleActivity, { 
+          capture: true 
+        });
       });
       
       if (debounceTimerRef.current) {
@@ -82,7 +76,6 @@ export function useUserActivity({
       }
     };
   }, [events, handleActivity]);
-
   // Handle visibility change for immediate activity detection
   useEffect(() => {
     const handleVisibilityChange = () => {

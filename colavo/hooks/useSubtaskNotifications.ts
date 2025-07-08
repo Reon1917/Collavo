@@ -45,7 +45,7 @@ export function useSubtaskNotifications(
   enabled = true
 ) {
   return useQuery({
-    queryKey: ['subtask-notifications', subtaskId],
+    queryKey: ['subtask-notifications', projectId, taskId, subtaskId],
     queryFn: () => fetchSubtaskNotifications(projectId, taskId, subtaskId),
     enabled: enabled && !!subtaskId && !!projectId && !!taskId,
     staleTime: 30 * 1000, // Consider data fresh for 30 seconds
@@ -93,9 +93,13 @@ export function useCreateNotification() {
       return result;
     },
     onSuccess: (_, { subtaskId }) => {
-      // Invalidate the specific subtask's notifications
+      // Invalidate all subtask notifications for this subtask
       queryClient.invalidateQueries({ 
-        queryKey: ['subtask-notifications', subtaskId],
+        queryKey: ['subtask-notifications'],
+        predicate: (query) => {
+          const [, , , querySubtaskId] = query.queryKey;
+          return querySubtaskId === subtaskId;
+        },
         refetchType: 'active'
       });
     },
