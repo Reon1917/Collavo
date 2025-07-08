@@ -95,26 +95,17 @@ export const auth = betterAuth({
           expirationHours: 1, // Reset tokens expire in 1 hour
         });
 
-        // Send password reset email
-        const { error: emailError } = await resend.emails.send({
-          from: 'Colavo <noreply@colavo.app>',
-          to: user.email,
-          subject: 'Reset your password',
-          html: `
-            <h2>Password Reset Request</h2>
-            <p>Click the link below to reset your password:</p>
-            <a href="${resetUrl}">Reset Password</a>
-            <p>This link will expire in 1 hour.</p>
-            <p>If you didn't request this, please ignore this email.</p>
-          `
+        // Send email using ResendEmailService
+        await ResendEmailService.sendEmail({
+          to: [user.email],
+          subject: "Reset your Collavo password",
+          html: emailHtml,
         });
 
-        if (emailError) {
-          // Fallback: Display reset link in development
-          if (process.env.NODE_ENV === 'development') {
-            const fallbackResetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
-            // Log only in development for debugging
-          }
+        // Log success in development
+        if (envConfig.NODE_ENV === "development") {
+          // eslint-disable-next-line no-console
+          console.log(`Password reset email sent to ${user.email}`);
         }
 
       } catch (error) {

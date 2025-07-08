@@ -5,6 +5,8 @@ import { ChatMessage, UserPresence, CreateChatMessageData } from '@/types';
 import { toast } from 'sonner';
 import { useUserActivity } from './useUserActivity';
 
+const isDev = process.env.NODE_ENV === 'development';
+
 interface UseChatOptions {
   enabled?: boolean;
   pageSize?: number;
@@ -53,12 +55,15 @@ export function useProjectChat(
   } = useQuery({
     queryKey: ['chat-messages', projectId],
     queryFn: async (): Promise<{ messages: ChatMessage[]; hasMore: boolean }> => {
+      if (isDev) console.log(`[Chat] Fetching messages for project: ${projectId}`);
+      
       const response = await fetch(`/api/projects/${projectId}/chat?limit=${pageSize}`);
       if (!response.ok) {
         throw new Error('Failed to fetch messages');
       }
       const data = await response.json();
-      // Messages are already in correct order (oldest first, newest last)
+      
+      if (isDev) console.log(`[Chat] Fetched ${data.messages.length} messages`);
       return { messages: data.messages, hasMore: data.hasMore };
     },
     enabled: enabled && !!projectId && !!currentUserId,
@@ -81,6 +86,8 @@ export function useProjectChat(
         throw new Error('Failed to fetch presence');
       }
       const data = await response.json();
+      
+      if (isDev) console.log(`[Presence] Fetched ${data.onlineMembers?.length || 0} online members`);
       return data.onlineMembers || [];
     },
     enabled: enabled && !!projectId && !!currentUserId,
@@ -98,6 +105,8 @@ export function useProjectChat(
     // Only poll if real-time connection is down for more than 30 seconds
     const pollTimeout = setTimeout(() => {
       if (!isConnected) {
+        if (isDev) console.log('[Chat] Real-time disconnected, starting emergency polling');
+        
         const interval = setInterval(() => {
           queryClient.invalidateQueries({ 
             queryKey: ['chat-messages', projectId],
@@ -393,6 +402,7 @@ export function useProjectChat(
   useEffect(() => {
     if (!enabled || !projectId || !currentUserId) return;
 
+    if (isDev) console.log(`[RealTime] Setting up subscriptions for project: ${projectId}`);
     let mounted = true;
 
     // Initialize presence
@@ -411,6 +421,8 @@ export function useProjectChat(
         },
         (payload) => {
           if (!mounted) return;
+          if (isDev) console.log('[RealTime] New message received');
+          
           // Immediately invalidate and refetch for new messages
           queryClient.invalidateQueries({ 
             queryKey: ['chat-messages', projectId],
@@ -428,6 +440,8 @@ export function useProjectChat(
         },
         (payload) => {
           if (!mounted) return;
+          if (isDev) console.log('[RealTime] Message updated');
+          
           // Immediately invalidate and refetch for message updates
           queryClient.invalidateQueries({ 
             queryKey: ['chat-messages', projectId],
@@ -445,6 +459,7 @@ export function useProjectChat(
         },
         (payload) => {
           if (!mounted) return;
+          if (isDev) console.log('[RealTime] Message deleted');
           
           // Immediately update the cache by removing the deleted message
           queryClient.setQueryData(['chat-messages', projectId], (old: any) => {
@@ -467,6 +482,7 @@ export function useProjectChat(
         }
       )
       .subscribe((status) => {
+        if (isDev) console.log(`[RealTime] Message channel: ${status}`);
         setIsConnected(status === 'SUBSCRIBED');
       });
 
