@@ -25,8 +25,8 @@ export function ScrollbarStyles({ className = 'scrollbar-thin' }: ScrollbarStyle
       }
       
       .${className}::-webkit-scrollbar {
-        width: 4px;
-        height: 4px;
+        width: 6px;
+        height: 6px;
       }
       
       .${className}::-webkit-scrollbar-track {
@@ -35,8 +35,9 @@ export function ScrollbarStyles({ className = 'scrollbar-thin' }: ScrollbarStyle
       
       .${className}::-webkit-scrollbar-thumb {
         background-color: rgb(156 163 175);
-        border-radius: 2px;
+        border-radius: 3px;
         border: none;
+        transition: background-color 0.2s ease;
       }
       
       .${className}::-webkit-scrollbar-thumb:hover {
@@ -67,6 +68,36 @@ export function ScrollbarStyles({ className = 'scrollbar-thin' }: ScrollbarStyle
       
       .scrollbar-none::-webkit-scrollbar {
         display: none;
+      }
+      
+      /* Subtask-specific scrollbar styles with better spacing */
+      .subtask-scroll::-webkit-scrollbar {
+        width: 12px;
+        height: 6px;
+      }
+      
+      .subtask-scroll::-webkit-scrollbar-track {
+        background: transparent;
+        margin: 4px 0;
+      }
+      
+      .subtask-scroll::-webkit-scrollbar-thumb {
+        background-color: rgb(156 163 175);
+        border-radius: 3px;
+        border: none;
+        transition: background-color 0.2s ease;
+      }
+      
+      .subtask-scroll::-webkit-scrollbar-thumb:hover {
+        background-color: rgb(107 114 128);
+      }
+      
+      .dark .subtask-scroll::-webkit-scrollbar-thumb {
+        background-color: rgb(75 85 99);
+      }
+      
+      .dark .subtask-scroll::-webkit-scrollbar-thumb:hover {
+        background-color: rgb(107 114 128);
       }
     `}</style>
   );

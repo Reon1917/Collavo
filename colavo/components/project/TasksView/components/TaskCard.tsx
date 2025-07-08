@@ -178,7 +178,18 @@ export function TaskCard({
               </div>
               <div className="relative">
                 <ScrollbarStyles className="subtask-scroll" />
-                <div className="space-y-2 subtask-scroll overflow-y-auto" style={{ maxHeight: '180px' }}>
+                <div 
+                  className="space-y-2 subtask-scroll overflow-y-auto pr-2" 
+                  style={{ maxHeight: '180px' }}
+                  onScroll={(e) => {
+                    const element = e.currentTarget;
+                    const indicator = element.parentElement?.querySelector('.scroll-indicator');
+                    if (indicator) {
+                      const isAtBottom = element.scrollHeight - element.scrollTop <= element.clientHeight + 10;
+                      (indicator as HTMLElement).style.opacity = isAtBottom ? '0' : '1';
+                    }
+                  }}
+                >
                   {visibleSubTasks.map((subtask) => (
                     <SubTaskMiniItem 
                       key={subtask.id} 
@@ -191,7 +202,7 @@ export function TaskCard({
                   ))}
                 </div>
                 {visibleSubTasks.length > 3 && (
-                  <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-white dark:from-gray-800 to-transparent pointer-events-none flex items-center justify-center">
+                  <div className="scroll-indicator absolute bottom-0 left-0 right-2 h-4 bg-gradient-to-t from-white dark:from-gray-800 to-transparent pointer-events-none flex items-center justify-center transition-opacity duration-200">
                     <span className="text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-2 rounded-full">
                       {visibleSubTasks.length - 3} more
                     </span>
