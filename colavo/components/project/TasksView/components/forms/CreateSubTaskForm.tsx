@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Member, SubTask } from '../../types';
+import { UserSelectDropdown } from '../shared';
 
 interface CreateSubTaskFormProps {
   projectId: string;
@@ -210,34 +211,14 @@ export function CreateSubTaskForm({
             <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Assign To *
             </Label>
-            <Select 
-              value={formData.assignedId} 
+            <UserSelectDropdown
+              value={formData.assignedId}
               onValueChange={(value) => setFormData(prev => ({ ...prev, assignedId: value }))}
-            >
-              <SelectTrigger 
-                className={cn(
-                  "bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]",
-                  isLoading && "opacity-50 cursor-not-allowed"
-                )}
-                disabled={isLoading}
-              >
-                <SelectValue placeholder="Select a team member *" />
-              </SelectTrigger>
-              <SelectContent>
-                {members.map((member) => (
-                  <SelectItem key={member.userId} value={member.userId}>
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-                        <span className="text-xs font-medium text-white">
-                          {member.userName.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <span>{member.userName}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              members={members}
+              placeholder="Select a team member"
+              disabled={isLoading}
+              required={true}
+            />
           </div>
 
           <div className="space-y-2">
