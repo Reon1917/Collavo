@@ -77,8 +77,10 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
 
       toast.success(result.message);
       onOpenChange(false);
-    } catch {
-      toast.error('Failed to set up notification');
+    } catch (error) {
+      console.error('Event notification error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to set up notification';
+      toast.error(errorMessage);
     }
   };
 
