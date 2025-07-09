@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
+import { MemberSelect } from '../../../shared';
 import { CalendarIcon, AlertCircle } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -28,8 +28,6 @@ export function DetailsEditForm({
   projectDeadline, 
   isLoading 
 }: DetailsEditFormProps) {
-  // Find the selected member's name
-  const selectedMemberName = members.find(m => m.userId === detailsFormData.assignedId)?.userName;
 
   // Get maximum allowed date based on task and project deadlines
   const getMaxDate = () => {
@@ -101,46 +99,14 @@ export function DetailsEditForm({
           <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Assign to *
           </Label>
-          <Select
+          <MemberSelect
+            members={members}
             value={detailsFormData.assignedId}
             onValueChange={(value) => setDetailsFormData(prev => ({ ...prev, assignedId: value }))}
-          >
-            <SelectTrigger 
-              className={cn(
-                "bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700",
-                isLoading && "opacity-50 cursor-not-allowed"
-              )}
-            >
-              <span className={cn(
-                "flex-1 text-left",
-                !selectedMemberName && "text-gray-500 dark:text-gray-400"
-              )}>
-                {selectedMemberName || "Select member *"}
-              </span>
-              <svg 
-                width="15" 
-                height="15" 
-                viewBox="0 0 15 15" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 opacity-50"
-              >
-                <path 
-                  d="m4.93179 5.43179c.20264-.20264.53132-.20264.73396 0l2.33439 2.33438 2.3344-2.33438c.2026-.20264.5313-.20264.7339 0 .2027.20263.2027.53131 0 .73395L7.66957 9.5678c-.20264.2027-.53132.2027-.73396 0L3.66821 6.16574c-.20264-.20264-.20264-.53132 0-.73395Z" 
-                  fill="currentColor" 
-                  fillRule="evenodd" 
-                  clipRule="evenodd"
-                />
-              </svg>
-            </SelectTrigger>
-            <SelectContent>
-              {members.map((member) => (
-                <SelectItem key={member.userId} value={member.userId}>
-                  {member.userName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            placeholder="Select member *"
+            className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700"
+            disabled={isLoading}
+          />
           {detailsFormData.assignedId && !members.find(m => m.userId === detailsFormData.assignedId) && (
             <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
               ⚠️ Assigned user is no longer a project member. Please reassign to an active member.

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MemberSelect } from '../shared';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -215,21 +215,13 @@ export function SubTasksForm({
                   <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">
                     Assign to *
                   </Label>
-                  <Select
+                  <MemberSelect
+                    members={members}
                     value={subTask.assignedId}
                     onValueChange={(value) => handleSubTaskChange(index, 'assignedId', value)}
-                  >
-                    <SelectTrigger className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600">
-                      <SelectValue placeholder="Select member *" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {members.map((member) => (
-                        <SelectItem key={member.userId} value={member.userId}>
-                          {member.userName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    placeholder="Select member *"
+                    className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600"
+                  />
                 </div>
 
                 <div className="space-y-1">
