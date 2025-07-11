@@ -154,29 +154,41 @@ export class NotificationService {
     const eventRecord = eventData[0]!;
 
     // Check if event allows for notification scheduling
-    console.log(`Checking notification scheduling for event ${eventId}:`, {
-      eventDatetime: eventRecord.event.datetime,
-      daysBefore,
-      time,
-      currentTime: new Date().toISOString()
-    });
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log(`Checking notification scheduling for event ${eventId}:`, {
+        eventDatetime: eventRecord.event.datetime,
+        daysBefore,
+        time,
+        currentTime: new Date().toISOString()
+      });
+    }
     
     if (!canScheduleNotification(eventRecord.event.datetime, daysBefore, time)) {
       const errorMsg = 'The notification time has already passed. Please choose a different time or fewer days before the event.';
-      console.error(`Notification scheduling failed:`, errorMsg);
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error(`Notification scheduling failed:`, errorMsg);
+      }
       throw new Error(errorMsg);
     }
 
     // Calculate scheduled time
     const scheduledFor = calculateScheduleTime(eventRecord.event.datetime, daysBefore, time);
-    console.log(`Calculated scheduled time:`, {
-      originalScheduledFor: scheduledFor.toISOString(),
-      isPast: isPastTime(scheduledFor)
-    });
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log(`Calculated scheduled time:`, {
+        originalScheduledFor: scheduledFor.toISOString(),
+        isPast: isPastTime(scheduledFor)
+      });
+    }
 
     // If the computed time is in the past, schedule for immediate delivery
     const finalScheduledTime = isPastTime(scheduledFor) ? new Date() : scheduledFor;
-    console.log(`Final scheduled time:`, finalScheduledTime.toISOString());
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log(`Final scheduled time:`, finalScheduledTime.toISOString());
+    }
 
     // Get recipient user details
     const recipients = await db
@@ -194,11 +206,17 @@ export class NotificationService {
     const createdNotifications: Array<{notificationId: string, emailId: string}> = [];
     
     try {
-      console.log(`Creating event notifications for ${recipients.length} recipients. Event: ${eventId}, Scheduled time: ${finalScheduledTime.toISOString()}`);
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log(`Creating event notifications for ${recipients.length} recipients. Event: ${eventId}, Scheduled time: ${finalScheduledTime.toISOString()}`);
+      }
       
       for (let i = 0; i < recipients.length; i++) {
         const recipient = recipients[i]!;
-        console.log(`Processing recipient ${i + 1}/${recipients.length}: ${recipient.email}`);
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.log(`Processing recipient ${i + 1}/${recipients.length}: ${recipient.email}`);
+        }
         
         // Generate email content with sanitization
         const templateParams: any = {
@@ -249,31 +267,52 @@ export class NotificationService {
           createdNotifications.push({ notificationId, emailId });
           notificationIds.push(notificationId);
           
-          console.log(`Successfully created notification for ${recipient.email}: ${notificationId}`);
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.log(`Successfully created notification for ${recipient.email}: ${notificationId}`);
+          }
         } catch (recipientError) {
-          console.error(`Failed to create notification for recipient ${recipient.email}:`, recipientError);
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.error(`Failed to create notification for recipient ${recipient.email}:`, recipientError);
+          }
           throw new Error(`Failed to create notification for ${recipient.email}: ${recipientError instanceof Error ? recipientError.message : 'Unknown error'}`);
         }
       }
       
-      console.log(`Successfully created ${notificationIds.length} event notifications`);
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log(`Successfully created ${notificationIds.length} event notifications`);
+      }
     } catch (error) {
-      console.error('Error during batch notification creation:', error);
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('Error during batch notification creation:', error);
+      }
       
       // Attempt to cleanup any partially created notifications
       if (createdNotifications.length > 0) {
-        console.log(`Attempting to cleanup ${createdNotifications.length} partially created notifications`);
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.log(`Attempting to cleanup ${createdNotifications.length} partially created notifications`);
+        }
         try {
           for (const { notificationId, emailId } of createdNotifications) {
             try {
               await ResendEmailService.cancelEmail(emailId);
               await db.delete(scheduledNotifications).where(eq(scheduledNotifications.id, notificationId));
             } catch (cleanupError) {
-              console.error(`Failed to cleanup notification ${notificationId}:`, cleanupError);
+              if (process.env.NODE_ENV === 'development') {
+                // eslint-disable-next-line no-console
+                console.error(`Failed to cleanup notification ${notificationId}:`, cleanupError);
+              }
             }
           }
         } catch (cleanupError) {
-          console.error('Error during cleanup:', cleanupError);
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.error('Error during cleanup:', cleanupError);
+          }
         }
       }
       

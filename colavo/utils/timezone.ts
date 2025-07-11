@@ -78,16 +78,18 @@ export function canScheduleNotification(deadline: Date, daysBefore: number, time
     
     const canSchedule = notificationTimeInBangkok > minimumFutureTime;
     
-    console.log('canScheduleNotification check:', {
-      deadline: deadline.toISOString(),
-      daysBefore,
-      time,
-      currentBangkokTime: now.toISO(),
-      calculatedNotificationTime: notificationTimeInBangkok.toISO(),
-      minimumFutureTime: minimumFutureTime.toISO(),
-      canSchedule,
-      timeDifferenceMinutes: notificationTimeInBangkok.diff(now, 'minutes').minutes
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.log('canScheduleNotification check:', {
+        deadline: deadline.toISOString(),
+        daysBefore,
+        time,
+        currentBangkokTime: now.toISO(),
+        calculatedNotificationTime: notificationTimeInBangkok.toISO(),
+        minimumFutureTime: minimumFutureTime.toISO(),
+        canSchedule,
+        timeDifferenceMinutes: notificationTimeInBangkok.diff(now, 'minutes').minutes
+      });
+    }
     
     return canSchedule;
   } catch (error) {
@@ -99,14 +101,16 @@ export function canScheduleNotification(deadline: Date, daysBefore: number, time
     
     const fallbackCanSchedule = notificationDate > minimumFutureTime;
     
-    console.log('Fallback canScheduleNotification check:', {
-      deadline: deadline.toISOString(),
-      daysBefore,
-      deadlineInBangkok: deadlineInBangkok.toISO(),
-      notificationDate: notificationDate.toISO(),
-      minimumFutureTime: minimumFutureTime.toISO(),
-      fallbackCanSchedule
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Fallback canScheduleNotification check:', {
+        deadline: deadline.toISOString(),
+        daysBefore,
+        deadlineInBangkok: deadlineInBangkok.toISO(),
+        notificationDate: notificationDate.toISO(),
+        minimumFutureTime: minimumFutureTime.toISO(),
+        fallbackCanSchedule
+      });
+    }
     
     return fallbackCanSchedule;
   }
