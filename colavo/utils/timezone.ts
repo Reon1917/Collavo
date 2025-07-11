@@ -73,17 +73,46 @@ export function canScheduleNotification(deadline: Date, daysBefore: number, time
     const actualNotificationTime = calculateScheduleTime(deadline, daysBefore, time);
     const notificationTimeInBangkok = DateTime.fromJSDate(actualNotificationTime).setZone(BANGKOK_TIMEZONE);
     
-    // Add a small buffer (1 minute) to avoid issues with immediate scheduling
-    const minimumFutureTime = now.plus({ minutes: 1 });
+    // Add a larger buffer (10 minutes) to account for processing time with multiple recipients
+    const minimumFutureTime = now.plus({ minutes: 10 });
     
-    return notificationTimeInBangkok > minimumFutureTime;
+    const canSchedule = notificationTimeInBangkok > minimumFutureTime;
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('canScheduleNotification check:', {
+        deadline: deadline.toISOString(),
+        daysBefore,
+        time,
+        currentBangkokTime: now.toISO(),
+        calculatedNotificationTime: notificationTimeInBangkok.toISO(),
+        minimumFutureTime: minimumFutureTime.toISO(),
+        canSchedule,
+        timeDifferenceMinutes: notificationTimeInBangkok.diff(now, 'minutes').minutes
+      });
+    }
+    
+    return canSchedule;
   } catch (error) {
+    console.error('Error in canScheduleNotification, falling back to basic check:', error);
     // If calculateScheduleTime fails, fall back to basic date check
     const deadlineInBangkok = DateTime.fromJSDate(deadline).setZone(BANGKOK_TIMEZONE);
     const notificationDate = deadlineInBangkok.minus({ days: daysBefore });
     const minimumFutureTime = now.plus({ hours: 1 });
     
-    return notificationDate > minimumFutureTime;
+    const fallbackCanSchedule = notificationDate > minimumFutureTime;
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Fallback canScheduleNotification check:', {
+        deadline: deadline.toISOString(),
+        daysBefore,
+        deadlineInBangkok: deadlineInBangkok.toISO(),
+        notificationDate: notificationDate.toISO(),
+        minimumFutureTime: minimumFutureTime.toISO(),
+        fallbackCanSchedule
+      });
+    }
+    
+    return fallbackCanSchedule;
   }
 }
 
