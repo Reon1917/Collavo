@@ -143,7 +143,7 @@ export function useProjectChat(
           table: 'messages',
           filter: `project_id=eq.${projectId}`
         },
-        (payload) => {
+        (_) => {
           if (!mounted) return;
           queryClient.invalidateQueries({ 
             queryKey: ['chat-messages', projectId],
@@ -159,7 +159,7 @@ export function useProjectChat(
           table: 'messages',
           filter: `project_id=eq.${projectId}`
         },
-        (payload) => {
+        (_) => {
           if (!mounted) return;
           queryClient.invalidateQueries({ 
             queryKey: ['chat-messages', projectId],
@@ -237,7 +237,7 @@ export function useProjectChat(
           table: 'user_presence',
           filter: `project_id=eq.${projectId}`
         },
-        async (payload) => {
+        async (_) => {
           if (!mounted) return;
           
           try {
