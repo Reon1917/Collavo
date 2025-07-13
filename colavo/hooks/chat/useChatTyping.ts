@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 
 interface UseChatTypingOptions {
   projectId: string;
@@ -39,7 +39,7 @@ export function useChatTyping({
     typingTimeoutRef.current = setTimeout(() => {
       stopTyping();
     }, 3000);
-  }, [currentUserId, projectId, enabled, presenceChannelRef]);
+  }, [currentUserId, projectId, enabled]);
 
   const stopTyping = useCallback(() => {
     if (!enabled || !currentUserId || !projectId) return;
@@ -57,7 +57,16 @@ export function useChatTyping({
         projectId
       }
     });
-  }, [currentUserId, projectId, enabled, presenceChannelRef]);
+  }, [currentUserId, projectId, enabled]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return {
     startTyping,
