@@ -82,7 +82,7 @@ export function ChatMessage({
   return (
     <div
       className={cn(
-        'group flex flex-col px-2 py-1',
+        'group flex flex-col px-2 py-3',
         isCurrentUser ? 'items-end' : 'items-start',
         className
       )}
@@ -138,16 +138,75 @@ export function ChatMessage({
               {message.content}
             </div>
           )}
-          {/* Timestamp on hover, beside bubble */}
+          {/* Timestamp on hover, below bubble */}
           <span
             className={cn(
-              'absolute top-1/2 -translate-y-1/2 text-[10px] text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap',
-              isCurrentUser ? 'right-full mr-2' : 'left-full ml-2'
+              'absolute top-full mt-1 text-[10px] text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap',
+              isCurrentUser ? 'right-0' : 'left-0'
             )}
             aria-label="Message time"
           >
             {formatDistanceToNow(message.createdAt, { addSuffix: true })}
           </span>
+
+          {/* Action dropdown menu */}
+          <div
+            className={cn(
+              'absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity',
+              isCurrentUser ? 'right-full mr-2' : 'left-full ml-2'
+            )}
+          >
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 bg-gray-100 dark:bg-gray-800 shadow-sm border border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
+                >
+                  <MoreHorizontal className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align={isCurrentUser ? "start" : "end"}
+                className="w-32"
+              >
+                {/* Reply option (always available) */}
+                {onReply && (
+                  <DropdownMenuItem
+                    onClick={() => onReply(message)}
+                    className="flex items-center gap-2 text-xs"
+                  >
+                    <Reply className="h-3 w-3" />
+                    Reply
+                  </DropdownMenuItem>
+                )}
+                
+                {/* Edit and Delete options (only for current user) */}
+                {isCurrentUser && (
+                  <>
+                    {onEdit && (
+                      <DropdownMenuItem
+                        onClick={() => setIsEditing(true)}
+                        className="flex items-center gap-2 text-xs"
+                      >
+                        <Edit2 className="h-3 w-3" />
+                        Edit
+                      </DropdownMenuItem>
+                    )}
+                    {onDelete && (
+                      <DropdownMenuItem
+                        onClick={handleDelete}
+                        className="flex items-center gap-2 text-xs text-red-600 dark:text-red-400"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        Delete
+                      </DropdownMenuItem>
+                    )}
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     </div>
