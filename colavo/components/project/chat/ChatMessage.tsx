@@ -80,242 +80,76 @@ export function ChatMessage({
   };
 
   return (
-    <div 
+    <div
       className={cn(
-        "px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 group transition-colors",
-        message.replyTo && "pt-0", // Remove top padding when there's a reply to show the reply header flush
+        'group flex flex-col px-2 py-1',
+        isCurrentUser ? 'items-end' : 'items-start',
         className
       )}
     >
-      {isCurrentUser ? (
-        /* Current User Layout: Actions - Avatar - Message (message touches right edge) */
-        <div className="flex gap-3 ml-auto max-w-[85%]">
-          {/* Message Actions - positioned to the left */}
-          {!isEditing && (
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-start pt-1">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0"
-                  >
-                    <MoreHorizontal className="h-3 w-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-40">
-                  {onReply && (
-                    <DropdownMenuItem onClick={() => onReply(message)}>
-                      <Reply className="h-4 w-4 mr-2" />
-                      Reply
-                    </DropdownMenuItem>
-                  )}
-                  {onEdit && (
-                    <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                      <Edit2 className="h-4 w-4 mr-2" />
-                      Edit
-                    </DropdownMenuItem>
-                  )}
-                  {onDelete && (
-                    <DropdownMenuItem 
-                      onClick={handleDelete}
-                      className="text-red-600 dark:text-red-400"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+      {/* Sender name above bubble for other users only */}
+      {!isCurrentUser && (
+        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5 ml-8">
+          {userName}
+        </span>
+      )}
+      <div className={cn(
+        'flex items-end max-w-[85%]',
+        isCurrentUser ? 'flex-row-reverse' : 'flex-row'
+      )}>
+        {/* Avatar for other users only */}
+        {!isCurrentUser && (
+          <Avatar className="h-5 w-5 flex-shrink-0 mr-2">
+            <AvatarImage src={userAvatar || undefined} alt={userName} />
+            <AvatarFallback className="text-[10px] font-medium bg-secondary text-secondary-foreground">
+              {userName.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        )}
+        {/* Message bubble */}
+        <div
+          className={cn(
+            'relative rounded-xl px-3 py-2 text-xs break-words',
+            isCurrentUser
+              ? 'bg-primary text-primary-foreground ml-2'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100',
+            'transition-colors'
+          )}
+        >
+          {/* Reply display if needed */}
+          <ReplyDisplay
+            message={message}
+            currentUserId={currentUserId}
+            isCurrentUser={isCurrentUser}
+            userName={userName}
+          />
+          {/* Message content */}
+          {isEditing ? (
+            <EditingInterface
+              editContent={editContent}
+              onContentChange={setEditContent}
+              onSubmit={handleEditSubmit}
+              onCancel={handleEditCancel}
+              onKeyDown={handleKeyPress}
+              isSubmitting={isSubmitting}
+            />
+          ) : (
+            <div className="leading-relaxed">
+              {message.content}
             </div>
           )}
-          
-          {/* Avatar */}
-          <Avatar className="h-9 w-9 flex-shrink-0 mt-0.5">
-            <AvatarImage src={userAvatar || undefined} alt={userName} />
-            <AvatarFallback className="text-sm font-medium bg-primary text-primary-foreground">
-              {userName.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-
-          {/* Message Content */}
-          <div className="flex-1 min-w-0 rounded-2xl px-4 py-3 shadow-sm bg-primary text-primary-foreground">
-            {/* Username Line */}
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm font-semibold text-primary-foreground/90">
-                {userName}
-              </span>
-              <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-4 bg-primary-foreground/20 text-primary-foreground border-primary-foreground/20">
-                You
-              </Badge>
-              {message.isEdited && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-4 border-primary-foreground/30 text-primary-foreground/70">
-                        edited
-                      </Badge>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {message.editedAt ? format(message.editedAt, 'PPpp') : 'Edited'}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-            </div>
-
-            {/* Reply to previous message */}
-            <ReplyDisplay 
-              message={message}
-              currentUserId={currentUserId}
-              isCurrentUser={isCurrentUser}
-              userName={userName}
-            />
-
-            {/* Message Content Line */}
-            {isEditing ? (
-              <EditingInterface
-                editContent={editContent}
-                onContentChange={setEditContent}
-                onSubmit={handleEditSubmit}
-                onCancel={handleEditCancel}
-                onKeyDown={handleKeyPress}
-                isSubmitting={isSubmitting}
-              />
-            ) : (
-              <div className="text-sm break-words mb-1 leading-relaxed text-primary-foreground">
-                {message.content}
-              </div>
+          {/* Timestamp on hover, beside bubble */}
+          <span
+            className={cn(
+              'absolute top-1/2 -translate-y-1/2 text-[10px] text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity',
+              isCurrentUser ? 'right-full mr-2' : 'left-full ml-2'
             )}
-
-            {/* Timestamp Line */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="text-xs cursor-default text-primary-foreground/70">
-                    {formatDistanceToNow(message.createdAt, { addSuffix: true })}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {format(message.createdAt, 'PPpp')}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            {/* System message styling */}
-            {message.messageType === 'system' && (
-              <div className="text-xs italic mt-1 text-primary-foreground/70">
-                System message
-              </div>
-            )}
-          </div>
+            aria-label="Message time"
+          >
+            {formatDistanceToNow(message.createdAt, { addSuffix: true })}
+          </span>
         </div>
-      ) : (
-        /* Other User Layout: Avatar - Message - Actions */
-        <div className="flex gap-3 mr-auto max-w-[85%]">
-          {/* Avatar */}
-          <Avatar className="h-9 w-9 flex-shrink-0 mt-0.5">
-            <AvatarImage src={userAvatar || undefined} alt={userName} />
-            <AvatarFallback className="text-sm font-medium bg-secondary text-secondary-foreground">
-              {userName.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-
-                     {/* Message Content */}
-           <div className="flex-1 min-w-0 rounded-2xl px-4 py-3 shadow-sm bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-             {/* Username Line */}
-             <div className="flex items-center gap-2 mb-1">
-               <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                 {userName}
-               </span>
-               {message.isEdited && (
-                 <TooltipProvider>
-                   <Tooltip>
-                     <TooltipTrigger asChild>
-                       <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-4 border-gray-300 text-gray-600 dark:border-gray-600 dark:text-gray-400">
-                         edited
-                       </Badge>
-                     </TooltipTrigger>
-                     <TooltipContent>
-                       {message.editedAt ? format(message.editedAt, 'PPpp') : 'Edited'}
-                     </TooltipContent>
-                   </Tooltip>
-                 </TooltipProvider>
-               )}
-             </div>
-
-             {/* Reply to previous message */}
-             <ReplyDisplay 
-               message={message}
-               currentUserId={currentUserId}
-               isCurrentUser={isCurrentUser}
-               userName={userName}
-             />
-
-             {/* Message Content Line */}
-             {isEditing ? (
-               <EditingInterface
-                 editContent={editContent}
-                 onContentChange={setEditContent}
-                 onSubmit={handleEditSubmit}
-                 onCancel={handleEditCancel}
-                 onKeyDown={handleKeyPress}
-                 isSubmitting={isSubmitting}
-               />
-             ) : (
-               <div className="text-sm break-words mb-1 leading-relaxed text-gray-900 dark:text-gray-100">
-                 {message.content}
-               </div>
-             )}
-
-             {/* Timestamp Line */}
-             <TooltipProvider>
-               <Tooltip>
-                 <TooltipTrigger asChild>
-                   <div className="text-xs cursor-default text-gray-500 dark:text-gray-400">
-                     {formatDistanceToNow(message.createdAt, { addSuffix: true })}
-                   </div>
-                 </TooltipTrigger>
-                 <TooltipContent>
-                   {format(message.createdAt, 'PPpp')}
-                 </TooltipContent>
-               </Tooltip>
-             </TooltipProvider>
-
-             {/* System message styling */}
-             {message.messageType === 'system' && (
-               <div className="text-xs italic mt-1 text-gray-500 dark:text-gray-400">
-                 System message
-               </div>
-             )}
-           </div>
-
-           {/* Message Actions */}
-           {!isEditing && (
-             <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-start pt-1">
-               <DropdownMenu>
-                 <DropdownMenuTrigger asChild>
-                   <Button
-                     variant="ghost"
-                     size="sm"
-                     className="h-6 w-6 p-0"
-                   >
-                     <MoreHorizontal className="h-3 w-3" />
-                   </Button>
-                 </DropdownMenuTrigger>
-                 <DropdownMenuContent align="end" className="w-40">
-                   {onReply && (
-                     <DropdownMenuItem onClick={() => onReply(message)}>
-                       <Reply className="h-4 w-4 mr-2" />
-                       Reply
-                     </DropdownMenuItem>
-                   )}
-                 </DropdownMenuContent>
-               </DropdownMenu>
-             </div>
-           )}
-         </div>
-       )}
+      </div>
     </div>
   );
 } 
