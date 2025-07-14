@@ -119,7 +119,7 @@ export function MemberCard({ member, permissions, projectId, currentUserId, onMe
         onClick={handleCardClick}
       >
         <CardContent className="py-2.5 px-8">
-          <div className="flex items-center justify-between min-h-[64px]">
+          <div className="flex items-center justify-between min-h-[56px]">
             <div className="flex items-center gap-8 min-w-0">
               <Avatar className="h-14 w-14 shadow ring-2 ring-primary/20 flex-shrink-0">
                 <AvatarImage src={member.userImage} alt={member.userName} />
@@ -127,7 +127,7 @@ export function MemberCard({ member, permissions, projectId, currentUserId, onMe
                   {getInitials(member.userName)}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex flex-col justify-center space-y-0 min-w-0">
+              <div className="flex flex-col justify-center space-y-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap min-w-0">
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight truncate max-w-xs">
                     {member.userName}
@@ -151,7 +151,7 @@ export function MemberCard({ member, permissions, projectId, currentUserId, onMe
                 <p className="text-sm text-gray-500 dark:text-gray-400 leading-tight truncate max-w-xs">
                   {member.userEmail}
                 </p>
-                <div className="flex items-center gap-2 mt-0.5">
+                <div className="flex items-center gap-2 mt-1">
                   <span className="text-xs text-gray-400 dark:text-gray-500">
                     Joined {new Date(member.joinedAt).toLocaleDateString()}
                   </span>
@@ -163,7 +163,7 @@ export function MemberCard({ member, permissions, projectId, currentUserId, onMe
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 min-w-[70px]">
+            <div className="flex items-center gap-2 min-w-[70px] ml-4 justify-end">
               {canManageThisMemberPermissions && (
                 <div className="text-xs text-[#008080] dark:text-[#00a3a3] flex items-center gap-1">
                   <Settings className="h-4 w-4" />
