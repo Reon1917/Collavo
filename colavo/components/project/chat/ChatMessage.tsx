@@ -141,7 +141,7 @@ export function ChatMessage({
           {/* Timestamp on hover, beside bubble */}
           <span
             className={cn(
-              'absolute top-1/2 -translate-y-1/2 text-[10px] text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity',
+              'absolute top-1/2 -translate-y-1/2 text-[10px] text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap',
               isCurrentUser ? 'right-full mr-2' : 'left-full ml-2'
             )}
             aria-label="Message time"
