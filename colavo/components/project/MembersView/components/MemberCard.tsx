@@ -97,11 +97,9 @@ export function MemberCard({ member, permissions, projectId, currentUserId, onMe
     setShowPermissionModal(false);
   };
 
-  const handleCardClick = () => {
-    // Only open permission modal if user can manage permissions and it's not the leader
-    if (canManageThisMemberPermissions) {
-      setShowPermissionModal(true);
-    }
+  const handleManageClick = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation();
+    setShowPermissionModal(true);
   };
 
   return (
@@ -110,65 +108,77 @@ export function MemberCard({ member, permissions, projectId, currentUserId, onMe
         className={cn(
           `bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 rounded-xl shadow-sm transition-all group outline-none`,
           canManageThisMemberPermissions &&
-            'hover:shadow-lg hover:border-primary/60 dark:hover:border-primary/40 hover:bg-primary/5 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary',
+            'hover:shadow-lg hover:border-primary/60 dark:hover:border-cyan-400 hover:bg-primary/5 dark:hover:bg-primary/10',
           className
         )}
-        tabIndex={canManageThisMemberPermissions ? 0 : undefined}
-        role={canManageThisMemberPermissions ? 'button' : undefined}
-        aria-label={canManageThisMemberPermissions ? `Manage permissions for ${member.userName}` : undefined}
-        onClick={handleCardClick}
       >
-        <CardContent className="py-2.5 px-8">
-          <div className="flex items-center justify-between min-h-[56px]">
-            <div className="flex items-center gap-8 min-w-0">
-              <Avatar className="h-14 w-14 shadow ring-2 ring-primary/20 flex-shrink-0">
-                <AvatarImage src={member.userImage} alt={member.userName} />
-                <AvatarFallback className="bg-[#008080] text-white text-xl">
-                  {getInitials(member.userName)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col justify-center space-y-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap min-w-0">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight truncate max-w-xs">
-                    {member.userName}
-                  </h3>
-                  <Badge 
-                    variant={member.role === 'leader' ? 'default' : 'secondary'}
-                    className={cn(
-                      'rounded-full px-2 py-0.5 text-xs capitalize ml-3',
-                      member.role === 'leader' ? 'bg-[#008080] hover:bg-[#006666]' : ''
-                    )}
-                  >
-                    {member.role}
-                  </Badge>
-                  {member.role === 'leader' && (
-                    <Crown className="h-4 w-4 text-yellow-500 ml-1" />
-                  )}
-                  {member.role === 'member' && (
-                    <User className="h-4 w-4 text-gray-500 ml-1" />
-                  )}
-                </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 leading-tight truncate max-w-xs">
-                  {member.userEmail}
-                </p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs text-gray-400 dark:text-gray-500">
-                    Joined {new Date(member.joinedAt).toLocaleDateString()}
-                  </span>
-                  {member.permissions.length > 0 && (
-                    <span className="text-xs text-gray-400 dark:text-gray-500">
-                      • {member.permissions.length} permission{member.permissions.length !== 1 ? 's' : ''}
-                    </span>
-                  )}
-                </div>
-              </div>
+        <CardContent className="py-6 px-4 flex flex-col items-center">
+          {/* Profile Section */}
+          <div className="flex flex-col items-center gap-2 w-full">
+            <Avatar className="h-24 w-24 shadow ring-2 ring-primary/20 mb-2">
+              <AvatarImage src={member.userImage} alt={member.userName} />
+              <AvatarFallback className="bg-[#008080] text-white text-2xl">
+                {getInitials(member.userName)}
+              </AvatarFallback>
+            </Avatar>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight truncate text-center w-full">
+              {member.userName}
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 leading-tight truncate text-center w-full">
+              {member.userEmail}
+            </p>
+          </div>
+
+          {/* Divider */}
+          <div className="w-full border-t border-gray-200 dark:border-gray-700 my-4" />
+
+          {/* Info & Actions Section */}
+          <div className="flex flex-col items-center gap-2 w-full">
+            <div className="flex items-center gap-2 flex-wrap justify-center">
+              {member.role === 'leader' ? (
+                <Badge
+                  variant="default"
+                  className="bg-[#008080] hover:bg-[#006666] text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1"
+                >
+                  <Crown className="h-3 w-3 mr-1 text-yellow-300" />
+                  Leader
+                </Badge>
+              ) : (
+                <Badge
+                  variant="secondary"
+                  className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1"
+                >
+                  <User className="h-3 w-3 mr-1 text-gray-500 dark:text-gray-400" />
+                  Member
+                </Badge>
+              )}
             </div>
-            <div className="flex items-center gap-2 min-w-[70px] ml-4 justify-end">
+            <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              Joined {new Date(member.joinedAt).toLocaleDateString()}
+            </span>
+            {member.permissions.length > 0 && (
+              <span className="text-xs text-gray-400 dark:text-gray-500">
+                {member.permissions.length} permission{member.permissions.length !== 1 ? 's' : ''}
+              </span>
+            )}
+            <div className="flex items-center gap-2 mt-2 justify-center">
               {canManageThisMemberPermissions && (
-                <div className="text-xs text-[#008080] dark:text-[#00a3a3] flex items-center gap-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-1 px-3 py-1 text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 border-cyan-200 dark:border-cyan-700"
+                  aria-label={`Manage permissions for ${member.userName}`}
+                  onClick={handleManageClick}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      handleManageClick(e);
+                    }
+                  }}
+                >
                   <Settings className="h-4 w-4" />
                   <span className="hidden md:inline">Manage</span>
-                </div>
+                </Button>
               )}
               {canRemoveThisMember && (
                 <>
