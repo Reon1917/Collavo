@@ -35,14 +35,12 @@ export function MembersView({ projectId, onPermissionRefresh }: MembersViewProps
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
       <MembersHeader 
         projectId={projectId}
         permissions={permissions}
         onMemberAdded={refreshMembers}
       />
-
-
 
       {members.length === 0 ? (
         <EmptyState 
@@ -51,20 +49,29 @@ export function MembersView({ projectId, onPermissionRefresh }: MembersViewProps
           onMemberAdded={refreshMembers}
         />
       ) : (
-        <div className="grid gap-4">
-          {members.map((member) => (
-            <MemberCard 
-              key={member.id} 
-              member={member} 
-              permissions={permissions}
-              projectId={projectId}
-              currentUserId={currentUserId}
-              onMemberRemoved={refreshMembers}
-              onMemberUpdated={refreshMembers}
-              onPermissionRefresh={onPermissionRefresh}
-            />
-          ))}
-        </div>
+        // Sort members: leader first, then others
+        (() => {
+          const sortedMembers = [
+            ...members.filter(m => m.role === 'leader'),
+            ...members.filter(m => m.role !== 'leader')
+          ];
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sortedMembers.map((member) => (
+                <MemberCard 
+                  key={member.id} 
+                  member={member} 
+                  permissions={permissions}
+                  projectId={projectId}
+                  currentUserId={currentUserId}
+                  onMemberRemoved={refreshMembers}
+                  onMemberUpdated={refreshMembers}
+                  onPermissionRefresh={onPermissionRefresh}
+                />
+              ))}
+            </div>
+          );
+        })()
       )}
     </div>
   );

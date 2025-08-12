@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { motion } from 'framer-motion';
 
 import { Send, X, Loader2, Wifi, WifiOff, ChevronDown, Reply } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
@@ -161,21 +162,37 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
 
   if (!session?.user?.id) {
     return (
-      <div 
+      <motion.div 
         ref={chatBoxRef}
+        initial={{ opacity: 0, scale: 0.95, y: 40 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 40 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
         className={cn("fixed bottom-24 right-6 w-96 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700", className)}
+        aria-modal="true"
+        role="dialog"
+        tabIndex={0}
+        aria-label="Chat box login required"
       >
         <div className="p-4 text-center text-gray-500 dark:text-gray-400">
           Please log in to use chat
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div 
+    <motion.div
       ref={chatBoxRef}
+      initial={{ opacity: 0, scale: 0.95, y: 40 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, y: 40 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
       className={cn("fixed bottom-24 right-6 w-96 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden", className)}
+      aria-modal="true"
+      role="dialog"
+      tabIndex={0}
+      aria-label="Project chat box"
     >
       {/* Header */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-secondary/30 dark:bg-secondary/10">
@@ -351,6 +368,6 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
           </Button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

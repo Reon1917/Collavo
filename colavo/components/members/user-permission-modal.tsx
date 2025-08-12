@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Check, X, Loader2 } from "lucide-react"
+import { Check, X, Loader2, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -47,15 +47,7 @@ interface PermissionModalProps {
   projectId: string
 }
 
-// Helper function to get initials
-const getInitials = (name: string) => {
-  return name
-    .split(' ')
-    .map(word => word.charAt(0))
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-}
+
 
 // Default permissions based on role and requirements
 const getDefaultPermissions = (member: Member): ProjectPermissions => {
@@ -164,184 +156,161 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-md sm:max-w-lg max-h-[80vh] bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6">
           <DialogTitle className="flex items-center gap-3">
+            <Settings className="h-6 w-6 text-[#008080]" aria-hidden="true" />
             <Avatar className="h-10 w-10">
               <AvatarImage src={member.userImage} alt={member.userName} />
               <AvatarFallback className="bg-[#008080] text-white">
-                {getInitials(member.userName)}
+                {member.userName?.[0]}
               </AvatarFallback>
             </Avatar>
             <div>
-              <span>Permissions for {member.userName}</span>
-              <p className="text-sm text-muted-foreground font-normal">
+              <span className="text-gray-900 dark:text-white font-bold">Permissions for {member.userName}</span>
+              <p className="text-sm text-gray-600 dark:text-gray-400 font-normal">
                 {member.userEmail}
               </p>
             </div>
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-gray-600 dark:text-gray-400">
             Configure what this team member can access and modify in the project.
           </DialogDescription>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-4">
-            <div className="flex items-center justify-between">
+        <div className="flex-1 overflow-y-auto px-6 pb-2">
+          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl shadow-sm transition-all duration-200">
+            {/* Members Section */}
+            <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2 tracking-wider">Members</h4>
+            <div className="flex items-center justify-between py-2">
               <div>
-                <Label htmlFor="addMember" className="font-medium">
-                  Manage Members
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Add new members to the project and remove members
-                </p>
+                <Label htmlFor="addMember" className="font-medium text-gray-900 dark:text-white">Manage Members</Label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Add new members to the project and remove members</p>
               </div>
               <Switch
                 id="addMember"
                 checked={permissions.addMember}
                 onCheckedChange={(checked) => handlePermissionChange("addMember", checked)}
+                aria-label="Toggle manage members permission"
+                className="focus-visible:ring-2 transition-all duration-200"
               />
             </div>
-            
-            <Separator />
-            
-            <div className="flex items-center justify-between">
+            <Separator className="my-2" />
+            {/* Tasks Section */}
+            <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2 tracking-wider">Tasks</h4>
+            <div className="flex items-center justify-between py-2">
               <div>
-                <Label htmlFor="createTask" className="font-medium">
-                  Create Tasks
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Create main tasks and sub tasks
-                </p>
+                <Label htmlFor="createTask" className="font-medium text-gray-900 dark:text-white">Create Tasks</Label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Create main tasks and sub tasks</p>
               </div>
               <Switch
                 id="createTask"
                 checked={permissions.createTask}
                 onCheckedChange={(checked) => handlePermissionChange("createTask", checked)}
+                aria-label="Toggle create tasks permission"
+                className="focus-visible:ring-2 transition-all duration-200"
               />
             </div>
-            
-            <Separator />
-            
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-2">
               <div>
-                <Label htmlFor="handleTask" className="font-medium">
-                  Manage Tasks
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Edit and delete task details like deadline or assigned member
-                </p>
+                <Label htmlFor="handleTask" className="font-medium text-gray-900 dark:text-white">Manage Tasks</Label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Edit and delete task details like deadline or assigned member</p>
               </div>
               <Switch
                 id="handleTask"
                 checked={permissions.handleTask}
                 onCheckedChange={(checked) => handlePermissionChange("handleTask", checked)}
+                aria-label="Toggle manage tasks permission"
+                className="focus-visible:ring-2 transition-all duration-200"
               />
             </div>
-            
-            <Separator />
-            
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-2">
               <div>
-                <Label htmlFor="updateTask" className="font-medium">
-                  Update Sub-tasks
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Update sub-task status and add/edit short notes
-                </p>
+                <Label htmlFor="updateTask" className="font-medium text-gray-900 dark:text-white">Update Sub-tasks</Label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Update sub-task status and add/edit short notes</p>
               </div>
               <Switch
                 id="updateTask"
                 checked={permissions.updateTask}
                 onCheckedChange={(checked) => handlePermissionChange("updateTask", checked)}
+                aria-label="Toggle update sub-tasks permission"
+                className="focus-visible:ring-2 transition-all duration-200"
               />
             </div>
-            
-            <Separator />
-            
-            <div className="flex items-center justify-between">
+            <Separator className="my-2" />
+            {/* Events Section */}
+            <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2 tracking-wider">Events</h4>
+            <div className="flex items-center justify-between py-2">
               <div>
-                <Label htmlFor="createEvent" className="font-medium">
-                  Create Events
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Create new events with title, description, date, time, and location
-                </p>
+                <Label htmlFor="createEvent" className="font-medium text-gray-900 dark:text-white">Create Events</Label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Create new events with title, description, date, time, and location</p>
               </div>
               <Switch
                 id="createEvent"
                 checked={permissions.createEvent}
                 onCheckedChange={(checked) => handlePermissionChange("createEvent", checked)}
+                aria-label="Toggle create events permission"
+                className="focus-visible:ring-2 transition-all duration-200"
               />
             </div>
-            
-            <Separator />
-            
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-2">
               <div>
-                <Label htmlFor="handleEvent" className="font-medium">
-                  Manage Events
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Edit and delete event details
-                </p>
+                <Label htmlFor="handleEvent" className="font-medium text-gray-900 dark:text-white">Manage Events</Label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Edit and delete event details</p>
               </div>
               <Switch
                 id="handleEvent"
                 checked={permissions.handleEvent}
                 onCheckedChange={(checked) => handlePermissionChange("handleEvent", checked)}
+                aria-label="Toggle manage events permission"
+                className="focus-visible:ring-2 transition-all duration-200"
               />
             </div>
-            
-            <Separator />
-            
-            <div className="flex items-center justify-between">
+            <Separator className="my-2" />
+            {/* Files Section */}
+            <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2 tracking-wider">Files</h4>
+            <div className="flex items-center justify-between py-2">
               <div>
-                <Label htmlFor="handleFile" className="font-medium">
-                  Manage Files
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Add and delete files and links
-                </p>
+                <Label htmlFor="handleFile" className="font-medium text-gray-900 dark:text-white">Manage Files</Label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Add and delete files and links</p>
               </div>
               <Switch
                 id="handleFile"
                 checked={permissions.handleFile}
                 onCheckedChange={(checked) => handlePermissionChange("handleFile", checked)}
+                aria-label="Toggle manage files permission"
+                className="focus-visible:ring-2 transition-all duration-200"
               />
             </div>
-            
-            <Separator />
-            
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-2">
               <div>
-                <Label htmlFor="viewFiles" className="font-medium">
-                  View Files
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  View and download files and links
-                </p>
+                <Label htmlFor="viewFiles" className="font-medium text-gray-900 dark:text-white">View Files</Label>
+                <p className="text-sm text-gray-600 dark:text-gray-400">View and download files and links</p>
               </div>
               <Switch
                 id="viewFiles"
                 checked={permissions.viewFiles}
                 onCheckedChange={(checked) => handlePermissionChange("viewFiles", checked)}
+                aria-label="Toggle view files permission"
+                className="focus-visible:ring-2 transition-all duration-200"
               />
             </div>
           </div>
         </div>
-        
-        <DialogFooter className="flex justify-between sm:justify-between">
-          <Button variant="outline" onClick={onClose} disabled={isSaving}>
-            <X className="mr-2 h-4 w-4" />
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            <Check className="mr-2 h-4 w-4" />
-            Save Permissions
-          </Button>
-        </DialogFooter>
+        {/* Sticky footer for actions */}
+        <div className="bg-white dark:bg-gray-900 border-t border-gray-200/60 dark:border-gray-700 px-6 pb-4 pt-3 shadow-lg">
+          <DialogFooter className="flex gap-3 sm:justify-between">
+            <Button variant="outline" onClick={onClose} disabled={isSaving} className="flex-1 focus-visible:ring-2 transition-all duration-200" aria-label="Cancel">
+              <X className="mr-2 h-4 w-4" />
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={isSaving} className="flex-1 bg-[#008080] hover:bg-[#006666] text-white focus-visible:ring-2 transition-all duration-200" aria-label="Save Permissions">
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Check className="mr-2 h-4 w-4" />
+              Save Permissions
+            </Button>
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   )
