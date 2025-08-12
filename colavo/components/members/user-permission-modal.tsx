@@ -47,15 +47,7 @@ interface PermissionModalProps {
   projectId: string
 }
 
-// Helper function to get initials
-const getInitials = (name: string) => {
-  return name
-    .split(' ')
-    .map(word => word.charAt(0))
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-}
+
 
 // Default permissions based on role and requirements
 const getDefaultPermissions = (member: Member): ProjectPermissions => {
