@@ -107,6 +107,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate description length if provided
+    if (description && typeof description === 'string' && description.length > 2000) {
+      return NextResponse.json(
+        { error: 'Project description must be less than 2000 characters' },
+        { status: 400 }
+      );
+    }
+
     // Validate deadline format if provided
     let deadlineDate = null;
     if (deadline) {
@@ -123,12 +131,10 @@ export async function POST(request: NextRequest) {
     const projectId = createId();
     const memberRecordId = createId();
 
-    let createdProject = null;
-    let createdMember = null;
-
-    try {
+    // Use database transaction to ensure atomicity
+    const result = await db.transaction(async (tx) => {
       // 1. Create project
-      const newProject = await db.insert(projects).values({
+      const newProject = await tx.insert(projects).values({
         id: projectId,
         name: name.trim(),
         description: description?.trim() || null,
@@ -141,10 +147,9 @@ export async function POST(request: NextRequest) {
       if (!newProject || newProject.length === 0) {
         throw new Error('Failed to create project');
       }
-      createdProject = newProject[0];
 
       // 2. Create leader member record
-      const leaderMember = await db.insert(members).values({
+      const leaderMember = await tx.insert(members).values({
         id: memberRecordId,
         userId: session.user.id,
         projectId: projectId,
@@ -155,7 +160,6 @@ export async function POST(request: NextRequest) {
       if (!leaderMember || leaderMember.length === 0) {
         throw new Error('Failed to create leader member record');
       }
-      createdMember = leaderMember[0];
 
       // 3. Grant all permissions to leader
       const allPermissions = [
@@ -178,35 +182,12 @@ export async function POST(request: NextRequest) {
         grantedBy: session.user.id
       }));
 
-      await db.insert(permissions).values(permissionInserts);
+      await tx.insert(permissions).values(permissionInserts);
 
-      return NextResponse.json(createdProject, { status: 201 });
+      return newProject[0];
+    });
 
-    } catch (error) {
-      // Cleanup on failure - delete in reverse order
-      
-      try {
-        // Delete permissions if member was created
-        if (createdMember) {
-          await db.delete(permissions).where(eq(permissions.memberId, memberRecordId));
-        }
-        
-        // Delete member record if it was created
-        if (createdMember) {
-          await db.delete(members).where(eq(members.id, memberRecordId));
-        }
-
-        // Delete project if it was created
-        if (createdProject) {
-          await db.delete(projects).where(eq(projects.id, projectId));
-        }
-              } catch (_cleanupError) {
-                // Log cleanup error but don't throw
-                throw _cleanupError;
-              }
-
-      throw error; // Re-throw original error
-    }
+    return NextResponse.json(result, { status: 201 });
 
   } catch  {
     return NextResponse.json(

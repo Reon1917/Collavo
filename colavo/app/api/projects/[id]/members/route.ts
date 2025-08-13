@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { members, permissions, user, mainTasks, subTasks, events, files } from '@/db/schema';
 import { createId } from '@paralleldrive/cuid2';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql, inArray } from 'drizzle-orm';
 import { requireProjectAccess, checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
 
 // GET /api/projects/[id]/members - List project members
@@ -43,27 +43,29 @@ export async function GET(
       .innerJoin(user, eq(user.id, members.userId))
       .where(eq(members.projectId, projectId));
 
-    // Get permissions for each member
-    const membersWithPermissions = await Promise.all(
-      projectMembers.map(async (member) => {
-        const memberPermissions = await db
-          .select({
-            permission: permissions.permission,
-            granted: permissions.granted
-          })
-          .from(permissions)
-          .where(eq(permissions.memberId, member.id));
-
-        const grantedPermissions = memberPermissions
-          .filter(p => p.granted)
-          .map(p => p.permission);
-
-        return {
-          ...member,
-          permissions: grantedPermissions
-        };
+    // Get all permissions for project members in a single query to avoid N+1
+    const memberIds = projectMembers.map(m => m.id);
+    const allPermissions = memberIds.length > 0 ? await db
+      .select({
+        memberId: permissions.memberId,
+        permission: permissions.permission,
+        granted: permissions.granted
       })
-    );
+      .from(permissions)
+      .where(inArray(permissions.memberId, memberIds)) : [];
+
+    // Group permissions by member ID
+    const permissionsByMember = allPermissions.reduce((acc, perm) => {
+      if (!acc[perm.memberId]) acc[perm.memberId] = [];
+      if (perm.granted) acc[perm.memberId]!.push(perm.permission);
+      return acc;
+    }, {} as Record<string, string[]>);
+
+    // Combine members with their permissions
+    const membersWithPermissions = projectMembers.map(member => ({
+      ...member,
+      permissions: permissionsByMember[member.id] || []
+    }));
 
     return NextResponse.json(membersWithPermissions);
 
@@ -314,6 +316,23 @@ export async function DELETE(
     }
 
     const member = memberToRemove[0]!;
+
+    // Prevent removing the last leader
+    if (member.role === 'leader') {
+      const leaderCount = await db.select({ count: sql`count(*)` })
+        .from(members)
+        .where(and(
+          eq(members.projectId, projectId),
+          eq(members.role, 'leader')
+        ));
+
+      if ((leaderCount[0]?.count as number) <= 1) {
+        return NextResponse.json(
+          { error: 'Cannot remove the last leader from the project. Promote another member to leader first.' },
+          { status: 400 }
+        );
+      }
+    }
 
     // Cascade delete all content created/assigned to this member
     // We need to do this in the correct order to handle foreign key constraints
