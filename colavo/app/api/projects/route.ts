@@ -131,65 +131,61 @@ export async function POST(request: NextRequest) {
     const projectId = createId();
     const memberRecordId = createId();
 
-    // Use database transaction to ensure atomicity
-    const result = await db.transaction(async (tx) => {
-      // 1. Create project
-      const newProject = await tx.insert(projects).values({
-        id: projectId,
-        name: name.trim(),
-        description: description?.trim() || null,
-        leaderId: session.user.id,
-        deadline: deadlineDate,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }).returning();
+    // 1. Create project
+    const newProject = await db.insert(projects).values({
+      id: projectId,
+      name: name.trim(),
+      description: description?.trim() || null,
+      leaderId: session.user.id,
+      deadline: deadlineDate
+    }).returning();
 
-      if (!newProject || newProject.length === 0) {
-        throw new Error('Failed to create project');
-      }
+    if (!newProject || newProject.length === 0) {
+      throw new Error('Failed to create project');
+    }
 
-      // 2. Create leader member record
-      const leaderMember = await tx.insert(members).values({
-        id: memberRecordId,
-        userId: session.user.id,
-        projectId: projectId,
-        role: 'leader',
-        joinedAt: new Date()
-      }).returning();
+    // 2. Create leader member record
+    const leaderMember = await db.insert(members).values({
+      id: memberRecordId,
+      userId: session.user.id,
+      projectId: projectId,
+      role: 'leader'
+    }).returning();
 
-      if (!leaderMember || leaderMember.length === 0) {
-        throw new Error('Failed to create leader member record');
-      }
+    if (!leaderMember || leaderMember.length === 0) {
+      // Cleanup: delete the project if member creation fails
+      await db.delete(projects).where(eq(projects.id, projectId));
+      throw new Error('Failed to create leader member record');
+    }
 
-      // 3. Grant all permissions to leader
-      const allPermissions = [
-        'createTask', 
-        'handleTask', 
-        'updateTask', 
-        'handleEvent',
-        'handleFile', 
-        'addMember', 
-        'createEvent', 
-        'viewFiles'
-      ];
+    // 3. Grant all permissions to leader
+    const allPermissions = [
+      'createTask', 
+      'handleTask', 
+      'updateTask', 
+      'handleEvent',
+      'handleFile', 
+      'addMember', 
+      'createEvent', 
+      'viewFiles'
+    ];
 
-      const permissionInserts = allPermissions.map(permission => ({
-        id: createId(),
-        memberId: memberRecordId,
-        permission: permission as any,
-        granted: true,
-        grantedAt: new Date(),
-        grantedBy: session.user.id
-      }));
+    const permissionInserts = allPermissions.map(permission => ({
+      id: createId(),
+      memberId: memberRecordId,
+      permission: permission as any,
+      granted: true,
+      grantedBy: session.user.id
+    }));
 
-      await tx.insert(permissions).values(permissionInserts);
+    await db.insert(permissions).values(permissionInserts);
 
-      return newProject[0];
-    });
+    const result = newProject[0];
 
     return NextResponse.json(result, { status: 201 });
 
-  } catch  {
+  } catch (error) {
+    console.error('Project creation error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

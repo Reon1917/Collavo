@@ -18,6 +18,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { formatInitials } from '@/utils/format';
+import { CreateProjectModal } from '@/components/project/CreateProjectModal';
 
 export function DashboardNavbar(): React.JSX.Element {
   const { user, isAuthenticated, refetch } = useAuth();
@@ -52,12 +53,12 @@ export function DashboardNavbar(): React.JSX.Element {
           {/* Right side - Actions and User */}
           <div className="flex items-center space-x-4">
             {/* Create Button */}
-            <Button asChild className="bg-[#008080] hover:bg-[#008080]/90 dark:bg-[#008080] dark:hover:bg-[#008080]/70">
-              <Link href="/project/new">
+            <CreateProjectModal redirectToProject={true}>
+              <div className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-[#008080] text-primary-foreground hover:bg-[#008080]/90 dark:bg-[#008080] dark:hover:bg-[#008080]/70 h-10 px-4 py-2 cursor-pointer">
                 <Plus className="h-4 w-4 mr-2" />
                 Create
-              </Link>
-            </Button>
+              </div>
+            </CreateProjectModal>
 
             {/* Theme Toggle */}
             <ThemeToggle />

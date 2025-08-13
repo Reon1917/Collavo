@@ -11,6 +11,7 @@ import { authClient } from '@/lib/auth-client';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ContentLoading } from '@/components/ui/content-loading';
+import { CreateProjectModal } from '@/components/project/CreateProjectModal';
 
 interface Project {
   id: string;
@@ -58,6 +59,21 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Optimistic project creation
+  const handleProjectCreated = (project: Project) => {
+    // Optimistically add the new project to the led projects
+    setProjectsData(prev => ({
+      ...prev,
+      ledProjects: [project, ...prev.ledProjects],
+      total: prev.total + 1
+    }));
+    
+    // Refresh data to ensure consistency
+    setTimeout(() => {
+      fetchProjects();
+    }, 500);
   };
 
   useEffect(() => {
@@ -134,15 +150,12 @@ export default function DashboardPage() {
                   <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
                     Take the lead and create your first project. Organize your team, set goals, and bring your ideas to life.
                   </p>
-                  <Button 
-                    className="bg-[#008080] hover:bg-[#006666] dark:bg-[#008080] dark:hover:bg-[#006666] text-white px-8 py-3 h-auto rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium" 
-                    asChild
-                  >
-                    <Link href="/project/new">
+                  <CreateProjectModal onProjectCreated={handleProjectCreated}>
+                    <div className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-[#008080] hover:bg-[#006666] dark:bg-[#008080] dark:hover:bg-[#006666] text-white px-8 py-3 h-auto shadow-md hover:shadow-lg cursor-pointer">
                       <PlusCircle className="h-5 w-5 mr-2" />
                       Create Your First Project
-                    </Link>
-                  </Button>
+                    </div>
+                  </CreateProjectModal>
                 </div>
               </div>
             )}

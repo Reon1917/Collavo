@@ -176,38 +176,34 @@ export async function POST(
       }
     }
 
-    // Create main task and fetch creator details atomically
-    const result = await db.transaction(async (tx) => {
-      const newTask = await tx.insert(mainTasks).values({
-        id: createId(),
-        projectId: projectId,
-        title: title.trim(),
-        description: description?.trim() || null,
-        importanceLevel: importanceLevel || 'medium',
-        deadline: deadlineDate,
-        createdBy: session.user.id,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }).returning();
+    // Create main task
+    const newTask = await db.insert(mainTasks).values({
+      id: createId(),
+      projectId: projectId,
+      title: title.trim(),
+      description: description?.trim() || null,
+      importanceLevel: importanceLevel || 'medium',
+      deadline: deadlineDate,
+      createdBy: session.user.id
+    }).returning();
 
-      if (!newTask.length || !newTask[0]) {
-        throw new Error('Failed to create task');
-      }
+    if (!newTask.length || !newTask[0]) {
+      throw new Error('Failed to create task');
+    }
 
-      // Get creator details for response
-      const creator = await tx.select().from(user).where(eq(user.id, session.user.id)).limit(1);
+    // Get creator details for response
+    const creator = await db.select().from(user).where(eq(user.id, session.user.id)).limit(1);
 
-      if (!creator.length || !creator[0]) {
-        throw new Error('Failed to fetch creator details');
-      }
+    if (!creator.length || !creator[0]) {
+      throw new Error('Failed to fetch creator details');
+    }
 
-      return {
-        ...newTask[0],
-        creatorName: creator[0].name,
-        creatorEmail: creator[0].email,
-        subTasks: []
-      };
-    });
+    const result = {
+      ...newTask[0],
+      creatorName: creator[0].name,
+      creatorEmail: creator[0].email,
+      subTasks: []
+    };
 
     return NextResponse.json(result, { status: 201 });
 
