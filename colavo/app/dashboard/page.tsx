@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { DashboardNavbar } from '@/components/ui/dashboard-navbar';
-import { PlusCircle, File, Users, FolderOpen, UserPlus, Calendar, Crown, User} from 'lucide-react';
+import { PlusCircle, FolderOpen, UserPlus, Calendar, Crown, User} from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
@@ -180,31 +180,6 @@ export default function DashboardPage() {
               </div>
             )}
           </section>
-
-          {/* Quick Access */}
-          <section>
-            <h2 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">Quick Access</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <QuickAccessCard 
-                title="Create Project" 
-                description="Start a new project and invite team members"
-                icon={<PlusCircle className="h-8 w-8 text-[#008080] dark:text-[#00FFFF]" />}
-                href="/project/new"
-              />
-              <QuickAccessCard 
-                title="Manage Files" 
-                description="Upload and organize your project files"
-                icon={<File className="h-8 w-8 text-[#00FFFF] dark:text-[#00FFFF]" />}
-                href="/dashboard"
-              />
-              <QuickAccessCard 
-                title="Team Collaboration" 
-                description="Coordinate with your team members"
-                icon={<Users className="h-8 w-8 text-[#008080] dark:text-[#00FFFF]" />}
-                href="/dashboard"
-              />
-            </div>
-          </section>
         </div>
       </div>
     </div>
@@ -268,28 +243,6 @@ function ProjectCard({
           </div>
         </CardContent>
       </Card>
-    </Link>
-  );
-}
-
-function QuickAccessCard({ 
-  title, 
-  description, 
-  icon, 
-  href 
-}: { 
-  title: string; 
-  description: string; 
-  icon: React.ReactNode;
-  href: string;
-}) {
-  return (
-    <Link href={href}>
-      <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200/60 dark:border-gray-700 shadow-md hover:shadow-lg transition-all duration-200 hover:border-[#00FFFF]/30 dark:hover:border-[#00FFFF]/50 backdrop-blur-sm group">
-        <div className="mb-4 group-hover:scale-110 transition-transform duration-200">{icon}</div>
-        <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">{title}</h3>
-        <p className="text-gray-600 dark:text-gray-400">{description}</p>
-      </div>
     </Link>
   );
 }
