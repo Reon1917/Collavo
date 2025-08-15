@@ -93,13 +93,8 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
 
   return (
     <div className="space-y-6">
-      {/* View Selector at the top */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-          {selectedView === 'timeline' ? 'Timeline View' : selectedView === 'graph' ? 'Graph View' : 'Project Overview'}
-        </h2>
-        <ViewSelector value={selectedView} onChange={setSelectedView} />
-      </div>
+      {/* Compact View Selector */}
+      <ViewSelector value={selectedView} onChange={setSelectedView} />
 
       {/* Conditional Content Based on Selected View */}
       {selectedView === 'timeline' ? (
@@ -146,7 +141,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
       ) : selectedView === 'graph' ? (
         <GraphView project={project} tasks={tasks} />
       ) : (
-        <>
+        <div className="space-y-6">
           {/* Updated Overview Content */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
@@ -358,7 +353,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
               </div>
             </div>
           )}
-        </>
+        </div>
       )}
 
       {/* Permissions Dialog */}

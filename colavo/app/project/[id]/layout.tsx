@@ -2,13 +2,13 @@
 
 import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Home, Users, FileText, FolderOpen, Calendar, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
 import { ChatButton } from '@/components/project/chat-button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { notFound } from 'next/navigation';
-import { Sidebar, SidebarBody, SidebarLink } from '@/components/ui/sidebar';
+import { FloatingTabs } from '@/components/ui/floating-tabs';
 import { useNavigationLoading } from '@/hooks/useNavigationLoading';
 import { ContentLoading } from '@/components/ui/content-loading';
 
@@ -191,67 +191,20 @@ export default function ProjectLayout({
     );
   }
 
-  const links = [
-    {
-      label: "Back to Dashboard",
-      href: "/dashboard",
-      icon: <ArrowLeft className="h-5 w-5" />
-    },
-    {
-      label: "Overview",
-      href: `/project/${projectId}`,
-      icon: <Home className="h-5 w-5" />
-    },
-    {
-      label: "Tasks", 
-      href: `/project/${projectId}?tab=tasks`,
-      icon: <FileText className="h-5 w-5" />
-    },
-    {
-      label: "Events",
-      href: `/project/${projectId}?tab=events`,
-      icon: <Calendar className="h-5 w-5" />
-    },
-    {
-      label: "Files",
-      href: `/project/${projectId}?tab=files`,
-      icon: <FolderOpen className="h-5 w-5" />
-    },
-    {
-      label: "Members",
-      href: `/project/${projectId}?tab=members`, 
-      icon: <Users className="h-5 w-5" />
-    }
-  ];
-
   return (
     <div className="min-h-screen bg-[#f9f8f0] dark:bg-gray-950">
-      <Sidebar animate={true}>
-        <SidebarBody className="justify-between gap-10">
-          <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
-            {/* Navigation Links */}
-            <div className="mt-8 flex flex-col gap-2">
-              {links.map((link, idx) => (
-                <SidebarLink key={idx} link={link} />
-              ))}
-            </div>
-          </div>
-        </SidebarBody>
-      </Sidebar>
+      <ProjectHeader projectId={projectId} />
       
-      {/* Main content - Adjust margin for fixed sidebar */}
-      <div className="md:ml-[60px] transition-all duration-300">
-        <ProjectHeader projectId={projectId} />
-        
-        <div className="flex-1 p-6">
-          {children}
-        </div>
-        
-        <ChatButton 
-          projectId={projectId}
-          projectName={projectName || `Project ${projectId}`}
-        />
+      <div className="flex-1 p-6 pb-24">
+        {children}
       </div>
+      
+      <FloatingTabs projectId={projectId} />
+      
+      <ChatButton 
+        projectId={projectId}
+        projectName={projectName || `Project ${projectId}`}
+      />
     </div>
   );
 }
