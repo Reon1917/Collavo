@@ -8,11 +8,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatInitials } from '@/utils/format';
 import { ProjectEditDialog } from '../dialogs/ProjectEditDialog';
 import { ProjectDeleteDialog } from '../dialogs/ProjectDeleteDialog';
-import { ViewSelector } from '@/components/project/OverviewView/components/ViewSelector';
+import { ViewTabs } from '@/components/project/OverviewView/components/ViewTabs';
 import { TimelineView } from '@/components/project/OverviewView/components/TimelineView';
 import { GraphView } from '@/components/project/OverviewView/components/GraphView';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 
 interface OverviewTabProps {
@@ -93,59 +94,83 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
 
   return (
     <div className="space-y-6">
-      {/* View Selector at the top */}
+      {/* View Tabs at the top */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-          {selectedView === 'timeline' ? 'Timeline View' : selectedView === 'graph' ? 'Graph View' : 'Project Overview'}
+          {selectedView === 'timeline' ? 'Timeline View' : selectedView === 'graph' ? 'Analytics' : 'Project View'}
         </h2>
-        <ViewSelector value={selectedView} onChange={setSelectedView} />
+        <ViewTabs value={selectedView} onChange={setSelectedView} />
       </div>
 
-      {/* Conditional Content Based on Selected View */}
-      {selectedView === 'timeline' ? (
-        <TimelineView 
-          tasks={tasks.map(task => ({
-            id: task.id,
-            projectId: project.id,
-            title: task.title,
-            description: task.description || '',
-            status: 'todo' as const,
-            importance: task.importanceLevel as 'low' | 'normal' | 'high' | 'critical',
-            dueDate: task.deadline ? new Date(task.deadline) : null,
-            startDate: null,
-            assignedTo: [],
-            createdBy: task.createdBy,
-            createdAt: new Date(task.createdAt),
-            updatedAt: new Date(task.updatedAt),
-            completedAt: null,
-            estimatedHours: null,
-            actualHours: null,
-            tags: [],
-            dependencies: [],
-            notes: '',
-          }))}
-          events={events.map(event => ({
-            id: event.id,
-            projectId: project.id,
-            title: event.title,
-            description: event.description || '',
-            type: 'other' as const,
-            startDate: new Date(event.datetime),
-            endDate: new Date(event.datetime),
-            isAllDay: false,
-            location: event.location,
-            attendees: [],
-            createdBy: event.createdBy,
-            createdAt: new Date(event.createdAt),
-            updatedAt: new Date(event.updatedAt),
-            tags: [],
-            isRecurring: false,
-            recurrenceRule: null,
-          }))}
-        />
-      ) : selectedView === 'graph' ? (
-        <GraphView project={project} tasks={tasks} />
-      ) : (
+      {/* Animated Content Based on Selected View */}
+      <AnimatePresence mode="wait">
+        {selectedView === 'timeline' ? (
+          <motion.div
+            key="timeline"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          >
+            <TimelineView 
+              tasks={tasks.map(task => ({
+                id: task.id,
+                projectId: project.id,
+                title: task.title,
+                description: task.description || '',
+                status: 'todo' as const,
+                importance: task.importanceLevel as 'low' | 'normal' | 'high' | 'critical',
+                dueDate: task.deadline ? new Date(task.deadline) : null,
+                startDate: null,
+                assignedTo: [],
+                createdBy: task.createdBy,
+                createdAt: new Date(task.createdAt),
+                updatedAt: new Date(task.updatedAt),
+                completedAt: null,
+                estimatedHours: null,
+                actualHours: null,
+                tags: [],
+                dependencies: [],
+                notes: '',
+              }))}
+              events={events.map(event => ({
+                id: event.id,
+                projectId: project.id,
+                title: event.title,
+                description: event.description || '',
+                type: 'other' as const,
+                startDate: new Date(event.datetime),
+                endDate: new Date(event.datetime),
+                isAllDay: false,
+                location: event.location,
+                attendees: [],
+                createdBy: event.createdBy,
+                createdAt: new Date(event.createdAt),
+                updatedAt: new Date(event.updatedAt),
+                tags: [],
+                isRecurring: false,
+                recurrenceRule: null,
+              }))}
+            />
+          </motion.div>
+        ) : selectedView === 'graph' ? (
+          <motion.div
+            key="graph"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          >
+            <GraphView project={project} tasks={tasks} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="overview"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          >
         <>
           {/* Updated Overview Content */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -359,7 +384,9 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
             </div>
           )}
         </>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Permissions Dialog */}
       <Dialog open={isPermissionsDialogOpen} onOpenChange={setIsPermissionsDialogOpen}>
