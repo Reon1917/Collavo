@@ -5,6 +5,7 @@ import { members, permissions, user, mainTasks, subTasks, events, files } from '
 import { createId } from '@paralleldrive/cuid2';
 import { eq, and } from 'drizzle-orm';
 import { requireProjectAccess, checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
+import { handleEmailInvitation } from '@/lib/invitation-helpers';
 
 // GET /api/projects/[id]/members - List project members
 export async function GET(
@@ -146,11 +147,16 @@ export async function POST(
         break;
     }
 
+    // If user not found and identifier is email, create invitation
     if (!targetUser.length) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      if (identifierType === 'email') {
+        return await handleEmailInvitation(identifier, projectId, session.user.id, 'new_user');
+      } else {
+        return NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        );
+      }
     }
 
     const foundUser = targetUser[0];

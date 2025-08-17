@@ -18,6 +18,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { formatInitials } from '@/utils/format';
+import { InvitationModal } from '@/components/dashboard/InvitationModal';
 
 export function DashboardNavbar(): React.JSX.Element {
   const { user, isAuthenticated, refetch } = useAuth();
@@ -25,13 +26,52 @@ export function DashboardNavbar(): React.JSX.Element {
 
   const handleLogout = async (): Promise<void> => {
     try {
-      await authClient.signOut();
-      await refetch();
-      toast.success('Logged out successfully');
-      router.push('/');
-    } catch {
-      //console.error('Logout error:', error);
-      toast.error('Failed to logout');
+      console.log('Starting logout process...');
+      
+      // Try to sign out using better-auth client
+      const result = await authClient.signOut();
+      console.log('SignOut result:', result);
+      
+      // If signOut was successful, refetch and redirect
+      if (result.data || result.error === null) {
+        console.log('SignOut successful, refetching session...');
+        await refetch();
+        console.log('Redirecting to home...');
+        router.push('/');
+        toast.success('Logged out successfully');
+      } else {
+        throw new Error(result.error?.message || 'SignOut failed');
+      }
+    } catch (error) {
+      console.error('Primary logout failed:', error);
+      
+      // Fallback: Use kill-session endpoint
+      console.log('Attempting fallback logout via kill-session endpoint...');
+      try {
+        const killResponse = await fetch('/api/auth/kill-session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (killResponse.ok) {
+          console.log('Kill-session successful, refetching...');
+          await refetch();
+          router.push('/');
+          toast.success('Logged out successfully');
+        } else {
+          throw new Error('Kill-session endpoint failed');
+        }
+      } catch (fallbackError) {
+        console.error('Fallback logout also failed:', fallbackError);
+        
+        // Last resort: Force refresh
+        toast.error('Logout failed - refreshing page...');
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1000);
+      }
     }
   };
 
@@ -58,6 +98,11 @@ export function DashboardNavbar(): React.JSX.Element {
                 Create
               </Link>
             </Button>
+
+            {/* Invitation Modal */}
+            {isAuthenticated && (
+              <InvitationModal onInvitationAccepted={refetch} />
+            )}
 
             {/* Theme Toggle */}
             <ThemeToggle />

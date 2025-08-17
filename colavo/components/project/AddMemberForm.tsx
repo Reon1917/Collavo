@@ -54,8 +54,18 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
         throw new Error('Failed to add member');
       }
 
-      const member = await response.json();
-      toast.success(`Successfully added ${member.userName} to the project!`);
+      const result = await response.json();
+      
+      // Handle different response types
+      if (result.message) {
+        // Email invitation sent
+        toast.success(result.message);
+      } else if (result.userName) {
+        // Existing user added directly
+        toast.success(`Successfully added ${result.userName} to the project!`);
+      } else {
+        toast.success('Member added successfully!');
+      }
       
       // Reset form
       setFormData({
