@@ -23,7 +23,7 @@ export function StatusUpdateForm({
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Status</Label>
+        <Label className="text-sm font-medium text-foreground">Status</Label>
         {editMode === 'status' ? (
           <Select
             value={statusFormData.status}
@@ -31,7 +31,7 @@ export function StatusUpdateForm({
               setStatusFormData(prev => ({ ...prev, status: value as 'pending' | 'in_progress' | 'completed' }))
             }
           >
-            <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700">
+            <SelectTrigger className="bg-background dark:bg-muted border-border dark:border-border">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -48,23 +48,23 @@ export function StatusUpdateForm({
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Progress Notes {editMode === 'status' && <span className="text-gray-500">(Optional)</span>}
+        <Label className="text-sm font-medium text-foreground">
+          Progress Notes {editMode === 'status' && <span className="text-muted-foreground">(Optional)</span>}
         </Label>
         {editMode === 'status' ? (
           <Textarea
             placeholder="Add notes about your progress, challenges, or updates..."
             value={statusFormData.note}
             onChange={(e) => setStatusFormData(prev => ({ ...prev, note: e.target.value }))}
-            className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] min-h-[120px] resize-none"
+            className="bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary min-h-[120px] resize-none"
             disabled={isLoading}
           />
         ) : (
-          <div className="min-h-[120px] p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md">
+          <div className="min-h-[120px] p-4 bg-muted dark:bg-muted border border-border dark:border-border rounded-md">
             {subTask.note ? (
-              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{subTask.note}</p>
+              <p className="text-foreground whitespace-pre-wrap leading-relaxed">{subTask.note}</p>
             ) : (
-              <p className="text-gray-500 dark:text-gray-500 italic">No progress notes added yet.</p>
+              <p className="text-muted-foreground dark:text-muted-foreground italic">No progress notes added yet.</p>
             )}
           </div>
         )}

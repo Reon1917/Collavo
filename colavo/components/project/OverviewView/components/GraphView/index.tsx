@@ -73,18 +73,18 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
 
   if (tasks.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[400px] bg-gray-50 dark:bg-gray-900/20 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+      <div className="flex items-center justify-center min-h-[400px] bg-muted dark:bg-card/20 border-2 border-dashed border-border dark:border-gray-600 rounded-lg">
         <div className="text-center space-y-4">
           <div className="flex justify-center">
-            <div className="p-4 bg-gray-200 dark:bg-gray-700 rounded-full">
-              <BarChart3 className="h-12 w-12 text-gray-400 dark:text-gray-500" />
+            <div className="p-4 bg-muted dark:bg-gray-700 rounded-full">
+              <BarChart3 className="h-12 w-12 text-muted-foreground dark:text-muted-foreground" />
             </div>
           </div>
           <div className="space-y-2">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+            <h3 className="text-xl font-semibold text-foreground dark:text-foreground">
               No Data Available
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 max-w-md">
+            <p className="text-muted-foreground dark:text-muted-foreground max-w-md">
               Create tasks in this project to view analytics and progress charts.
             </p>
           </div>
@@ -99,13 +99,13 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           {/* View Mode Toggle */}
-          <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+          <div className="flex space-x-1 bg-muted dark:bg-muted rounded-lg p-1">
             <button
               onClick={() => setViewMode('overview')}
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 viewMode === 'overview'
-                  ? 'bg-[#008080] text-white shadow-sm'
-                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                  ? 'bg-primary text-foreground shadow-sm'
+                  : 'text-foreground  hover:text-foreground dark:hover:text-foreground'
               }`}
             >
               Overview
@@ -114,8 +114,8 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
               onClick={() => setViewMode('detailed')}
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 viewMode === 'detailed'
-                  ? 'bg-[#008080] text-white shadow-sm'
-                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                  ? 'bg-primary text-foreground shadow-sm'
+                  : 'text-foreground  hover:text-foreground dark:hover:text-foreground'
               }`}
             >
               Detailed
@@ -125,11 +125,11 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
           {/* Chart Selector for Detailed View - immediately to the right */}
           {viewMode === 'detailed' && (
             <div className="flex items-center space-x-2 ml-3">
-              <span className="text-sm text-gray-600 dark:text-gray-300">Chart:</span>
+              <span className="text-sm text-muted-foreground">Chart:</span>
               <select
                 value={selectedChart}
                 onChange={(e) => setSelectedChart(e.target.value as 'completion' | 'importance' | 'workload' | 'deadline' | 'gantt')}
-                className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#008080]"
+                className="bg-background dark:bg-muted border border-border dark:border-gray-600 rounded-md px-3 py-1 text-sm text-foreground dark:text-foreground focus:outline-none focus:ring-2 focus:ring-[#008080]"
               >
                 <option value="completion">Task Completion Progress</option>
                 <option value="importance">Task Priority Distribution</option>
@@ -152,44 +152,44 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
         {viewMode === 'overview' && (
           <>
             {/* Task Completion Progress */}
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <div className="bg-background dark:bg-card border border-border dark:border-border rounded-lg p-6">
               <div className="flex items-center space-x-2 mb-4">
                 <div className="text-green-600">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Task Completion Progress</h3>
+                <h3 className="text-lg font-semibold text-foreground dark:text-foreground">Task Completion Progress</h3>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Overall project completion status</p>
+              <p className="text-sm text-muted-foreground mb-4">Overall project completion status</p>
               <CompletionDonutChart tasks={tasks} size="small" />
             </div>
 
             {/* Task Priority Distribution */}
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <div className="bg-background dark:bg-card border border-border dark:border-border rounded-lg p-6">
               <div className="flex items-center space-x-2 mb-4">
                 <div className="text-blue-600">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Task Priority Distribution</h3>
+                <h3 className="text-lg font-semibold text-foreground dark:text-foreground">Task Priority Distribution</h3>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Breakdown by importance level</p>
+              <p className="text-sm text-muted-foreground mb-4">Breakdown by importance level</p>
               <ImportancePieChart tasks={tasks} size="small" />
             </div>
 
             {/* Team Workload Distribution */}
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6 lg:col-span-2">
+            <div className="bg-background dark:bg-card border border-border dark:border-border rounded-lg p-6 lg:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
                 <div className="text-purple-600">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Team Workload Distribution</h3>
+                <h3 className="text-lg font-semibold text-foreground dark:text-foreground">Team Workload Distribution</h3>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Tasks assigned per team member</p>
+              <p className="text-sm text-muted-foreground mb-4">Tasks assigned per team member</p>
               <WorkloadBarChart project={project} tasks={tasks} size="small" />
             </div>
           </>
@@ -200,18 +200,18 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
           <div className="lg:col-span-2">
             <button
               onClick={() => setShowMoreInsights(!showMoreInsights)}
-              className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
+              className="w-full flex items-center justify-between p-4 bg-muted dark:bg-muted/50 border border-border dark:border-border rounded-lg hover:bg-muted dark:hover:bg-gray-700/50 transition-colors"
             >
               <div className="flex items-center space-x-2">
-                <div className="text-gray-600 dark:text-gray-400">
+                <div className="text-muted-foreground dark:text-muted-foreground">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">More Insights</span>
+                <span className="text-sm font-medium text-foreground dark:text-foreground">More Insights</span>
               </div>
               <svg 
-                className={`w-4 h-4 text-gray-600 dark:text-gray-400 transform transition-transform ${showMoreInsights ? 'rotate-180' : ''}`} 
+                className={`w-4 h-4 text-muted-foreground dark:text-muted-foreground transform transition-transform ${showMoreInsights ? 'rotate-180' : ''}`} 
                 fill="currentColor" 
                 viewBox="0 0 20 20"
               >
@@ -223,30 +223,30 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
             {showMoreInsights && (
               <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Deadline Timeline */}
-                <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div className="bg-background dark:bg-card border border-border dark:border-border rounded-lg p-4">
                   <div className="flex items-center space-x-2 mb-3">
                     <div className="text-orange-600">
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Deadline Timeline</h4>
+                    <h4 className="text-sm font-semibold text-foreground dark:text-foreground">Deadline Timeline</h4>
                   </div>
-                  <p className="text-xs text-gray-600 dark:text-gray-300 mb-3">Upcoming deadlines by urgency</p>
+                  <p className="text-xs text-muted-foreground mb-3">Upcoming deadlines by urgency</p>
                   <DeadlineTimelineChart tasks={tasks} size="small" />
                 </div>
 
                 {/* Gantt Chart */}
-                <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 lg:col-span-2">
+                <div className="bg-background dark:bg-card border border-border dark:border-border rounded-lg p-4 lg:col-span-2">
                   <div className="flex items-center space-x-2 mb-3">
                     <div className="text-indigo-600">
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Project Timeline</h4>
+                    <h4 className="text-sm font-semibold text-foreground dark:text-foreground">Project Timeline</h4>
                   </div>
-                  <p className="text-xs text-gray-600 dark:text-gray-300 mb-3">Task timeline and progress overview</p>
+                  <p className="text-xs text-muted-foreground mb-3">Task timeline and progress overview</p>
                   <GanttChart tasks={tasks} size="small" />
                 </div>
               </div>
@@ -256,7 +256,7 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
 
         {/* Detailed Mode - Show single selected chart */}
         {viewMode === 'detailed' && (
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-8">
+          <div className="bg-background dark:bg-card border border-border dark:border-border rounded-lg p-8">
             {selectedChart === 'completion' && (
               <>
                 <div className="flex items-center space-x-2 mb-6">
@@ -265,9 +265,9 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Task Completion Progress</h3>
+                  <h3 className="text-xl font-semibold text-foreground dark:text-foreground">Task Completion Progress</h3>
                 </div>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">Overall project completion status with detailed breakdown</p>
+                <p className="text-muted-foreground mb-6">Overall project completion status with detailed breakdown</p>
                 <CompletionDonutChart tasks={tasks} size="large" />
               </>
             )}
@@ -280,9 +280,9 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
                       <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Task Priority Distribution</h3>
+                  <h3 className="text-xl font-semibold text-foreground dark:text-foreground">Task Priority Distribution</h3>
                 </div>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">Priority breakdown with risk assessment and detailed analysis</p>
+                <p className="text-muted-foreground mb-6">Priority breakdown with risk assessment and detailed analysis</p>
                 <ImportancePieChart tasks={tasks} size="large" />
               </>
             )}
@@ -295,9 +295,9 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
                       <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 616 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Team Workload Distribution</h3>
+                  <h3 className="text-xl font-semibold text-foreground dark:text-foreground">Team Workload Distribution</h3>
                 </div>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">Comprehensive workload analysis with team performance insights</p>
+                <p className="text-muted-foreground mb-6">Comprehensive workload analysis with team performance insights</p>
                 <WorkloadBarChart project={project} tasks={tasks} size="large" />
               </>
             )}
@@ -310,9 +310,9 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
                       <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Deadline Timeline</h3>
+                  <h3 className="text-xl font-semibold text-foreground dark:text-foreground">Deadline Timeline</h3>
                 </div>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">Upcoming deadlines and urgency breakdown</p>
+                <p className="text-muted-foreground mb-6">Upcoming deadlines and urgency breakdown</p>
                 <DeadlineTimelineChart tasks={tasks} size="large" />
               </>
             )}
@@ -325,9 +325,9 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
                       <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Gantt Chart</h3>
+                  <h3 className="text-xl font-semibold text-foreground dark:text-foreground">Gantt Chart</h3>
                 </div>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">Project timeline with task dependencies and progress tracking</p>
+                <p className="text-muted-foreground mb-6">Project timeline with task dependencies and progress tracking</p>
                 <GanttChart tasks={tasks} size="large" />
               </>
             )}
@@ -337,7 +337,7 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+        <div className="bg-background dark:bg-card border border-border dark:border-border rounded-lg p-4">
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
@@ -347,13 +347,13 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Completion Rate</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{completionRate}%</p>
+              <p className="text-sm font-medium text-muted-foreground">Completion Rate</p>
+              <p className="text-2xl font-semibold text-foreground dark:text-foreground">{completionRate}%</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+        <div className="bg-background dark:bg-card border border-border dark:border-border rounded-lg p-4">
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
@@ -363,13 +363,13 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-300">On Track</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{onTrackPercentage}%</p>
+              <p className="text-sm font-medium text-muted-foreground">On Track</p>
+              <p className="text-2xl font-semibold text-foreground dark:text-foreground">{onTrackPercentage}%</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+        <div className="bg-background dark:bg-card border border-border dark:border-border rounded-lg p-4">
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
@@ -379,13 +379,13 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-300">In Progress</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{inProgressPercentage}%</p>
+              <p className="text-sm font-medium text-muted-foreground">In Progress</p>
+              <p className="text-2xl font-semibold text-foreground dark:text-foreground">{inProgressPercentage}%</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+        <div className="bg-background dark:bg-card border border-border dark:border-border rounded-lg p-4">
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <div className="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
@@ -395,8 +395,8 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Pending</p>
-              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{pendingPercentage}%</p>
+              <p className="text-sm font-medium text-muted-foreground">Pending</p>
+              <p className="text-2xl font-semibold text-foreground dark:text-foreground">{pendingPercentage}%</p>
             </div>
           </div>
         </div>

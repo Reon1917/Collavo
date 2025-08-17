@@ -60,7 +60,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f9f8f0] dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-background dark:bg-background py-12 px-4 sm:px-6 lg:px-8">
       {/* Theme toggle in top right corner */}
       <div className="absolute top-4 right-4">
         <ThemeToggle />
@@ -68,39 +68,39 @@ export default function LoginPage() {
       
       {/* Logo in top left corner */}
       <div className="absolute top-4 left-4 flex items-center space-x-3">
-        <div className="w-8 h-8 bg-[#008080] rounded-lg flex items-center justify-center">
-          <span className="text-white font-bold text-sm">C</span>
+        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+          <span className="text-foreground font-bold text-sm">C</span>
         </div>
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Collavo</h3>
+        <h3 className="text-xl font-bold text-foreground dark:text-foreground">Collavo</h3>
       </div>
       
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground dark:text-foreground">
             Sign in to your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-center text-sm text-muted-foreground dark:text-muted-foreground">
             Or{' '}
             <Link
               href="/signup"
-              className="font-medium text-[#008080] dark:text-[#00FFFF] hover:text-[#006666] dark:hover:text-[#00CCCC]"
+              className="font-medium text-primary dark:text-secondary hover:text-[#006666] dark:hover:text-[#00CCCC]"
             >
               create a new account
             </Link>
           </p>
         </div>
 
-        <Card className="bg-white dark:bg-gray-900 border-[#e5e4dd] dark:border-gray-800 shadow-lg">
+        <Card className="bg-background dark:bg-card border-border dark:border-border shadow-lg">
           <CardHeader>
-            <CardTitle className="text-gray-900 dark:text-white">Welcome Back</CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400">
+            <CardTitle className="text-foreground dark:text-foreground">Welcome Back</CardTitle>
+            <CardDescription className="text-muted-foreground dark:text-muted-foreground">
               Enter your credentials to access your account
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">Email</Label>
+                <Label htmlFor="email" className="text-foreground">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -108,11 +108,11 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-white dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-[#008080] dark:focus:border-[#00FFFF] focus:ring-[#008080] dark:focus:ring-[#00FFFF]"
+                  className="bg-background dark:bg-muted border-border dark:border-border text-foreground dark:text-foreground placeholder-gray-500 dark:placeholder-gray-400 focus:border-primary dark:focus:border-secondary focus:ring-[#008080] dark:focus:ring-[#00FFFF]"
                 />
               </div>
               <div>
-                <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">Password</Label>
+                <Label htmlFor="password" className="text-foreground">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -120,14 +120,14 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="bg-white dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-[#008080] dark:focus:border-[#00FFFF] focus:ring-[#008080] dark:focus:ring-[#00FFFF]"
+                  className="bg-background dark:bg-muted border-border dark:border-border text-foreground dark:text-foreground placeholder-gray-500 dark:placeholder-gray-400 focus:border-primary dark:focus:border-secondary focus:ring-[#008080] dark:focus:ring-[#00FFFF]"
                 />
               </div>
               <div className="flex items-center justify-between">
                 <div className="text-sm">
                   <Link
                     href="/forgot-password"
-                    className="font-medium text-[#008080] dark:text-[#00FFFF] hover:text-[#006666] dark:hover:text-[#00CCCC]"
+                    className="font-medium text-primary dark:text-secondary hover:text-[#006666] dark:hover:text-[#00CCCC]"
                   >
                     Forgot your password?
                   </Link>
@@ -137,7 +137,7 @@ export default function LoginPage() {
             <CardFooter>
               <Button 
                 type="submit" 
-                className="w-full bg-[#008080] hover:bg-[#006666] dark:bg-[#008080] dark:hover:bg-[#006666] text-white" 
+                className="w-full bg-primary hover:bg-[#006666] dark:bg-primary dark:hover:bg-[#006666] text-foreground" 
                 disabled={isLoading}
               >
                 {isLoading ? 'Signing in...' : 'Sign in'}
@@ -147,11 +147,11 @@ export default function LoginPage() {
         </Card>
 
         <div className="text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">
             New to our platform?{' '}
             <Link
               href="/signup"
-              className="font-medium text-[#008080] dark:text-[#00FFFF] hover:text-[#006666] dark:hover:text-[#00CCCC]"
+              className="font-medium text-primary dark:text-secondary hover:text-[#006666] dark:hover:text-[#00CCCC]"
             >
               Sign up here
             </Link>
@@ -162,10 +162,10 @@ export default function LoginPage() {
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#e5e4dd] dark:border-gray-700" />
+              <div className="w-full border-t border-border dark:border-border" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-[#f9f8f0] dark:bg-gray-950 text-gray-500 dark:text-gray-400">
+              <span className="px-2 bg-background dark:bg-background text-muted-foreground dark:text-muted-foreground">
                 Or continue with
               </span>
             </div>
@@ -175,7 +175,7 @@ export default function LoginPage() {
             <Button
               variant="outline"
               onClick={handleGoogleSignIn}
-              className="w-full border-[#e5e4dd] dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-[#f0efea] dark:hover:bg-gray-800 hover:border-[#008080] dark:hover:border-[#00FFFF]"
+              className="w-full border-border dark:border-border bg-background dark:bg-card text-foreground hover:bg-muted dark:hover:bg-muted hover:border-primary dark:hover:border-secondary"
             >
               <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
                 <path

@@ -42,33 +42,33 @@ function SimpleBreadcrumb({ projectName }: SimpleBreadcrumbProps) {
   };
 
   return (
-    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-3">
+    <div className="flex items-center text-sm text-muted-foreground mb-3">
       <Link 
         href="/dashboard" 
-        className="hover:text-[#008080] dark:hover:text-[#00FFFF] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#008080]/20 dark:focus:ring-[#00FFFF]/20 rounded"
+        className="hover:text-primary transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 rounded"
       >
         Home
       </Link>
       
-      <ChevronRight className="h-4 w-4 mx-2.5 text-gray-400 dark:text-gray-600" />
+      <ChevronRight className="h-4 w-4 mx-2.5 text-muted-foreground" />
       
       <Link
         href="/dashboard"
-        className="hover:text-[#008080] dark:hover:text-[#00FFFF] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#008080]/20 dark:focus:ring-[#00FFFF]/20 rounded"
+        className="hover:text-primary dark:hover:text-secondary transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#008080]/20 dark:focus:ring-[#00FFFF]/20 rounded"
       >
         Projects
       </Link>
 
-      <ChevronRight className="h-4 w-4 mx-2.5 text-gray-400 dark:text-gray-600" />
+      <ChevronRight className="h-4 w-4 mx-2.5 text-muted-foreground" />
       
-      <span className="font-semibold text-[#008080] dark:text-[#00FFFF]">
+      <span className="font-semibold text-primary dark:text-secondary">
         {projectName}
       </span>
 
       {currentTab && currentTab !== 'overview' && (
         <>
-          <ChevronRight className="h-4 w-4 mx-2.5 text-gray-400 dark:text-gray-600" />
-          <span className="font-semibold text-[#008080] dark:text-[#00FFFF]">
+          <ChevronRight className="h-4 w-4 mx-2.5 text-muted-foreground" />
+          <span className="font-semibold text-primary dark:text-secondary">
             {getTabLabel(currentTab)}
           </span>
         </>
@@ -110,7 +110,7 @@ function ProjectHeader({ projectId }: { projectId: string }) {
 
 
   return (
-    <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+    <div className="bg-background dark:bg-card border-b border-border dark:border-border">
       <div className="container mx-auto px-6 py-7">
         {/* Add breadcrumb navigation above project header */}
         <SimpleBreadcrumb projectName={project?.name || `Project ${projectId}`} />
@@ -118,11 +118,11 @@ function ProjectHeader({ projectId }: { projectId: string }) {
         <div className="flex items-center justify-between mt-3">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-4 h-4 bg-[#008080] dark:bg-[#00FFFF] rounded-full"></div>
+              <div className="w-4 h-4 bg-primary dark:bg-secondary rounded-full"></div>
               {isLoading ? (
-                <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-9 w-64 rounded"></div>
+                <div className="animate-pulse bg-muted dark:bg-gray-700 h-9 w-64 rounded"></div>
               ) : (
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-2xl font-bold text-foreground dark:text-foreground">
                   {project?.name || `Project ${projectId}`}
                 </h1>
               )}
@@ -180,8 +180,8 @@ export default function ProjectLayout({
 
   if (!projectId) {
     return (
-      <div className="flex flex-col min-h-screen bg-[#f9f8f0] dark:bg-gray-950">
-        <div className="animate-pulse bg-gray-200 dark:bg-gray-800 h-16"></div>
+      <div className="flex flex-col min-h-screen bg-background dark:bg-background">
+        <div className="animate-pulse bg-muted dark:bg-muted h-16"></div>
         <ContentLoading 
           size="lg" 
           message="Loading project..." 
@@ -225,7 +225,7 @@ export default function ProjectLayout({
   ];
 
   return (
-    <div className="min-h-screen bg-[#f9f8f0] dark:bg-gray-950">
+    <div className="min-h-screen bg-background dark:bg-background">
       <Sidebar animate={true}>
         <SidebarBody className="justify-between gap-10">
           <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">

@@ -39,13 +39,13 @@ export function ProjectDeleteDialog({ project, isOpen, onClose }: ProjectDeleteD
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+      <DialogContent className="max-w-md bg-background dark:bg-card border border-border dark:border-border">
         <DialogHeader>
-          <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-2">
+          <DialogTitle className="text-foreground dark:text-foreground flex items-center gap-2">
             <Trash2 className="h-5 w-5 text-red-600" />
             Delete Project
           </DialogTitle>
-          <DialogDescription className="text-gray-600 dark:text-gray-400">
+          <DialogDescription className="text-muted-foreground dark:text-muted-foreground">
             Are you sure you want to delete &quot;{project?.name}&quot;? This action cannot be undone and will permanently delete all project data, tasks, and member associations.
           </DialogDescription>
         </DialogHeader>
@@ -64,7 +64,7 @@ export function ProjectDeleteDialog({ project, isOpen, onClose }: ProjectDeleteD
             type="button"
             onClick={handleDelete}
             disabled={isLoading}
-            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+            className="flex-1 bg-red-600 hover:bg-red-700 text-foreground"
           >
             {isLoading ? (
               <>

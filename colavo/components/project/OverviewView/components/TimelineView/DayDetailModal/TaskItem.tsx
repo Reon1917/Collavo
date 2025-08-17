@@ -28,15 +28,15 @@ export function TaskItem({ task }: TaskItemProps) {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800';
       case 'in-progress': return 'bg-blue-100 text-blue-800';
-      case 'todo': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'todo': return 'bg-muted text-foreground';
+      default: return 'bg-muted text-foreground';
     }
   };
 
   return (
-    <div className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800/50 hover:shadow-sm transition-all duration-200 hover:scale-[1.01]">
+    <div className="p-3 border border-border dark:border-border rounded-lg bg-background dark:bg-muted/50 hover:shadow-sm transition-all duration-200 hover:scale-[1.01]">
       <div className="flex items-start justify-between mb-2">
-        <h4 className="font-medium text-gray-900 dark:text-white text-sm">{task.title}</h4>
+        <h4 className="font-medium text-foreground dark:text-foreground text-sm">{task.title}</h4>
         <div className="flex gap-1">
           <Badge className={getImportanceColor(task.importance)} variant="secondary">
             {task.importance}
@@ -47,7 +47,7 @@ export function TaskItem({ task }: TaskItemProps) {
         </div>
       </div>
       
-      <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+      <div className="flex items-center gap-4 text-xs text-muted-foreground dark:text-muted-foreground">
         {task.dueDate && (
           <div className="flex items-center gap-1">
             <Clock className="h-3 w-3" />

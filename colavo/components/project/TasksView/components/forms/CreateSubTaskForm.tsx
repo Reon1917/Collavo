@@ -142,17 +142,17 @@ export function CreateSubTaskForm({
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       {(trigger !== undefined || open === undefined) && (
-        <DialogTrigger className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm text-[#008080] border border-[#008080] hover:bg-[#008080] hover:text-white rounded-md font-medium transition-colors">
+        <DialogTrigger className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm text-primary border border-primary hover:bg-primary hover:text-primary-foreground rounded-md font-medium transition-colors">
           {trigger || defaultTrigger}
         </DialogTrigger>
       )}
-      <DialogContent className="max-w-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-2">
-            <Plus className="h-5 w-5 text-[#008080]" />
+          <DialogTitle className="flex items-center gap-2">
+            <Plus className="h-5 w-5 text-primary" />
             Add New Subtask
           </DialogTitle>
-          <DialogDescription className="text-gray-600 dark:text-gray-400">
+          <DialogDescription>
             Create a new subtask that must be assigned to a team member with a deadline.
             You can set up email reminders after creation.
           </DialogDescription>
@@ -175,7 +175,7 @@ export function CreateSubTaskForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label htmlFor="title" className="text-sm font-medium">
               Subtask Title *
             </Label>
             <Input
@@ -184,7 +184,7 @@ export function CreateSubTaskForm({
               placeholder="Enter subtask title..."
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]"
+              className="bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary"
               maxLength={500}
               required
               disabled={isLoading}
@@ -192,7 +192,7 @@ export function CreateSubTaskForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label htmlFor="description" className="text-sm font-medium text-foreground">
               Description
             </Label>
             <Textarea
@@ -200,14 +200,14 @@ export function CreateSubTaskForm({
               placeholder="Enter subtask description (optional)..."
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] resize-none min-h-[80px]"
+              className="bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary resize-none min-h-[80px]"
               maxLength={1000}
               disabled={isLoading}
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label className="text-sm font-medium">
               Assign To *
             </Label>
             <MemberSelect
@@ -215,13 +215,13 @@ export function CreateSubTaskForm({
               value={formData.assignedId}
               onValueChange={(value) => setFormData(prev => ({ ...prev, assignedId: value }))}
               placeholder="Select a team member *"
-              className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]"
+              className="bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary"
               disabled={isLoading}
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label className="text-sm font-medium">
               Deadline *
             </Label>
             <Popover>
@@ -229,8 +229,8 @@ export function CreateSubTaskForm({
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700",
-                    !formData.deadline && "text-gray-500 dark:text-gray-400",
+                    "w-full justify-start text-left font-normal bg-background dark:bg-muted border-border dark:border-border",
+                    !formData.deadline && "text-muted-foreground dark:text-muted-foreground",
                     isLoading && "opacity-50 cursor-not-allowed"
                   )}
                   disabled={isLoading}
@@ -270,7 +270,7 @@ export function CreateSubTaskForm({
             <Button
               type="submit"
               disabled={isLoading || !formData.title.trim() || !formData.assignedId || !formData.deadline}
-              className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+              className="flex-1 bg-primary hover:bg-[#006666] text-foreground"
             >
               {isLoading ? (
                 <>

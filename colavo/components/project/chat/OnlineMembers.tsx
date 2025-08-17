@@ -46,14 +46,14 @@ export function OnlineMembers({ onlineMembers, currentUserId, className }: Onlin
               <Tooltip key={member.userId}>
                 <TooltipTrigger asChild>
                   <div className="relative">
-                    <Avatar className="h-6 w-6 border-2 border-white dark:border-gray-800">
+                    <Avatar className="h-6 w-6 border-2 border-white dark:border-border">
                       <AvatarImage src={member.user?.image || undefined} alt={userName} />
                       <AvatarFallback className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
                         {userName.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     {/* Online indicator */}
-                    <div className="absolute -bottom-0.5 -right-0.5 h-2 w-2 bg-green-500 rounded-full border border-white dark:border-gray-800" />
+                    <div className="absolute -bottom-0.5 -right-0.5 h-2 w-2 bg-green-500 rounded-full border border-white dark:border-border" />
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -69,8 +69,8 @@ export function OnlineMembers({ onlineMembers, currentUserId, className }: Onlin
           {extraCount > 0 && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center justify-center h-6 w-6 bg-gray-100 dark:bg-gray-700 border-2 border-white dark:border-gray-800 rounded-full">
-                  <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                <div className="flex items-center justify-center h-6 w-6 bg-muted dark:bg-gray-700 border-2 border-white dark:border-border rounded-full">
+                  <span className="text-xs font-medium text-muted-foreground">
                     +{extraCount}
                   </span>
                 </div>

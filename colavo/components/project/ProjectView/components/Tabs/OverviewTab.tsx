@@ -95,7 +95,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
     <div className="space-y-6">
       {/* View Selector at the top */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+        <h2 className="text-2xl font-semibold text-foreground dark:text-foreground">
           {selectedView === 'timeline' ? 'Timeline View' : selectedView === 'graph' ? 'Graph View' : 'Project Overview'}
         </h2>
         <ViewSelector value={selectedView} onChange={setSelectedView} />
@@ -149,36 +149,36 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
         <>
           {/* Updated Overview Content */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
-              <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{project.members.length}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Team Members</div>
+            <div className="text-center p-4 bg-background dark:bg-card/50 border border-gray-100 dark:border-border rounded-lg">
+              <div className="text-3xl font-bold text-foreground dark:text-foreground mb-1">{project.members.length}</div>
+              <div className="text-sm text-muted-foreground dark:text-muted-foreground">Team Members</div>
             </div>
-            <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
-              <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{totalSubTasks}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Total Sub-tasks</div>
+            <div className="text-center p-4 bg-background dark:bg-card/50 border border-gray-100 dark:border-border rounded-lg">
+              <div className="text-3xl font-bold text-foreground dark:text-foreground mb-1">{totalSubTasks}</div>
+              <div className="text-sm text-muted-foreground dark:text-muted-foreground">Total Sub-tasks</div>
             </div>
-            <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
+            <div className="text-center p-4 bg-background dark:bg-card/50 border border-gray-100 dark:border-border rounded-lg">
               <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">{subTasksInProgress}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Sub-tasks in Progress</div>
+              <div className="text-sm text-muted-foreground dark:text-muted-foreground">Sub-tasks in Progress</div>
             </div>
-            <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
+            <div className="text-center p-4 bg-background dark:bg-card/50 border border-gray-100 dark:border-border rounded-lg">
               <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">{subTasksCompleted}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Sub-tasks Completed</div>
+              <div className="text-sm text-muted-foreground dark:text-muted-foreground">Sub-tasks Completed</div>
             </div>
-            <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
-              <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{upcomingEventsCount}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Upcoming Events</div>
+            <div className="text-center p-4 bg-background dark:bg-card/50 border border-gray-100 dark:border-border rounded-lg">
+              <div className="text-3xl font-bold text-foreground dark:text-foreground mb-1">{upcomingEventsCount}</div>
+              <div className="text-sm text-muted-foreground dark:text-muted-foreground">Upcoming Events</div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
             <div className="xl:col-span-2 space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Recent Tasks</h2>
+                <h2 className="text-2xl font-semibold text-foreground dark:text-foreground">Recent Tasks</h2>
                 {tasks.length > 0 && (
                   <button 
                     onClick={() => onTabChange('tasks')}
-                    className="text-sm text-[#008080] hover:text-[#006666] font-medium flex items-center gap-1"
+                    className="text-sm text-primary hover:text-[#006666] font-medium flex items-center gap-1"
                   >
                     View all {tasks.length} tasks →
                   </button>
@@ -193,10 +193,10 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12 bg-gray-50 dark:bg-gray-900/20 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700">
-                    <CheckSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No tasks yet</h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  <div className="text-center py-12 bg-muted dark:bg-card/20 rounded-lg border-2 border-dashed border-border dark:border-border">
+                    <CheckSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-foreground dark:text-foreground mb-2">No tasks yet</h3>
+                    <p className="text-muted-foreground dark:text-muted-foreground mb-4">
                       {permissions.canCreateTasks 
                         ? "Get started by creating your first task."
                         : "Tasks will appear here once they're created."
@@ -209,11 +209,11 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
 
             <div className="xl:col-span-2 space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Recent Files</h2>
+                <h2 className="text-2xl font-semibold text-foreground dark:text-foreground">Recent Files</h2>
                 {files.length > 0 && (
                   <button 
                     onClick={() => onTabChange('files')}
-                    className="text-sm text-[#008080] hover:text-[#006666] font-medium flex items-center gap-1"
+                    className="text-sm text-primary hover:text-[#006666] font-medium flex items-center gap-1"
                   >
                     View all {files.length} files →
                   </button>
@@ -228,10 +228,10 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12 bg-gray-50 dark:bg-gray-900/20 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700">
-                    <Plus className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No files yet</h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  <div className="text-center py-12 bg-muted dark:bg-card/20 rounded-lg border-2 border-dashed border-border dark:border-border">
+                    <Plus className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-foreground dark:text-foreground mb-2">No files yet</h3>
+                    <p className="text-muted-foreground dark:text-muted-foreground mb-4">
                       Upload files or add links to get started.
                     </p>
                   </div>
@@ -241,70 +241,70 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
 
             <div className="space-y-4">
               <div 
-                className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-4 hover:shadow-sm hover:border-gray-200 dark:hover:border-gray-700 transition-all cursor-pointer"
+                className="bg-background dark:bg-card/50 border border-gray-100 dark:border-border rounded-lg p-4 hover:shadow-sm hover:border-border dark:hover:border-border transition-all cursor-pointer"
                 onClick={() => setIsPermissionsDialogOpen(true)}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Your Access</h3>
-                  <Eye className="h-4 w-4 text-gray-400" />
+                  <h3 className="text-lg font-medium text-foreground dark:text-foreground">Your Access</h3>
+                  <Eye className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div className="space-y-2">
                   {userPermissions.length > 0 ? (
                     userPermissions.slice(0, 4).map((permission, index) => (
                       <div key={index} className="flex items-center gap-2">
                         <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                        <span className="text-sm text-foreground">
                           {permission}
                         </span>
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                       No specific permissions assigned
                     </p>
                   )}
                   {userPermissions.length > 4 && (
-                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                       +{userPermissions.length - 4} more permissions
                     </p>
                   )}
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-4">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Team</h3>
+              <div className="bg-background dark:bg-card/50 border border-gray-100 dark:border-border rounded-lg p-4">
+                <h3 className="text-lg font-medium text-foreground dark:text-foreground mb-3">Team</h3>
                 <div className="space-y-2">
                   {project.members && project.members.length > 0 ? (
                     project.members.slice(0, 4).map((member) => (
                       <div key={member.id || member.userId} className="flex items-center gap-2">
                         <Avatar className="h-6 w-6">
                           <AvatarImage src={(member as any).userImage || ''} alt={(member as any).userName || 'User'} />
-                          <AvatarFallback className="bg-[#008080] text-white text-xs">
+                          <AvatarFallback className="bg-primary text-foreground text-xs">
                             {formatInitials((member as any).userName || 'U')}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <span className="text-sm text-gray-700 dark:text-gray-300 truncate block">
+                          <span className="text-sm text-foreground truncate block">
                             {(member as any).userName || 'Unknown User'}
                             {(member.userId === project.currentUserId) && (
-                              <span className="text-xs text-gray-500 ml-1">(You)</span>
+                              <span className="text-xs text-muted-foreground ml-1">(You)</span>
                             )}
                           </span>
                         </div>
                         {(member.role === 'leader' || project.leaderId === member.userId) && (
-                          <Crown className="h-3 w-3 text-[#008080]" />
+                          <Crown className="h-3 w-3 text-primary" />
                         )}
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                       No team members found
                     </p>
                   )}
                   {project.members && project.members.length > 4 && (
                     <button 
                       onClick={() => onTabChange('members')}
-                      className="text-xs text-[#008080] hover:text-[#006666] font-medium"
+                      className="text-xs text-primary hover:text-[#006666] font-medium"
                     >
                       +{project.members.length - 4} more members
                     </button>
@@ -315,10 +315,10 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
           </div>
 
           {permissions.isLeader && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
+            <div className="border-t border-border dark:border-border pt-8">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Project Management</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Leader actions</p>
+                <h2 className="text-xl font-semibold text-foreground dark:text-foreground">Project Management</h2>
+                <p className="text-sm text-muted-foreground dark:text-muted-foreground">Leader actions</p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -328,26 +328,26 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
                     onTaskCreated={onRefresh}
                     members={project.members}
                     trigger={
-                      <div className="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors text-center">
-                        <Plus className="h-6 w-6 mb-2 text-[#008080]" />
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">Create Task</span>
+                      <div className="flex flex-col items-center p-4 border border-border dark:border-border rounded-lg hover:bg-muted dark:hover:bg-muted cursor-pointer transition-colors text-center">
+                        <Plus className="h-6 w-6 mb-2 text-primary" />
+                        <span className="text-sm font-medium text-foreground dark:text-foreground">Create Task</span>
                       </div>
                     }
                   />
                 )}
                 
                 {permissions.canAddMembers && (
-                  <div className="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors text-center"
+                  <div className="flex flex-col items-center p-4 border border-border dark:border-border rounded-lg hover:bg-muted dark:hover:bg-muted cursor-pointer transition-colors text-center"
                        onClick={() => onTabChange('members')}>
-                    <UserPlus className="h-6 w-6 mb-2 text-[#008080]" />
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">Add Member</span>
+                    <UserPlus className="h-6 w-6 mb-2 text-primary" />
+                    <span className="text-sm font-medium text-foreground dark:text-foreground">Add Member</span>
                   </div>
                 )}
                 
-                <div className="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors text-center"
+                <div className="flex flex-col items-center p-4 border border-border dark:border-border rounded-lg hover:bg-muted dark:hover:bg-muted cursor-pointer transition-colors text-center"
                      onClick={() => setIsEditDialogOpen(true)}>
-                  <Edit className="h-6 w-6 mb-2 text-gray-600 dark:text-gray-400" />
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">Edit Project</span>
+                  <Edit className="h-6 w-6 mb-2 text-muted-foreground dark:text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground dark:text-foreground">Edit Project</span>
                 </div>
                 
                 <div className="flex flex-col items-center p-4 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 cursor-pointer transition-colors text-center"
@@ -370,15 +370,15 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {userPermissions.length > 0 ? (
               userPermissions.map((permission, index) => (
-                <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                <div key={index} className="flex items-center gap-3 p-2 rounded-lg bg-muted dark:bg-muted">
                   <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="text-sm text-foreground">
                     {permission}
                   </span>
                 </div>
               ))
             ) : (
-              <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+              <p className="text-sm text-muted-foreground dark:text-muted-foreground text-center py-4">
                 No specific permissions assigned
               </p>
             )}
@@ -404,11 +404,11 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
 
 function TaskPreviewCard({ task, project }: { task: Task; project: Project }) {
   return (
-    <div className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-4 hover:shadow-sm hover:border-gray-200 dark:hover:border-gray-700 transition-all">
+    <div className="bg-background dark:bg-card/50 border border-gray-100 dark:border-border rounded-lg p-4 hover:shadow-sm hover:border-border dark:hover:border-border transition-all">
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-gray-900 dark:text-white truncate mb-1">{task.title}</h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Created by {task.creatorName}</p>
+          <h3 className="font-medium text-foreground dark:text-foreground truncate mb-1">{task.title}</h3>
+          <p className="text-xs text-muted-foreground dark:text-muted-foreground">Created by {task.creatorName}</p>
         </div>
         <Badge 
           variant="outline" 
@@ -420,13 +420,13 @@ function TaskPreviewCard({ task, project }: { task: Task; project: Project }) {
       
       {task.subTasks.length > 0 && (
         <div className="mb-3">
-          <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
+          <div className="flex items-center justify-between text-xs text-muted-foreground dark:text-muted-foreground mb-1">
             <span>Progress</span>
             <span>{Math.round((task.subTasks.filter(st => st.status === 'completed').length / task.subTasks.length) * 100)}%</span>
           </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+          <div className="w-full bg-muted dark:bg-gray-700 rounded-full h-1.5">
             <div 
-              className="bg-[#008080] h-1.5 rounded-full transition-all duration-300" 
+              className="bg-primary h-1.5 rounded-full transition-all duration-300" 
               style={{ width: `${(task.subTasks.filter(st => st.status === 'completed').length / task.subTasks.length) * 100}%` }}
             />
           </div>
@@ -441,16 +441,16 @@ function TaskPreviewCard({ task, project }: { task: Task; project: Project }) {
                 subtask.status === 'completed' ? 'bg-green-500' :
                 subtask.status === 'in_progress' ? 'bg-blue-500' : 'bg-gray-300'
               }`} />
-              <span className="text-gray-600 dark:text-gray-400 truncate flex-1">{subtask.title}</span>
+              <span className="text-muted-foreground dark:text-muted-foreground truncate flex-1">{subtask.title}</span>
               {subtask.assignedUserName && (
-                <span className="text-gray-500 dark:text-gray-500 text-xs">
+                <span className="text-muted-foreground dark:text-muted-foreground text-xs">
                   {subtask.assignedId === project.currentUserId ? 'You' : subtask.assignedUserName}
                 </span>
               )}
             </div>
           ))}
           {task.subTasks.length > 2 && (
-            <p className="text-xs text-gray-500 dark:text-gray-500">
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground">
               +{task.subTasks.length - 2} more subtasks
             </p>
           )}
@@ -493,7 +493,7 @@ function FilePreviewCard({ file, projectId }: { file: any; projectId: string }) 
   
   return (
     <div 
-      className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-4 hover:shadow-sm hover:border-gray-200 dark:hover:border-gray-700 transition-all cursor-pointer group"
+      className="bg-background dark:bg-card/50 border border-gray-100 dark:border-border rounded-lg p-4 hover:shadow-sm hover:border-border dark:hover:border-border transition-all cursor-pointer group"
       onClick={handleClick}
     >
       <div className="flex items-start justify-between mb-3">
@@ -506,12 +506,12 @@ function FilePreviewCard({ file, projectId }: { file: any; projectId: string }) 
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-gray-900 dark:text-white truncate mb-1 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">{file.name}</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <h3 className="font-medium text-foreground dark:text-foreground truncate mb-1 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">{file.name}</h3>
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground">
               Added by {file.addedByName} • {new Date(file.addedAt).toLocaleDateString()}
             </p>
             {fileSize && (
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{fileSize}</p>
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">{fileSize}</p>
             )}
           </div>
         </div>
@@ -521,7 +521,7 @@ function FilePreviewCard({ file, projectId }: { file: any; projectId: string }) 
       </div>
       
       {file.description && (
-        <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+        <p className="text-sm text-muted-foreground dark:text-muted-foreground truncate">
           {file.description}
         </p>
       )}

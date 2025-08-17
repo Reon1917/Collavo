@@ -54,7 +54,7 @@ export function DayDetailModal({ date, tasks, events, isOpen, onClose }: DayDeta
 
         <div className="space-y-6">
           {totalItems === 0 ? (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <div className="text-center py-8 text-muted-foreground dark:text-muted-foreground">
               <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No tasks or events scheduled for this day</p>
             </div>
@@ -63,8 +63,8 @@ export function DayDetailModal({ date, tasks, events, isOpen, onClose }: DayDeta
               {tasks.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                    <h3 className="font-medium text-gray-900 dark:text-white">
+                    <Clock className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
+                    <h3 className="font-medium text-foreground dark:text-foreground">
                       Tasks ({tasks.length})
                     </h3>
                   </div>
@@ -79,8 +79,8 @@ export function DayDetailModal({ date, tasks, events, isOpen, onClose }: DayDeta
               {events.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                    <h3 className="font-medium text-gray-900 dark:text-white">
+                    <Calendar className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />
+                    <h3 className="font-medium text-foreground dark:text-foreground">
                       Events ({events.length})
                     </h3>
                   </div>

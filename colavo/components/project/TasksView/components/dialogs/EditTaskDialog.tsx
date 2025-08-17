@@ -143,13 +143,13 @@ export function EditTaskDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+      <DialogContent className="max-w-2xl bg-background dark:bg-card border border-border dark:border-border">
         <DialogHeader>
-          <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-2">
-            <Edit3 className="h-5 w-5 text-[#008080]" />
+          <DialogTitle className="text-foreground dark:text-foreground flex items-center gap-2">
+            <Edit3 className="h-5 w-5 text-primary" />
             Edit Task
           </DialogTitle>
-          <DialogDescription className="text-gray-600 dark:text-gray-400">
+          <DialogDescription className="text-muted-foreground dark:text-muted-foreground">
             Update task details including title, description, importance level, and deadline.
           </DialogDescription>
         </DialogHeader>
@@ -165,7 +165,7 @@ export function EditTaskDialog({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="edit-task-title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label htmlFor="edit-task-title" className="text-sm font-medium text-foreground">
               Task Title *
             </Label>
             <Input
@@ -174,7 +174,7 @@ export function EditTaskDialog({
               placeholder="Enter task title..."
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]"
+              className="bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary"
               maxLength={500}
               required
               disabled={isLoading}
@@ -182,7 +182,7 @@ export function EditTaskDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-task-description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label htmlFor="edit-task-description" className="text-sm font-medium text-foreground">
               Description
             </Label>
             <Textarea
@@ -190,13 +190,13 @@ export function EditTaskDialog({
               placeholder="Describe the task objectives and requirements..."
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] min-h-[80px] resize-none"
+              className="bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary min-h-[80px] resize-none"
               disabled={isLoading}
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label className="text-sm font-medium text-foreground">
               Importance Level
             </Label>
             <Select
@@ -207,7 +207,7 @@ export function EditTaskDialog({
             >
               <SelectTrigger 
                 className={cn(
-                  "bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]",
+                  "bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary",
                   isLoading && "opacity-50 cursor-not-allowed"
                 )}
               >
@@ -223,7 +223,7 @@ export function EditTaskDialog({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label className="text-sm font-medium text-foreground">
               Deadline *
             </Label>
             <Popover>
@@ -231,8 +231,8 @@ export function EditTaskDialog({
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 hover:bg-white dark:hover:bg-gray-900 hover:border-[#008080] dark:hover:border-[#00FFFF]",
-                    !formData.deadline && "text-gray-500 dark:text-gray-400"
+                    "w-full justify-start text-left font-normal bg-background dark:bg-muted border-border dark:border-border hover:bg-background dark:hover:bg-card hover:border-primary dark:hover:border-secondary",
+                    !formData.deadline && "text-muted-foreground dark:text-muted-foreground"
                   )}
                   disabled={isLoading}
                 >
@@ -240,7 +240,7 @@ export function EditTaskDialog({
                   {formData.deadline ? format(formData.deadline, "PPP") : "Select deadline *"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+              <PopoverContent className="w-auto p-0 bg-background dark:bg-card border border-border dark:border-border">
                 <Calendar
                   mode="single"
                   selected={formData.deadline}
@@ -271,7 +271,7 @@ export function EditTaskDialog({
             <Button
               type="submit"
               disabled={isLoading || !formData.title.trim() || !formData.importanceLevel || !formData.deadline}
-              className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+              className="flex-1 bg-primary hover:bg-[#006666] text-foreground"
             >
               {isLoading ? (
                 <>

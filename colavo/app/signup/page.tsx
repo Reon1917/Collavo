@@ -77,22 +77,22 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f9f8f0] dark:bg-gray-950 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-background dark:bg-background px-4 py-12">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
       
       <div className="absolute top-4 left-4 flex items-center space-x-3">
-        <div className="w-8 h-8 bg-[#008080] rounded-lg flex items-center justify-center">
-          <span className="text-white font-bold text-sm">C</span>
+        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+          <span className="text-foreground font-bold text-sm">C</span>
         </div>
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Collavo</h3>
+        <h3 className="text-xl font-bold text-foreground dark:text-foreground">Collavo</h3>
       </div>
       
-      <Card className="w-full max-w-md bg-white dark:bg-gray-900 border-[#e5e4dd] dark:border-gray-800 shadow-lg">
+      <Card className="w-full max-w-md bg-background dark:bg-card border-border dark:border-border shadow-lg">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">Create your account</CardTitle>
-          <CardDescription className="text-center text-gray-600 dark:text-gray-400">
+          <CardTitle className="text-2xl font-bold text-center text-foreground dark:text-foreground">Create your account</CardTitle>
+          <CardDescription className="text-center text-muted-foreground dark:text-muted-foreground">
             Enter your details to get started with Collavo
           </CardDescription>
         </CardHeader>
@@ -100,7 +100,7 @@ export default function SignupPage() {
         <form onSubmit={handleEmailSignup}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-gray-700 dark:text-gray-300">Full Name</Label>
+              <Label htmlFor="name" className="text-foreground">Full Name</Label>
               <Input
                 id="name"
                 type="text"
@@ -109,12 +109,12 @@ export default function SignupPage() {
                 onChange={(e) => setName(e.target.value)}
                 disabled={isLoading}
                 required
-                className="bg-white dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-[#008080] dark:focus:border-[#00FFFF] focus:ring-[#008080] dark:focus:ring-[#00FFFF]"
+                className="bg-background dark:bg-muted border-border dark:border-border text-foreground dark:text-foreground placeholder-gray-500 dark:placeholder-gray-400 focus:border-primary dark:focus:border-secondary focus:ring-[#008080] dark:focus:ring-[#00FFFF]"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">Email</Label>
+              <Label htmlFor="email" className="text-foreground">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -123,12 +123,12 @@ export default function SignupPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
                 required
-                className="bg-white dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-[#008080] dark:focus:border-[#00FFFF] focus:ring-[#008080] dark:focus:ring-[#00FFFF]"
+                className="bg-background dark:bg-muted border-border dark:border-border text-foreground dark:text-foreground placeholder-gray-500 dark:placeholder-gray-400 focus:border-primary dark:focus:border-secondary focus:ring-[#008080] dark:focus:ring-[#00FFFF]"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">Password</Label>
+              <Label htmlFor="password" className="text-foreground">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -138,12 +138,12 @@ export default function SignupPage() {
                 disabled={isLoading}
                 required
                 minLength={8}
-                className="bg-white dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-[#008080] dark:focus:border-[#00FFFF] focus:ring-[#008080] dark:focus:ring-[#00FFFF]"
+                className="bg-background dark:bg-muted border-border dark:border-border text-foreground dark:text-foreground placeholder-gray-500 dark:placeholder-gray-400 focus:border-primary dark:focus:border-secondary focus:ring-[#008080] dark:focus:ring-[#00FFFF]"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-gray-700 dark:text-gray-300">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="text-foreground">Confirm Password</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -152,23 +152,23 @@ export default function SignupPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={isLoading}
                 required
-                className="bg-white dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-[#008080] dark:focus:border-[#00FFFF] focus:ring-[#008080] dark:focus:ring-[#00FFFF]"
+                className="bg-background dark:bg-muted border-border dark:border-border text-foreground dark:text-foreground placeholder-gray-500 dark:placeholder-gray-400 focus:border-primary dark:focus:border-secondary focus:ring-[#008080] dark:focus:ring-[#00FFFF]"
               />
             </div>
           </CardContent>
           
           <CardFooter className="space-y-4">
             <div className="w-full space-y-3">
-              <Button type="submit" className="w-full bg-[#008080] hover:bg-[#006666] dark:bg-[#008080] dark:hover:bg-[#006666] text-white" disabled={isLoading}>
+              <Button type="submit" className="w-full bg-primary hover:bg-[#006666] dark:bg-primary dark:hover:bg-[#006666] text-foreground" disabled={isLoading}>
                 {isLoading ? "Creating account..." : "Create Account"}
               </Button>
               
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-[#e5e4dd] dark:border-gray-700" />
+                  <span className="w-full border-t border-border dark:border-border" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white dark:bg-gray-900 px-2 text-gray-500 dark:text-gray-400">
+                  <span className="bg-background dark:bg-card px-2 text-muted-foreground dark:text-muted-foreground">
                     Or continue with
                   </span>
                 </div>
@@ -177,7 +177,7 @@ export default function SignupPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full border-[#e5e4dd] dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-[#f0efea] dark:hover:bg-gray-800 hover:border-[#008080] dark:hover:border-[#00FFFF]"
+                className="w-full border-border dark:border-border bg-background dark:bg-card text-foreground hover:bg-muted dark:hover:bg-muted hover:border-primary dark:hover:border-secondary"
                 onClick={handleGoogleSignup}
                 disabled={isLoading}
               >
@@ -202,11 +202,11 @@ export default function SignupPage() {
                 {isLoading ? "Connecting..." : "Continue with Google"}
               </Button>
               
-              <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-center text-sm text-muted-foreground dark:text-muted-foreground">
                 Already have an account?{' '}
                 <Link 
                   href="/login" 
-                  className="text-[#008080] dark:text-[#00FFFF] hover:text-[#006666] dark:hover:text-[#00CCCC] hover:underline font-medium transition-colors"
+                  className="text-primary dark:text-secondary hover:text-[#006666] dark:hover:text-[#00CCCC] hover:underline font-medium transition-colors"
                 >
                   Sign in
                 </Link>

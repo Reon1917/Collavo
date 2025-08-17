@@ -21,7 +21,7 @@ export function ProjectHeader({ project, roleDisplay }: ProjectHeaderProps) {
     <div className="flex items-start justify-between mb-8">
       <div className="flex-1">
         <div className="flex items-center gap-3 mb-3">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-4xl font-bold text-foreground dark:text-foreground">
             {project.name}
           </h1>
           <Badge 
@@ -33,11 +33,11 @@ export function ProjectHeader({ project, roleDisplay }: ProjectHeaderProps) {
           </Badge>
         </div>
         {project.description && (
-          <p className="text-gray-600 dark:text-gray-400 text-lg mb-4 max-w-3xl">
+          <p className="text-muted-foreground dark:text-muted-foreground text-lg mb-4 max-w-3xl">
             {project.description}
           </p>
         )}
-        <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex items-center gap-6 text-sm text-muted-foreground dark:text-muted-foreground">
           <div className="flex items-center gap-2">
             <Crown className="h-4 w-4" />
             <span>Led by {project.leaderName}</span>

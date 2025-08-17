@@ -174,10 +174,10 @@ export function SubTasksForm({
 
       <div className="space-y-4">
         {subTasks.map((subTask, index) => (
-          <Card key={index} className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+          <Card key={index} className="bg-muted dark:bg-muted border border-border dark:border-border">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-900 dark:text-white">
+                <CardTitle className="text-sm font-medium text-foreground dark:text-foreground">
                   Sub-task {index + 1} *
                 </CardTitle>
                 {subTasks.length > 1 && (
@@ -186,7 +186,7 @@ export function SubTasksForm({
                     variant="ghost"
                     size="sm"
                     onClick={() => handleRemoveSubTask(index)}
-                    className="h-6 w-6 p-0 text-gray-500 hover:text-red-600"
+                    className="h-6 w-6 p-0 text-muted-foreground hover:text-red-600"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -198,7 +198,7 @@ export function SubTasksForm({
                 placeholder="Sub-task title... *"
                 value={subTask.title}
                 onChange={(e) => handleSubTaskChange(index, 'title', e.target.value)}
-                className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600"
+                className="bg-background dark:bg-card border-border dark:border-gray-600"
                 maxLength={500}
                 required
               />
@@ -207,12 +207,12 @@ export function SubTasksForm({
                 placeholder="Sub-task description..."
                 value={subTask.description}
                 onChange={(e) => handleSubTaskChange(index, 'description', e.target.value)}
-                className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600 min-h-[60px] resize-none"
+                className="bg-background dark:bg-card border-border dark:border-gray-600 min-h-[60px] resize-none"
               />
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                  <Label className="text-xs font-medium text-foreground">
                     Assign to *
                   </Label>
                   <MemberSelect
@@ -220,12 +220,12 @@ export function SubTasksForm({
                     value={subTask.assignedId}
                     onValueChange={(value) => handleSubTaskChange(index, 'assignedId', value)}
                     placeholder="Select member *"
-                    className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600"
+                    className="bg-background dark:bg-card border-border dark:border-gray-600"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                  <Label className="text-xs font-medium text-foreground">
                     Deadline *
                   </Label>
                   <Popover>
@@ -233,15 +233,15 @@ export function SubTasksForm({
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full justify-start text-left font-normal bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600 text-xs",
-                          !subTask.deadline && "text-gray-500"
+                          "w-full justify-start text-left font-normal bg-background dark:bg-card border-border dark:border-gray-600 text-xs",
+                          !subTask.deadline && "text-muted-foreground"
                         )}
                       >
                         <CalendarIcon className="mr-1 h-3 w-3" />
                         {subTask.deadline ? format(subTask.deadline, "MMM dd") : "Set date *"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900">
+                    <PopoverContent className="w-auto p-0 bg-background dark:bg-card">
                       <Calendar
                         mode="single"
                         selected={subTask.deadline}
@@ -267,7 +267,7 @@ export function SubTasksForm({
           type="button"
           variant="outline"
           onClick={handleAddSubTask}
-          className="w-full border-dashed border-2 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-[#008080] hover:text-[#008080]"
+          className="w-full border-dashed border-2 border-border dark:border-gray-600 text-muted-foreground dark:text-muted-foreground hover:border-primary hover:text-primary"
         >
           <Plus className="h-4 w-4 mr-2" />
           Add Another Sub-task
@@ -288,7 +288,7 @@ export function SubTasksForm({
           type="button"
           onClick={handleCreateSubTasks}
           disabled={isLoading}
-          className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+          className="flex-1 bg-primary hover:bg-[#006666] text-foreground"
         >
           {isLoading ? (
             <>

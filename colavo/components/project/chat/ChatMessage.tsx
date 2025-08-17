@@ -88,7 +88,7 @@ export function ChatMessage({
     >
       {/* Sender name above bubble for other users only */}
       {!isCurrentUser && (
-        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-0.5 ml-8">
+        <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground mb-0.5 ml-8">
           {userName}
         </span>
       )}
@@ -111,7 +111,7 @@ export function ChatMessage({
             'relative rounded-xl px-3 py-2 text-xs break-words',
             isCurrentUser
               ? 'bg-primary text-primary-foreground ml-2'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100',
+              : 'bg-muted dark:bg-muted text-foreground ',
             'transition-colors'
           )}
         >
@@ -140,7 +140,7 @@ export function ChatMessage({
           {/* Timestamp on hover, below bubble */}
           <span
             className={cn(
-              'absolute top-full mt-1 text-[10px] text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap',
+              'absolute top-full mt-1 text-[10px] text-muted-foreground dark:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap',
               isCurrentUser ? 'right-0' : 'left-0'
             )}
             aria-label="Message time"
@@ -160,7 +160,7 @@ export function ChatMessage({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 bg-gray-100 dark:bg-gray-800 shadow-sm border border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
+                  className="h-6 w-6 p-0 bg-muted dark:bg-muted shadow-sm border border-border dark:border-border hover:bg-muted dark:hover:bg-gray-700 text-muted-foreground"
                 >
                   <MoreHorizontal className="h-3 w-3" />
                 </Button>

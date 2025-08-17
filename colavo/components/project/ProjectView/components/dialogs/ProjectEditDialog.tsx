@@ -76,20 +76,20 @@ export function ProjectEditDialog({ project, isOpen, onClose, onRefresh }: Proje
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+      <DialogContent className="max-w-md bg-background dark:bg-card border border-border dark:border-border">
         <DialogHeader>
-          <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-2">
-            <Edit className="h-5 w-5 text-[#008080]" />
+          <DialogTitle className="text-foreground dark:text-foreground flex items-center gap-2">
+            <Edit className="h-5 w-5 text-primary" />
             Edit Project Details
           </DialogTitle>
-          <DialogDescription className="text-gray-600 dark:text-gray-400">
+          <DialogDescription className="text-muted-foreground dark:text-muted-foreground">
             Update your project information. All fields are optional except the project name.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="edit-name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label htmlFor="edit-name" className="text-sm font-medium text-foreground">
               Project Name *
             </Label>
             <Input
@@ -98,14 +98,14 @@ export function ProjectEditDialog({ project, isOpen, onClose, onRefresh }: Proje
               placeholder="Enter project name..."
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]"
+              className="bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary"
               disabled={isLoading}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label htmlFor="edit-description" className="text-sm font-medium text-foreground">
               Description
             </Label>
             <Textarea
@@ -113,13 +113,13 @@ export function ProjectEditDialog({ project, isOpen, onClose, onRefresh }: Proje
               placeholder="Describe your project..."
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] min-h-[80px] resize-none"
+              className="bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary min-h-[80px] resize-none"
               disabled={isLoading}
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label className="text-sm font-medium text-foreground">
               Project Deadline
             </Label>
             <Popover>
@@ -127,8 +127,8 @@ export function ProjectEditDialog({ project, isOpen, onClose, onRefresh }: Proje
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 hover:bg-white dark:hover:bg-gray-900 hover:border-[#008080] dark:hover:border-[#00FFFF]",
-                    !formData.deadline && "text-gray-500 dark:text-gray-400"
+                    "w-full justify-start text-left font-normal bg-background dark:bg-muted border-border dark:border-border hover:bg-background dark:hover:bg-card hover:border-primary dark:hover:border-secondary",
+                    !formData.deadline && "text-muted-foreground dark:text-muted-foreground"
                   )}
                   disabled={isLoading}
                 >
@@ -136,7 +136,7 @@ export function ProjectEditDialog({ project, isOpen, onClose, onRefresh }: Proje
                   {formData.deadline ? format(formData.deadline, "PPP") : "Select deadline (optional)"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+              <PopoverContent className="w-auto p-0 bg-background dark:bg-card border border-border dark:border-border">
                 <CalendarComponent
                   mode="single"
                   selected={formData.deadline}
@@ -163,7 +163,7 @@ export function ProjectEditDialog({ project, isOpen, onClose, onRefresh }: Proje
             type="button"
             onClick={handleSubmit}
             disabled={isLoading || !formData.name.trim()}
-            className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+            className="flex-1 bg-primary hover:bg-[#006666] text-foreground"
           >
             {isLoading ? (
               <>

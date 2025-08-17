@@ -103,7 +103,7 @@ export function TaskFilters({ users, filters, sortOptions, onFiltersChange, onSo
               variant="ghost" 
               size="sm"
               onClick={clearAllFilters}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              className="text-muted-foreground hover:text-foreground dark:text-muted-foreground dark:hover:text-gray-200"
             >
               <X className="h-3 w-3 mr-1" />
               Clear
@@ -112,14 +112,14 @@ export function TaskFilters({ users, filters, sortOptions, onFiltersChange, onSo
         </div>
         
         <div className="flex items-center space-x-2">
-          <div className="text-sm text-gray-500 dark:text-gray-400 mr-1">Sort by:</div>
+          <div className="text-sm text-muted-foreground dark:text-muted-foreground mr-1">Sort by:</div>
           {['title', 'deadline', 'importance', 'status'].map((field) => (
             <Button 
               key={field}
               variant={sortOptions.field === field ? "default" : "ghost"}
               size="sm"
               onClick={() => handleSortFieldChange(field as SortField)}
-              className={sortOptions.field === field ? "bg-blue-600 text-white dark:bg-blue-700" : "text-gray-600 dark:text-gray-400"}
+              className={sortOptions.field === field ? "bg-blue-600 text-foreground dark:bg-blue-700" : "text-muted-foreground dark:text-muted-foreground"}
             >
               {field.charAt(0).toUpperCase() + field.slice(1)}
               {sortOptions.field === field && (
@@ -133,14 +133,14 @@ export function TaskFilters({ users, filters, sortOptions, onFiltersChange, onSo
       </div>
       
       {isFiltersOpen && (
-        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-md mb-4 border border-gray-200 dark:border-gray-700">
+        <div className="bg-muted dark:bg-muted p-4 rounded-md mb-4 border border-border dark:border-border">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Assignee Filter */}
             <div>
-              <h4 className="text-sm font-medium mb-2 text-gray-900 dark:text-white">Assignee</h4>
+              <h4 className="text-sm font-medium mb-2 text-foreground dark:text-foreground">Assignee</h4>
               <div className="space-y-1">
                 <div 
-                  className={`cursor-pointer px-2 py-1 rounded text-sm ${filters.assignee === null ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+                  className={`cursor-pointer px-2 py-1 rounded text-sm ${filters.assignee === null ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'hover:bg-muted dark:hover:bg-gray-700 text-foreground '}`}
                   onClick={() => handleAssigneeChange(null)}
                 >
                   All Members
@@ -148,7 +148,7 @@ export function TaskFilters({ users, filters, sortOptions, onFiltersChange, onSo
                 {users.map(user => (
                   <div 
                     key={user.id}
-                    className={`cursor-pointer px-2 py-1 rounded text-sm ${filters.assignee === user.id ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+                    className={`cursor-pointer px-2 py-1 rounded text-sm ${filters.assignee === user.id ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'hover:bg-muted dark:hover:bg-gray-700 text-foreground '}`}
                     onClick={() => handleAssigneeChange(user.id)}
                   >
                     {user.name}
@@ -159,10 +159,10 @@ export function TaskFilters({ users, filters, sortOptions, onFiltersChange, onSo
             
             {/* Importance Filter */}
             <div>
-              <h4 className="text-sm font-medium mb-2 text-gray-900 dark:text-white">Importance</h4>
+              <h4 className="text-sm font-medium mb-2 text-foreground dark:text-foreground">Importance</h4>
               <div className="space-y-1">
                 <div 
-                  className={`cursor-pointer px-2 py-1 rounded text-sm ${filters.importance === null ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+                  className={`cursor-pointer px-2 py-1 rounded text-sm ${filters.importance === null ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'hover:bg-muted dark:hover:bg-gray-700 text-foreground '}`}
                   onClick={() => handleImportanceChange(null)}
                 >
                   All Levels
@@ -170,7 +170,7 @@ export function TaskFilters({ users, filters, sortOptions, onFiltersChange, onSo
                 {['low', 'medium', 'high', 'critical'].map(importance => (
                   <div 
                     key={importance}
-                    className={`cursor-pointer px-2 py-1 rounded text-sm ${filters.importance === importance ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+                    className={`cursor-pointer px-2 py-1 rounded text-sm ${filters.importance === importance ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'hover:bg-muted dark:hover:bg-gray-700 text-foreground '}`}
                     onClick={() => handleImportanceChange(importance as TaskImportance)}
                   >
                     {importance.charAt(0).toUpperCase() + importance.slice(1)}
@@ -181,10 +181,10 @@ export function TaskFilters({ users, filters, sortOptions, onFiltersChange, onSo
             
             {/* Status Filter */}
             <div>
-              <h4 className="text-sm font-medium mb-2 text-gray-900 dark:text-white">Status</h4>
+              <h4 className="text-sm font-medium mb-2 text-foreground dark:text-foreground">Status</h4>
               <div className="space-y-1">
                 <div 
-                  className={`cursor-pointer px-2 py-1 rounded text-sm ${filters.status === null ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+                  className={`cursor-pointer px-2 py-1 rounded text-sm ${filters.status === null ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'hover:bg-muted dark:hover:bg-gray-700 text-foreground '}`}
                   onClick={() => handleStatusChange(null)}
                 >
                   All Statuses
@@ -192,7 +192,7 @@ export function TaskFilters({ users, filters, sortOptions, onFiltersChange, onSo
                 {['pending', 'in_progress', 'completed'].map(status => (
                   <div 
                     key={status}
-                    className={`cursor-pointer px-2 py-1 rounded text-sm ${filters.status === status ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+                    className={`cursor-pointer px-2 py-1 rounded text-sm ${filters.status === status ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'hover:bg-muted dark:hover:bg-gray-700 text-foreground '}`}
                     onClick={() => handleStatusChange(status as TaskStatus)}
                   >
                     {status === 'in_progress' ? 'In Progress' : status.charAt(0).toUpperCase() + status.slice(1)}

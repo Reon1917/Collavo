@@ -91,7 +91,7 @@ export function TaskCard({
 
   return (
     <>
-      <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow duration-200 h-full flex flex-col">
+      <Card className="bg-background dark:bg-card border border-border dark:border-border hover:shadow-lg transition-shadow duration-200 h-full flex flex-col">
         <CardHeader className="pb-3 flex-shrink-0">
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
@@ -108,11 +108,11 @@ export function TaskCard({
                   </Badge>
                 )}
               </div>
-              <CardTitle className="text-base font-semibold text-gray-900 dark:text-white line-clamp-2 mb-1">
+              <CardTitle className="text-base font-semibold text-foreground dark:text-foreground line-clamp-2 mb-1">
                 {task.title}
               </CardTitle>
               {task.description && (
-                <CardDescription className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                <CardDescription className="text-sm text-muted-foreground dark:text-muted-foreground line-clamp-2">
                   {task.description}
                 </CardDescription>
               )}
@@ -120,7 +120,7 @@ export function TaskCard({
             {(canModifyTask || canCreateSubtasks) && (
               <DropdownMenu>
                 <DropdownMenuTrigger 
-                  className="h-7 w-7 p-0 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center flex-shrink-0 ml-2"
+                  className="h-7 w-7 p-0 rounded-md border border-border dark:border-border bg-background dark:bg-muted hover:bg-muted dark:hover:bg-gray-700 flex items-center justify-center flex-shrink-0 ml-2"
                 >
                   <MoreVertical className="h-3.5 w-3.5" />
                 </DropdownMenuTrigger>
@@ -156,12 +156,12 @@ export function TaskCard({
           {/* Progress */}
           {visibleSubTasks.length > 0 && (
             <div className="mb-3">
-              <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+              <div className="flex items-center justify-between text-sm text-muted-foreground dark:text-muted-foreground mb-1">
                 <span className="text-xs">Progress</span>
                 <span className="text-xs font-medium">{Math.round(progress)}%</span>
               </div>
               <Progress value={progress} className="h-1.5" />
-              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
                 {completedSubTasks}/{totalSubTasks} completed
               </p>
             </div>
@@ -171,7 +171,7 @@ export function TaskCard({
           {visibleSubTasks.length > 0 ? (
             <div className="flex-1 min-h-0">
               <div className="mb-2">
-                <h4 className="text-xs font-medium text-gray-900 dark:text-white">
+                <h4 className="text-xs font-medium text-foreground dark:text-foreground">
                   Subtasks ({visibleSubTasks.length})
                 </h4>
               </div>
@@ -187,7 +187,7 @@ export function TaskCard({
                   />
                 ))}
                 {visibleSubTasks.length > 3 && (
-                  <p className="text-xs text-gray-500 dark:text-gray-500">
+                  <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                     +{visibleSubTasks.length - 3} more
                   </p>
                 )}
@@ -195,7 +195,7 @@ export function TaskCard({
             </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center py-4">
-              <p className="text-xs text-gray-500 dark:text-gray-500 text-center">
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground text-center">
                 {!canViewAllTasks 
                   ? 'No subtasks assigned'
                   : 'No subtasks yet'
@@ -205,8 +205,8 @@ export function TaskCard({
           )}
 
           {/* Task metadata */}
-          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
+          <div className="mt-3 pt-3 border-t border-border dark:border-border flex-shrink-0">
+            <div className="flex items-center justify-between text-xs text-muted-foreground dark:text-muted-foreground">
               <div className="flex items-center gap-1 min-w-0">
                 <User className="h-3 w-3 flex-shrink-0" />
                 <span className="truncate">{task.creatorName}</span>
@@ -253,35 +253,35 @@ export function TaskCard({
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirmDialog && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-lg max-w-md w-full">
+          <div className="bg-background dark:bg-card rounded-lg max-w-md w-full">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
                     <span className="text-red-600 dark:text-red-400 text-lg">⚠</span>
                   </div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Delete Task</h2>
+                  <h2 className="text-lg font-semibold text-foreground dark:text-foreground">Delete Task</h2>
                 </div>
                 <button
                   onClick={() => setShowDeleteConfirmDialog(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  className="text-muted-foreground hover:text-muted-foreground dark:hover:text-gray-300"
                 >
                   ✕
                 </button>
               </div>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
+              <p className="text-muted-foreground dark:text-muted-foreground mb-6">
                 Are you sure you want to delete this task? This action cannot be undone.
               </p>
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => setShowDeleteConfirmDialog(false)}
-                  className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  className="px-4 py-2 text-foreground bg-muted dark:bg-muted rounded-md hover:bg-muted dark:hover:bg-gray-700 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleConfirmDelete}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                  className="px-4 py-2 bg-red-600 text-foreground rounded-md hover:bg-red-700 transition-colors"
                 >
                   Delete
                 </button>

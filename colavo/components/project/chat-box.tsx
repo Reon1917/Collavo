@@ -168,13 +168,13 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 40 }}
         transition={{ duration: 0.25, ease: 'easeOut' }}
-        className={cn("fixed bottom-24 right-6 w-96 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700", className)}
+        className={cn("fixed bottom-24 right-6 w-96 bg-background dark:bg-card rounded-lg shadow-xl border border-border dark:border-border", className)}
         aria-modal="true"
         role="dialog"
         tabIndex={0}
         aria-label="Chat box login required"
       >
-        <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+        <div className="p-4 text-center text-muted-foreground dark:text-muted-foreground">
           Please log in to use chat
         </div>
       </motion.div>
@@ -188,21 +188,21 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: 40 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
-      className={cn("fixed bottom-24 right-6 w-96 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden", className)}
+      className={cn("fixed bottom-24 right-6 w-96 bg-background dark:bg-card rounded-lg shadow-xl border border-border dark:border-border overflow-hidden", className)}
       aria-modal="true"
       role="dialog"
       tabIndex={0}
       aria-label="Project chat box"
     >
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-secondary/30 dark:bg-secondary/10">
+      <div className="p-4 border-b border-border dark:border-border bg-secondary/30 dark:bg-secondary/10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
               {projectName.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">
+              <h3 className="font-semibold text-sm text-foreground truncate">
                 {projectName}
               </h3>
               <div className="flex items-center gap-2 mt-0.5">
@@ -213,7 +213,7 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
                   ) : (
                     <WifiOff className="h-3 w-3 text-red-500" />
                   )}
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                  <span className="text-xs text-muted-foreground dark:text-muted-foreground">
                     {isConnected ? 'Connected' : 'Connecting...'}
                   </span>
                 </div>
@@ -277,7 +277,7 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
 
             {/* Messages */}
             {messages.length === 0 && !isLoading ? (
-              <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+              <div className="text-center text-muted-foreground dark:text-muted-foreground py-8">
                 <div className="text-sm">No messages yet.</div>
                 <div className="text-xs mt-1">Start the conversation!</div>
               </div>
@@ -321,7 +321,7 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
 
       {/* Reply indicator */}
       {replyingTo && (
-        <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-500">
+        <div className="px-4 py-3 border-t border-border dark:border-border bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-500">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
@@ -330,7 +330,7 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
                   Replying to {replyingTo.user?.name || 'Unknown User'}
                 </div>
               </div>
-              <div className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2 bg-white dark:bg-gray-800 p-2 rounded border-l-2 border-l-gray-300 dark:border-l-gray-600">
+              <div className="text-sm text-foreground line-clamp-2 bg-background dark:bg-muted p-2 rounded border-l-2 border-l-gray-300 dark:border-l-gray-600">
                 {replyingTo.content}
               </div>
             </div>
@@ -338,7 +338,7 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
               variant="ghost"
               size="sm"
               onClick={() => setReplyingTo(null)}
-              className="h-6 w-6 p-0 flex-shrink-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              className="h-6 w-6 p-0 flex-shrink-0 text-muted-foreground hover:text-foreground dark:text-muted-foreground dark:hover:text-gray-200"
             >
               <X className="h-3 w-3" />
             </Button>
@@ -347,7 +347,7 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
       )}
 
       {/* Message input */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+      <div className="p-4 border-t border-border dark:border-border bg-background dark:bg-card">
         <div className="flex gap-2">
           <Input
             ref={inputRef}

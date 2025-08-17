@@ -106,9 +106,9 @@ export function MemberCard({ member, permissions, projectId, currentUserId, onMe
     <>
       <Card 
         className={cn(
-          `bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 rounded-xl shadow-sm transition-all group outline-none`,
+          `rounded-xl shadow-sm transition-all group outline-none`,
           canManageThisMemberPermissions &&
-            'hover:shadow-lg hover:border-primary/60 dark:hover:border-cyan-400 hover:bg-primary/5 dark:hover:bg-primary/10',
+            'hover:shadow-lg hover:border-primary/60 hover:bg-primary/5',
           className
         )}
       >
@@ -117,20 +117,20 @@ export function MemberCard({ member, permissions, projectId, currentUserId, onMe
           <div className="flex flex-col items-center gap-2 w-full">
             <Avatar className="h-24 w-24 shadow ring-2 ring-primary/20 mb-2">
               <AvatarImage src={member.userImage} alt={member.userName} />
-              <AvatarFallback className="bg-[#008080] text-white text-2xl">
+              <AvatarFallback className="bg-primary text-foreground text-2xl">
                 {getInitials(member.userName)}
               </AvatarFallback>
             </Avatar>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight truncate text-center w-full">
+            <h3 className="text-lg font-bold text-foreground leading-tight truncate text-center w-full">
               {member.userName}
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 leading-tight truncate text-center w-full">
+            <p className="text-sm text-muted-foreground leading-tight truncate text-center w-full">
               {member.userEmail}
             </p>
           </div>
 
           {/* Divider */}
-          <div className="w-full border-t border-gray-200 dark:border-gray-700 my-4" />
+          <div className="w-full border-t border-border my-4" />
 
           {/* Info & Actions Section */}
           <div className="flex flex-col items-center gap-2 w-full">
@@ -138,26 +138,26 @@ export function MemberCard({ member, permissions, projectId, currentUserId, onMe
               {member.role === 'leader' ? (
                 <Badge
                   variant="default"
-                  className="bg-[#008080] hover:bg-[#006666] text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1"
+                  className="bg-secondary hover:bg-secondary/90 text-secondary-foreground px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1"
                 >
-                  <Crown className="h-3 w-3 mr-1 text-yellow-300" />
+                  <Crown className="h-3 w-3 mr-1 text-accent" />
                   Leader
                 </Badge>
               ) : (
                 <Badge
                   variant="secondary"
-                  className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1"
+                  className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1"
                 >
-                  <User className="h-3 w-3 mr-1 text-gray-500 dark:text-gray-400" />
+                  <User className="h-3 w-3 mr-1 text-muted-foreground" />
                   Member
                 </Badge>
               )}
             </div>
-            <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+            <span className="text-xs text-muted-foreground mt-1">
               Joined {new Date(member.joinedAt).toLocaleDateString()}
             </span>
             {member.permissions.length > 0 && (
-              <span className="text-xs text-gray-400 dark:text-gray-500">
+              <span className="text-xs text-muted-foreground">
                 {member.permissions.length} permission{member.permissions.length !== 1 ? 's' : ''}
               </span>
             )}
@@ -167,7 +167,7 @@ export function MemberCard({ member, permissions, projectId, currentUserId, onMe
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="flex items-center gap-1 px-3 py-1 text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 border-cyan-200 dark:border-cyan-700"
+                  className="flex items-center gap-1 px-3 py-1 text-primary hover:text-primary/80 border-primary/20"
                   aria-label={`Manage permissions for ${member.userName}`}
                   onClick={handleManageClick}
                   onKeyDown={e => {

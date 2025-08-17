@@ -82,21 +82,21 @@ export function DetailsEditForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="edit-title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <Label htmlFor="edit-title" className="text-sm font-medium text-foreground">
             Title *
           </Label>
           <Input
             id="edit-title"
             value={detailsFormData.title}
             onChange={(e) => setDetailsFormData(prev => ({ ...prev, title: e.target.value }))}
-            className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700"
+            className="bg-background dark:bg-muted border-border dark:border-border"
             disabled={isLoading}
             required
           />
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <Label className="text-sm font-medium text-foreground">
             Assign to *
           </Label>
           <MemberSelect
@@ -104,7 +104,7 @@ export function DetailsEditForm({
             value={detailsFormData.assignedId}
             onValueChange={(value) => setDetailsFormData(prev => ({ ...prev, assignedId: value }))}
             placeholder="Select member *"
-            className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700"
+            className="bg-background dark:bg-muted border-border dark:border-border"
             disabled={isLoading}
           />
           {detailsFormData.assignedId && !members.find(m => m.userId === detailsFormData.assignedId) && (
@@ -116,21 +116,21 @@ export function DetailsEditForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="edit-description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Label htmlFor="edit-description" className="text-sm font-medium text-foreground">
           Description
         </Label>
         <Textarea
           id="edit-description"
           value={detailsFormData.description}
           onChange={(e) => setDetailsFormData(prev => ({ ...prev, description: e.target.value }))}
-          className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 min-h-[100px] resize-none"
+          className="bg-background dark:bg-muted border-border dark:border-border min-h-[100px] resize-none"
           disabled={isLoading}
           placeholder="Describe the subtask requirements and objectives..."
         />
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Label className="text-sm font-medium text-foreground">
           Deadline *
         </Label>
         <Popover>
@@ -138,8 +138,8 @@ export function DetailsEditForm({
             <Button
               variant="outline"
               className={cn(
-                "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700",
-                !detailsFormData.deadline && "text-gray-500 dark:text-gray-400",
+                "w-full justify-start text-left font-normal bg-background dark:bg-muted border-border dark:border-border",
+                !detailsFormData.deadline && "text-muted-foreground dark:text-muted-foreground",
                 isLoading && "opacity-50 cursor-not-allowed"
               )}
               disabled={isLoading}
@@ -157,8 +157,8 @@ export function DetailsEditForm({
               initialFocus
             />
             {deadlineOptions.length > 0 && (
-              <div className="p-3 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Quick Select:</p>
+              <div className="p-3 border-t border-border dark:border-border">
+                <p className="text-xs text-muted-foreground dark:text-muted-foreground mb-2">Quick Select:</p>
                 <div className="space-y-1">
                   {deadlineOptions.map((option, index) => (
                     <Button

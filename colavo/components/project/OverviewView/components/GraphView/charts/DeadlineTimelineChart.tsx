@@ -86,10 +86,10 @@ export function DeadlineTimelineChart({ tasks, size }: DeadlineTimelineChartProp
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="text-gray-400 dark:text-gray-500 mb-2">
-            <div className="w-12 h-3 mx-auto bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="text-muted-foreground dark:text-muted-foreground mb-2">
+            <div className="w-12 h-3 mx-auto bg-muted dark:bg-gray-700 rounded"></div>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-300">No deadlines set</p>
+          <p className="text-sm text-muted-foreground">No deadlines set</p>
         </div>
       </div>
     );
@@ -187,15 +187,15 @@ export function DeadlineTimelineChart({ tasks, size }: DeadlineTimelineChartProp
         <div className="mt-2 flex justify-between text-xs">
           <div className="text-center">
             <div className="font-semibold text-red-600">{categories.overdue}</div>
-            <div className="text-gray-500">Overdue</div>
+            <div className="text-muted-foreground">Overdue</div>
           </div>
           <div className="text-center">
             <div className="font-semibold text-orange-600">{categories.thisWeek}</div>
-            <div className="text-gray-500">This Week</div>
+            <div className="text-muted-foreground">This Week</div>
           </div>
           <div className="text-center">
             <div className="font-semibold text-blue-600">{categories.thisMonth}</div>
-            <div className="text-gray-500">This Month</div>
+            <div className="text-muted-foreground">This Month</div>
           </div>
         </div>
       )}

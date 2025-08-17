@@ -82,7 +82,7 @@ export function FileCard({ file, onClick, onEdit, onDelete }: FileCardProps) {
 
   return (
     <Card 
-      className="bg-white dark:bg-gray-900/50 hover:shadow-md transition-all duration-200 cursor-pointer group border border-gray-200 dark:border-gray-700 hover:border-primary/50 dark:hover:border-primary/50 h-[140px]"
+      className="bg-background dark:bg-card/50 hover:shadow-md transition-all duration-200 cursor-pointer group border border-border dark:border-border hover:border-primary/50 dark:hover:border-primary/50 h-[140px]"
       onClick={handleClick}
     >
       <CardContent className="p-4 h-full">
@@ -96,11 +96,11 @@ export function FileCard({ file, onClick, onEdit, onDelete }: FileCardProps) {
           <div className="flex-1 min-w-0 flex flex-col justify-between h-full">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-gray-900 dark:text-white truncate group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                <h3 className="font-medium text-foreground dark:text-foreground truncate group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
                   {file.name}
                 </h3>
                 {file.description && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                  <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1 line-clamp-2">
                     {file.description}
                   </p>
                 )}
@@ -145,7 +145,7 @@ export function FileCard({ file, onClick, onEdit, onDelete }: FileCardProps) {
             </div>
 
             {/* File Metadata */}
-            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mt-auto">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground dark:text-muted-foreground mt-auto">
               {/* Upload Information */}
               <div className="flex items-center gap-1">
                 <User className="h-3 w-3" />

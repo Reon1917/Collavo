@@ -75,12 +75,12 @@ export function WorkloadBarChart({ project, tasks, size }: WorkloadBarChartProps
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="text-black-400 dark:text-gray-500 mb-2">
-            <div className="w-12 h-3 mx-auto bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="w-8 h-3 mx-auto bg-gray-200 dark:bg-gray-700 rounded mt-1"></div>
-            <div className="w-10 h-3 mx-auto bg-gray-200 dark:bg-gray-700 rounded mt-1"></div>
+          <div className="text-black-400 dark:text-muted-foreground mb-2">
+            <div className="w-12 h-3 mx-auto bg-muted dark:bg-gray-700 rounded"></div>
+            <div className="w-8 h-3 mx-auto bg-muted dark:bg-gray-700 rounded mt-1"></div>
+            <div className="w-10 h-3 mx-auto bg-muted dark:bg-gray-700 rounded mt-1"></div>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-300">No team members</p>
+          <p className="text-sm text-muted-foreground">No team members</p>
         </div>
       </div>
     );
@@ -90,10 +90,10 @@ export function WorkloadBarChart({ project, tasks, size }: WorkloadBarChartProps
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="text-gray-400 dark:text-gray-500 mb-2">
-            <div className="w-12 h-3 mx-auto bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="text-muted-foreground dark:text-muted-foreground mb-2">
+            <div className="w-12 h-3 mx-auto bg-muted dark:bg-gray-700 rounded"></div>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-300">No task assignments</p>
+          <p className="text-sm text-muted-foreground">No task assignments</p>
         </div>
       </div>
     );
@@ -165,10 +165,10 @@ export function WorkloadBarChart({ project, tasks, size }: WorkloadBarChartProps
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="text-gray-400 dark:text-gray-500 mb-2">
-            <div className="w-12 h-3 mx-auto bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="text-muted-foreground dark:text-muted-foreground mb-2">
+            <div className="w-12 h-3 mx-auto bg-muted dark:bg-gray-700 rounded"></div>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-300">No task assignments yet</p>
+          <p className="text-sm text-muted-foreground">No task assignments yet</p>
         </div>
       </div>
     );
@@ -318,51 +318,51 @@ export function WorkloadBarChart({ project, tasks, size }: WorkloadBarChartProps
       {size === 'small' && (
         <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
           <div className="text-center">
-            <div className="font-semibold text-gray-900 dark:text-white">{averageWorkload}</div>
-            <div className="text-gray-600 dark:text-gray-300">Avg Load</div>
+            <div className="font-semibold text-foreground dark:text-foreground">{averageWorkload}</div>
+            <div className="text-muted-foreground">Avg Load</div>
           </div>
           <div className="text-center">
-            <div className="font-semibold text-gray-900 dark:text-white">{teamCompletionRate}%</div>
-            <div className="text-gray-600 dark:text-gray-300">Team Rate</div>
+            <div className="font-semibold text-foreground dark:text-foreground">{teamCompletionRate}%</div>
+            <div className="text-muted-foreground">Team Rate</div>
           </div>
           <div className="text-center">
-            <div className="font-semibold text-gray-900 dark:text-white">{workloadData.length}</div>
-            <div className="text-gray-600 dark:text-gray-300">Active</div>
+            <div className="font-semibold text-foreground dark:text-foreground">{workloadData.length}</div>
+            <div className="text-muted-foreground">Active</div>
           </div>
         </div>
       )}
 
       {/* Detailed Analysis for large size */}
       {size === 'large' && (
-        <div className="mt-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
-          <h5 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Team Workload Analysis</h5>
+        <div className="mt-4 bg-muted dark:bg-muted/50 rounded-lg p-4">
+          <h5 className="text-sm font-medium text-foreground dark:text-foreground mb-3">Team Workload Analysis</h5>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <div className="text-gray-600 dark:text-gray-300 mb-1">Average Load</div>
-              <div className="font-semibold text-gray-900 dark:text-white">{averageWorkload} tasks</div>
+              <div className="text-muted-foreground mb-1">Average Load</div>
+              <div className="font-semibold text-foreground dark:text-foreground">{averageWorkload} tasks</div>
             </div>
             <div>
-              <div className="text-gray-600 dark:text-gray-300 mb-1">Team Completion</div>
-              <div className="font-semibold text-gray-900 dark:text-white">{teamCompletionRate}%</div>
+              <div className="text-muted-foreground mb-1">Team Completion</div>
+              <div className="font-semibold text-foreground dark:text-foreground">{teamCompletionRate}%</div>
             </div>
             <div>
-              <div className="text-gray-600 dark:text-gray-300 mb-1">Most Loaded</div>
-              <div className="font-semibold text-gray-900 dark:text-white">
+              <div className="text-muted-foreground mb-1">Most Loaded</div>
+              <div className="font-semibold text-foreground dark:text-foreground">
                 {heaviestLoad ? `${heaviestLoad.name} (${heaviestLoad.total})` : 'N/A'}
               </div>
             </div>
             <div>
-              <div className="text-gray-600 dark:text-gray-300 mb-1">Least Loaded</div>
-              <div className="font-semibold text-gray-900 dark:text-white">
+              <div className="text-muted-foreground mb-1">Least Loaded</div>
+              <div className="font-semibold text-foreground dark:text-foreground">
                 {lightestLoad ? `${lightestLoad.name} (${lightestLoad.total})` : 'N/A'}
               </div>
             </div>
           </div>
 
           {/* Workload Balance Analysis */}
-          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-            <div className="text-xs text-gray-600 dark:text-gray-300">
+          <div className="mt-3 pt-3 border-t border-border dark:border-border">
+            <div className="text-xs text-muted-foreground">
               {heaviestLoad && lightestLoad && heaviestLoad.total > lightestLoad.total * 2 ? (
                 <span className="text-amber-700">⚠️ Workload imbalance detected</span>
               ) : (

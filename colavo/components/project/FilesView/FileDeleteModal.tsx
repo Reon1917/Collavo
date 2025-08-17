@@ -106,12 +106,12 @@ export function FileDeleteModal({
           </div>
 
           {/* File Info */}
-          <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <p className="font-medium text-gray-900 dark:text-white">{file.name}</p>
+          <div className="p-3 bg-muted dark:bg-muted rounded-lg">
+            <p className="font-medium text-foreground dark:text-foreground">{file.name}</p>
             {file.description && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{file.description}</p>
+              <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1">{file.description}</p>
             )}
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-2">
               Uploaded by {file.addedByName} • {new Date(file.addedAt).toLocaleDateString()}
             </p>
           </div>

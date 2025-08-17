@@ -47,7 +47,7 @@ export function ActionButtons({
               <Button
                 type="button"
                 onClick={onStatusEdit}
-                className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+                className="flex-1 bg-primary hover:bg-[#006666] text-foreground"
                 disabled={isDeleting}
               >
                 <Edit3 className="h-4 w-4 mr-2" />
@@ -102,7 +102,7 @@ export function ActionButtons({
         type="submit"
         onClick={onSubmit}
         disabled={isLoading}
-        className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+        className="flex-1 bg-primary hover:bg-[#006666] text-foreground"
       >
         {isLoading ? (
           <>

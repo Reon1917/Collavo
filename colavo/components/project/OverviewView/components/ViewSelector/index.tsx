@@ -11,7 +11,7 @@ interface ViewSelectorProps {
 export function ViewSelector({ value, onChange }: ViewSelectorProps) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">View:</span>
+      <span className="text-sm font-medium text-foreground">View:</span>
       <Select value={value} onValueChange={(value) => onChange(value as 'overview' | 'timeline' | 'graph')}>
         <SelectTrigger className="w-[180px]">
           <SelectValue />

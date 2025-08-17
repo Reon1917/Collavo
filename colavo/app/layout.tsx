@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/providers/auth-provider";
 import { LoadingWrapper } from "@/components/ui/loading-wrapper";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { ColorThemeProvider } from "@/providers/color-theme-provider";
 import { QueryProvider } from "@/providers/query-provider";
 
 const geistSans = Geist({
@@ -37,13 +38,15 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <QueryProvider>
-            <AuthProvider>
-              <LoadingWrapper>
-                {children}
-              </LoadingWrapper>
-            </AuthProvider>
-          </QueryProvider>
+          <ColorThemeProvider>
+            <QueryProvider>
+              <AuthProvider>
+                <LoadingWrapper>
+                  {children}
+                </LoadingWrapper>
+              </AuthProvider>
+            </QueryProvider>
+          </ColorThemeProvider>
         </ThemeProvider>
       </body>
     </html>

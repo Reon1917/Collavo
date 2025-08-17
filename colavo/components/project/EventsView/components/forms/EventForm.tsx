@@ -129,7 +129,7 @@ export function EventForm({
 
       {/* Event Title */}
       <div className="space-y-3">
-        <Label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Label htmlFor="title" className="text-sm font-medium text-foreground">
           Event Title *
         </Label>
         <Input
@@ -138,7 +138,7 @@ export function EventForm({
           placeholder="Enter event title..."
           value={eventData.title}
           onChange={(e) => setEventData((prev: EventFormData) => ({ ...prev, title: e.target.value }))}
-          className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]"
+          className="bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary"
           maxLength={500}
           required
           disabled={isLoading}
@@ -147,7 +147,7 @@ export function EventForm({
 
       {/* Event Description */}
       <div className="space-y-3">
-        <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Label htmlFor="description" className="text-sm font-medium text-foreground">
           Description
         </Label>
         <Textarea
@@ -155,14 +155,14 @@ export function EventForm({
           placeholder="Describe the event details, agenda, or purpose..."
           value={eventData.description}
           onChange={(e) => setEventData((prev: EventFormData) => ({ ...prev, description: e.target.value }))}
-          className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] min-h-[80px] resize-none"
+          className="bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary min-h-[80px] resize-none"
           disabled={isLoading}
         />
       </div>
 
       {/* Event Date */}
       <div className="space-y-3">
-        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Label className="text-sm font-medium text-foreground">
           Event Date *
         </Label>
         <Popover>
@@ -170,8 +170,8 @@ export function EventForm({
             <Button
               variant="outline"
               className={cn(
-                "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700",
-                !eventData.datetime && "text-gray-500 dark:text-gray-400",
+                "w-full justify-start text-left font-normal bg-background dark:bg-muted border-border dark:border-border",
+                !eventData.datetime && "text-muted-foreground dark:text-muted-foreground",
                 isLoading && "opacity-50 cursor-not-allowed"
               )}
               disabled={isLoading}
@@ -209,18 +209,18 @@ export function EventForm({
 
       {/* Event Time */}
       <div className="space-y-3">
-        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Label className="text-sm font-medium text-foreground">
           Event Time *
         </Label>
         <div className="grid grid-cols-2 gap-3">
           {/* Hour Selector */}
           <div>
-            <Label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Hour</Label>
+            <Label className="text-xs text-muted-foreground dark:text-muted-foreground mb-1 block">Hour</Label>
             <Select
               value={selectedTime.hour}
               onValueChange={(hour) => setSelectedTime(prev => ({ ...prev, hour }))}
             >
-              <SelectTrigger disabled={isLoading} className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
+              <SelectTrigger disabled={isLoading} className="bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary">
                 <SelectValue placeholder="Hour" />
               </SelectTrigger>
               <SelectContent>
@@ -235,12 +235,12 @@ export function EventForm({
           
           {/* Minute Selector */}
           <div>
-            <Label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Minute</Label>
+            <Label className="text-xs text-muted-foreground dark:text-muted-foreground mb-1 block">Minute</Label>
             <Select
               value={selectedTime.minute}
               onValueChange={(minute) => setSelectedTime(prev => ({ ...prev, minute }))}
             >
-              <SelectTrigger disabled={isLoading} className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
+              <SelectTrigger disabled={isLoading} className="bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary">
                 <SelectValue placeholder="Min" />
               </SelectTrigger>
               <SelectContent>
@@ -257,7 +257,7 @@ export function EventForm({
 
       {/* Location */}
       <div className="space-y-3">
-        <Label htmlFor="location" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Label htmlFor="location" className="text-sm font-medium text-foreground">
           Location
         </Label>
         <Input
@@ -266,7 +266,7 @@ export function EventForm({
           placeholder="Enter event location (optional)"
           value={eventData.location}
           onChange={(e) => setEventData((prev: EventFormData) => ({ ...prev, location: e.target.value }))}
-          className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]"
+          className="bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary"
           maxLength={500}
           disabled={isLoading}
         />
@@ -279,14 +279,14 @@ export function EventForm({
           variant="outline"
           onClick={onCancel}
           disabled={isLoading}
-          className="flex-1 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700"
+          className="flex-1 bg-muted dark:bg-muted border-border dark:border-gray-600 hover:bg-muted dark:hover:bg-gray-700"
         >
           Cancel
         </Button>
         <Button
           type="submit"
           disabled={isLoading || !eventData.title.trim() || !eventData.datetime}
-          className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+          className="flex-1 bg-primary hover:bg-[#006666] text-foreground"
         >
           {isLoading ? (
             <>

@@ -15,17 +15,17 @@ export default async function NewProjectPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f8f0] dark:bg-gray-950">
+    <div className="min-h-screen bg-background dark:bg-background">
       <DashboardNavbar />
       
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">
+            <h1 className="text-3xl font-bold mb-2 text-foreground dark:text-foreground">
               Create New Project
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-muted-foreground dark:text-muted-foreground">
               Start organizing your ideas and collaborating with your team.
             </p>
           </div>

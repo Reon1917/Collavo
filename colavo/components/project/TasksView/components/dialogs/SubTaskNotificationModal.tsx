@@ -71,28 +71,28 @@ export function SubTaskNotificationModal({ subTask, projectId, taskId, isOpen, o
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border border-gray-200 dark:border-gray-700 shadow-xl">
+      <DialogContent className="max-w-md bg-background/95 dark:bg-card/95 backdrop-blur-sm border border-border dark:border-border shadow-xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
+          <DialogTitle className="flex items-center gap-2 text-foreground dark:text-foreground">
             <Bell className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             Email Reminder
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
-          <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className="p-3 bg-muted dark:bg-muted rounded-lg">
             <h4 className="font-medium text-sm">{subTask.title}</h4>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
               Assigned to: {subTask.assignedUserName}
             </p>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground">
               Deadline: {subTask.deadline ? new Date(subTask.deadline).toLocaleDateString() : 'No deadline set'}
             </p>
           </div>
 
           {isLoading ? (
             <div className="text-center py-4">
-              <p className="text-sm text-gray-500">Loading...</p>
+              <p className="text-sm text-muted-foreground">Loading...</p>
             </div>
           ) : hasActiveNotification ? (
             // Show cancellation UI if notifications exist
@@ -167,7 +167,7 @@ export function SubTaskNotificationModal({ subTask, projectId, taskId, isOpen, o
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <Label className="text-xs text-gray-600 dark:text-gray-400">
+                    <Label className="text-xs text-muted-foreground dark:text-muted-foreground">
                       Days Before
                     </Label>
                     <Select
@@ -191,7 +191,7 @@ export function SubTaskNotificationModal({ subTask, projectId, taskId, isOpen, o
                   </div>
                   
                   <div className="space-y-1">
-                    <Label className="text-xs text-gray-600 dark:text-gray-400">
+                    <Label className="text-xs text-muted-foreground dark:text-muted-foreground">
                       Time (Bangkok)
                     </Label>
                     <TimePicker
@@ -223,7 +223,7 @@ export function SubTaskNotificationModal({ subTask, projectId, taskId, isOpen, o
                 <Button
                   onClick={handleSave}
                   disabled={createMutation.isPending}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-foreground disabled:opacity-50"
                 >
                   {createMutation.isPending ? 'Scheduling...' : 'Schedule Reminder'}
                 </Button>

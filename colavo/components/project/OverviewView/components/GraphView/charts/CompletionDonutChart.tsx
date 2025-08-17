@@ -88,10 +88,10 @@ export function CompletionDonutChart({ tasks, size }: CompletionDonutChartProps)
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="text-gray-400 dark:text-gray-500 mb-2">
-            <div className="w-12 h-12 mx-auto rounded-full border-4 border-gray-200 dark:border-gray-700"></div>
+          <div className="text-muted-foreground dark:text-muted-foreground mb-2">
+            <div className="w-12 h-12 mx-auto rounded-full border-4 border-border dark:border-border"></div>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-300">No tasks created yet</p>
+          <p className="text-sm text-muted-foreground">No tasks created yet</p>
         </div>
       </div>
     );
@@ -210,10 +210,10 @@ export function CompletionDonutChart({ tasks, size }: CompletionDonutChartProps)
         {/* Center completion percentage for donut chart */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="text-center">
-            <div className="text-xl font-bold text-gray-900 dark:text-white">
+            <div className="text-xl font-bold text-foreground dark:text-foreground">
               {completionPercentage}%
             </div>
-            <div className="text-xs text-gray-600 dark:text-gray-300 font-medium">
+            <div className="text-xs text-muted-foreground font-medium">
               Complete
             </div>
           </div>
@@ -226,7 +226,7 @@ export function CompletionDonutChart({ tasks, size }: CompletionDonutChartProps)
           {completedSubTasks > 0 && (
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 bg-emerald-600 rounded-full"></div>
-              <span className="text-gray-700 dark:text-gray-300">
+              <span className="text-foreground">
                 {completedSubTasks}
               </span>
             </div>
@@ -234,7 +234,7 @@ export function CompletionDonutChart({ tasks, size }: CompletionDonutChartProps)
           {inProgressSubTasks > 0 && (
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 bg-amber-600 rounded-full"></div>
-              <span className="text-gray-700 dark:text-gray-300">
+              <span className="text-foreground">
                 {inProgressSubTasks}
               </span>
             </div>
@@ -242,7 +242,7 @@ export function CompletionDonutChart({ tasks, size }: CompletionDonutChartProps)
           {pendingSubTasks > 0 && (
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 bg-gray-600 rounded-full"></div>
-              <span className="text-gray-700 dark:text-gray-300">
+              <span className="text-foreground">
                 {pendingSubTasks}
               </span>
             </div>
@@ -250,7 +250,7 @@ export function CompletionDonutChart({ tasks, size }: CompletionDonutChartProps)
           {overdueSubTasks > 0 && (
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 bg-red-600 rounded-full"></div>
-              <span className="text-gray-700 dark:text-gray-300">
+              <span className="text-foreground">
                 {overdueSubTasks}
               </span>
             </div>

@@ -43,8 +43,8 @@ export function SubTaskMiniItem({
   return (
     <>
       <div 
-        className={`flex items-center gap-2 text-xs p-2 rounded border border-gray-200 dark:border-gray-700 transition-colors ${
-          canViewSubtask ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800' : ''
+        className={`flex items-center gap-2 text-xs p-2 rounded border border-border dark:border-border transition-colors ${
+          canViewSubtask ? 'cursor-pointer hover:bg-muted dark:hover:bg-muted' : ''
         }`}
         onClick={canViewSubtask ? handleOpenDialog : undefined}
       >
@@ -53,11 +53,11 @@ export function SubTaskMiniItem({
           subtask.status === 'in_progress' ? 'bg-blue-500' : 'bg-gray-300'
         }`} />
         <div className="flex-1 min-w-0">
-          <span className="truncate text-gray-700 dark:text-gray-300 block">
+          <span className="truncate text-foreground block">
             {subtask.title}
           </span>
           {subtask.assignedUserName && (
-            <span className="text-gray-500 dark:text-gray-400 text-xs">
+            <span className="text-muted-foreground dark:text-muted-foreground text-xs">
               {subtask.assignedId === project.currentUserId ? 'You' : subtask.assignedUserName}
             </span>
           )}
@@ -79,17 +79,14 @@ export function SubTaskMiniItem({
                 }
               }}
               aria-label={`Set up email reminder for ${subtask.title}`}
-              className="h-7 w-7 p-0 rounded-md border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm 
-                         hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:border-blue-300 dark:hover:border-blue-600 
-                         hover:shadow-md hover:shadow-blue-200/50 dark:hover:shadow-blue-900/30
-                         transition-all duration-200 ease-out group"
+              className="h-7 w-7 p-0 rounded-md border border-border dark:border-gray-600 bg-background/80 dark:bg-muted/80 backdrop-blur-sm hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md hover:shadow-blue-200/50 dark:hover:shadow-blue-900/30 transition-all duration-200 ease-out group"
               title="Set up email reminder"
             >
               <Bell className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors" />
             </Button>
           </div>
         )}
-        <span className="text-gray-400 text-xs">
+        <span className="text-muted-foreground text-xs">
           {canUpdateSubtask ? 'Click to edit' : 'Click to view'}
         </span>
       </div>

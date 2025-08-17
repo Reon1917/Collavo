@@ -74,13 +74,13 @@ export function CreateProjectForm() {
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 shadow-md">
+    <Card className="w-full max-w-2xl mx-auto shadow-md">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <PlusCircle className="h-6 w-6 text-[#008080]" />
+        <CardTitle className="text-2xl font-bold flex items-center gap-2">
+          <PlusCircle className="h-6 w-6 text-primary" />
           Create New Project
         </CardTitle>
-        <CardDescription className="text-gray-600 dark:text-gray-400">
+        <CardDescription>
           Start a new project and begin collaborating with your team.
         </CardDescription>
       </CardHeader>
@@ -88,7 +88,7 @@ export function CreateProjectForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Project Name */}
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label htmlFor="name" className="text-sm font-medium">
               Project Name *
             </Label>
             <Input
@@ -97,19 +97,19 @@ export function CreateProjectForm() {
               placeholder="Enter project name..."
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
-              className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] transition-colors"
+              className="transition-colors"
               maxLength={255}
               required
               disabled={isLoading}
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground">
               {formData.name.length}/255 characters
             </p>
           </div>
 
           {/* Project Description */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label htmlFor="description" className="text-sm font-medium">
               Description
             </Label>
             <Textarea
@@ -117,14 +117,14 @@ export function CreateProjectForm() {
               placeholder="Describe your project goals, scope, and objectives..."
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] transition-colors min-h-[100px] resize-none"
+              className="transition-colors min-h-[100px] resize-none"
               disabled={isLoading}
             />
           </div>
 
           {/* Project Deadline */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label className="text-sm font-medium">
               Deadline (Optional)
             </Label>
             <Popover>
@@ -132,8 +132,8 @@ export function CreateProjectForm() {
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 hover:bg-white dark:hover:bg-gray-900 hover:border-[#008080] dark:hover:border-[#00FFFF]",
-                    !formData.deadline && "text-gray-500 dark:text-gray-400"
+                    "w-full justify-start text-left font-normal",
+                    !formData.deadline && "text-muted-foreground"
                   )}
                   disabled={isLoading}
                 >
@@ -141,7 +141,7 @@ export function CreateProjectForm() {
                   {formData.deadline ? format(formData.deadline, "PPP") : "Select deadline"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+              <PopoverContent className="w-auto p-0">
                 <Calendar
                   mode="single"
                   selected={formData.deadline}
@@ -160,14 +160,14 @@ export function CreateProjectForm() {
               variant="outline"
               onClick={() => router.back()}
               disabled={isLoading}
-              className="flex-1 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+              className="flex-1"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isLoading || !formData.name.trim()}
-              className="flex-1 bg-[#008080] hover:bg-[#006666] dark:bg-[#008080] dark:hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-200"
+              className="flex-1 bg-primary hover:bg-[#006666] dark:bg-primary dark:hover:bg-[#006666] text-foreground shadow-md hover:shadow-lg transition-all duration-200"
             >
               {isLoading ? (
                 <>

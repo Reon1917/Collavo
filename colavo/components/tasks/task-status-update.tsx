@@ -24,8 +24,8 @@ export function TaskStatusUpdate({ task, currentUserId, onUpdate }: TaskStatusUp
 
   if (!isAssigned) {
     return (
-      <div className="p-4 bg-gray-50 rounded-lg text-center">
-        <p className="text-sm text-gray-500">Only assigned team members can update this task</p>
+      <div className="p-4 bg-muted rounded-lg text-center">
+        <p className="text-sm text-muted-foreground">Only assigned team members can update this task</p>
       </div>
     );
   }
@@ -139,8 +139,8 @@ export function TaskStatusUpdate({ task, currentUserId, onUpdate }: TaskStatusUp
             className="min-h-[100px]"
           />
         ) : (
-          <div className="p-3 bg-gray-50 rounded-md min-h-[100px] text-sm">
-            {note || <span className="text-gray-500 italic">No notes added yet</span>}
+          <div className="p-3 bg-muted rounded-md min-h-[100px] text-sm">
+            {note || <span className="text-muted-foreground italic">No notes added yet</span>}
           </div>
         )}
       </div>

@@ -69,7 +69,7 @@ export function getEventStatusColor(datetime: string): string {
   } else if (isUpcoming) {
     return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-800';
   } else {
-    return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400 border-gray-200 dark:border-gray-800';
+    return 'bg-muted text-foreground dark:bg-card/20 dark:text-muted-foreground border-border dark:border-border';
   }
 }
 

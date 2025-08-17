@@ -137,24 +137,19 @@ export function TimePicker({ value, onChange, className }: TimePickerProps) {
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         aria-label={`Select time, current time is ${formatTimeDisplay(hour12, minutes, isPM)}`}
-        className="w-full h-8 px-3 py-1 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 
-                   rounded-md shadow-sm hover:border-gray-400 dark:hover:border-gray-500 
-                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                   flex items-center justify-between transition-colors"
+        className="w-full h-8 px-3 py-1 text-sm bg-background dark:bg-muted border border-border dark:border-gray-600 rounded-md shadow-sm hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between transition-colors"
       >
-        <span className="text-gray-900 dark:text-gray-100">{formatTimeDisplay(hour12, minutes, isPM)}</span>
-        <Clock className="h-3.5 w-3.5 text-gray-400" />
+        <span className="text-foreground">{formatTimeDisplay(hour12, minutes, isPM)}</span>
+        <Clock className="h-3.5 w-3.5 text-muted-foreground" />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 border border-gray-200 dark:border-gray-600 
-                        rounded-lg shadow-lg backdrop-blur-sm bg-white/95 dark:bg-gray-800/95 z-50
-                        animate-in slide-in-from-top-2 fade-in-0 duration-200">
+        <div className="absolute top-full left-0 right-0 mt-1 border border-border dark:border-gray-600 rounded-lg shadow-lg backdrop-blur-sm bg-background/95 dark:bg-muted/95 z-50 animate-in slide-in-from-top-2 fade-in-0 duration-200">
           <ScrollbarStylesCSS />
           <div className="flex divide-x divide-gray-200 dark:divide-gray-600">
             {/* Hours Column */}
             <div className="flex-1 p-2">
-              <div className="text-xs font-medium text-gray-500 dark:text-gray-400 text-center mb-2">
+              <div className="text-xs font-medium text-muted-foreground dark:text-muted-foreground text-center mb-2">
                 Hour
               </div>
               <div 
@@ -167,10 +162,10 @@ export function TimePicker({ value, onChange, className }: TimePickerProps) {
                     type="button"
                     onClick={() => handleTimeChange(hour)}
                     className={cn(
-                      "w-full px-2 py-1.5 text-sm text-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded",
+                      "w-full px-2 py-1.5 text-sm text-center hover:bg-muted dark:hover:bg-gray-700 transition-colors rounded",
                       hour === hour12 
                         ? "bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-medium" 
-                        : "text-gray-700 dark:text-gray-300"
+                        : "text-foreground "
                     )}
                   >
                     {hour}
@@ -181,7 +176,7 @@ export function TimePicker({ value, onChange, className }: TimePickerProps) {
 
             {/* Minutes Column */}
             <div className="flex-1 p-2">
-              <div className="text-xs font-medium text-gray-500 dark:text-gray-400 text-center mb-2">
+              <div className="text-xs font-medium text-muted-foreground dark:text-muted-foreground text-center mb-2">
                 Minute
               </div>
               <div 
@@ -194,10 +189,10 @@ export function TimePicker({ value, onChange, className }: TimePickerProps) {
                     type="button"
                     onClick={() => handleTimeChange(undefined, minute)}
                     className={cn(
-                      "w-full px-2 py-1.5 text-sm text-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded",
+                      "w-full px-2 py-1.5 text-sm text-center hover:bg-muted dark:hover:bg-gray-700 transition-colors rounded",
                       minute === minutes 
                         ? "bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-medium" 
-                        : "text-gray-700 dark:text-gray-300"
+                        : "text-foreground "
                     )}
                   >
                     {minute.toString().padStart(2, '0')}
@@ -208,7 +203,7 @@ export function TimePicker({ value, onChange, className }: TimePickerProps) {
 
             {/* AM/PM Column */}
             <div className="flex-1 p-2">
-              <div className="text-xs font-medium text-gray-500 dark:text-gray-400 text-center mb-2">
+              <div className="text-xs font-medium text-muted-foreground dark:text-muted-foreground text-center mb-2">
                 Period
               </div>
               <div 
@@ -221,10 +216,10 @@ export function TimePicker({ value, onChange, className }: TimePickerProps) {
                     type="button"
                     onClick={() => handleTimeChange(undefined, undefined, period)}
                     className={cn(
-                      "w-full px-2 py-1.5 text-sm text-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded",
+                      "w-full px-2 py-1.5 text-sm text-center hover:bg-muted dark:hover:bg-gray-700 transition-colors rounded",
                       period === (isPM ? 'PM' : 'AM')
                         ? "bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-medium" 
-                        : "text-gray-700 dark:text-gray-300"
+                        : "text-foreground "
                     )}
                   >
                     {period}

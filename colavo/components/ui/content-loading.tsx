@@ -33,13 +33,13 @@ export function ContentLoading({
       <div className="relative animate-in fade-in duration-500">
         {/* Outer Pulse Ring */}
         <div className={cn(
-          "absolute inset-0 border-4 border-[#008080]/30 dark:border-[#00FFFF]/30 rounded-full animate-pulse",
+          "absolute inset-0 border-4 border-primary/30 rounded-full animate-pulse",
           sizeClasses[size]
         )}></div>
         
         {/* Spinning Ring */}
         <div className={cn(
-          "absolute inset-0 border-4 border-transparent border-t-[#008080] dark:border-t-[#00FFFF] rounded-full animate-spin",
+          "absolute inset-0 border-4 border-transparent border-t-primary rounded-full animate-spin",
           sizeClasses[size]
         )}></div>
         
@@ -48,12 +48,12 @@ export function ContentLoading({
           "flex items-center justify-center",
           sizeClasses[size]
         )}>
-          <div className="w-2 h-2 bg-[#008080] dark:bg-[#00FFFF] rounded-full animate-ping"></div>
+          <div className="w-2 h-2 bg-primary rounded-full animate-ping"></div>
         </div>
         
         {/* Glow Effect */}
         <div className={cn(
-          "absolute inset-0 bg-[#008080]/20 dark:bg-[#00FFFF]/20 rounded-full blur-xl animate-pulse",
+          "absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse",
           sizeClasses[size]
         )}></div>
       </div>
@@ -61,15 +61,15 @@ export function ContentLoading({
       {/* Message with Animation */}
       {message && (
         <div className="text-center space-y-2 animate-in slide-in-from-bottom-4 duration-700 delay-200">
-          <p className="text-base font-medium text-gray-900 dark:text-gray-100">
+          <p className="text-base font-medium text-foreground">
             {message}
           </p>
           
           {/* Animated Progress Dots */}
           <div className="flex justify-center space-x-1">
-            <div className="w-1.5 h-1.5 bg-[#008080] dark:bg-[#00FFFF] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-            <div className="w-1.5 h-1.5 bg-[#008080] dark:bg-[#00FFFF] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-            <div className="w-1.5 h-1.5 bg-[#008080] dark:bg-[#00FFFF] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
           </div>
         </div>
       )}
@@ -88,15 +88,15 @@ export function ContentSkeleton({ className }: { className?: string }) {
     <div className={cn("space-y-6 animate-in fade-in duration-700", className)}>
       {/* Header Skeleton */}
       <div className="space-y-3">
-        <div className="h-8 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-lg animate-pulse w-1/3"></div>
-        <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded animate-pulse w-2/3"></div>
+        <div className="h-8 bg-muted rounded-lg animate-pulse w-1/3"></div>
+        <div className="h-4 bg-muted rounded animate-pulse w-2/3"></div>
       </div>
 
       {/* Content Skeleton */}
       <div className="space-y-4">
-        <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded animate-pulse w-full"></div>
-        <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded animate-pulse w-5/6"></div>
-        <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded animate-pulse w-4/6"></div>
+        <div className="h-4 bg-muted rounded animate-pulse w-full"></div>
+        <div className="h-4 bg-muted rounded animate-pulse w-5/6"></div>
+        <div className="h-4 bg-muted rounded animate-pulse w-4/6"></div>
       </div>
 
       {/* Cards Grid Skeleton */}
@@ -104,7 +104,7 @@ export function ContentSkeleton({ className }: { className?: string }) {
         {[...Array(6)].map((_, i) => (
           <div 
             key={i} 
-            className="h-48 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-lg animate-pulse border border-gray-100 dark:border-gray-600"
+            className="h-48 bg-muted rounded-lg animate-pulse border border-border"
             style={{ animationDelay: `${i * 100}ms` }}
           ></div>
         ))}
@@ -115,7 +115,7 @@ export function ContentSkeleton({ className }: { className?: string }) {
         {[...Array(4)].map((_, i) => (
           <div 
             key={i} 
-            className="h-20 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-lg animate-pulse border border-gray-100 dark:border-gray-600"
+            className="h-20 bg-muted rounded-lg animate-pulse border border-border"
             style={{ animationDelay: `${i * 150}ms` }}
           ></div>
         ))}

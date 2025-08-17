@@ -91,18 +91,18 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger, pro
           {trigger}
         </div>
       ) : (
-        <DialogTrigger className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#008080] hover:bg-[#006666] text-white rounded-md font-medium transition-colors">
+        <DialogTrigger className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary hover:bg-[#006666] text-foreground rounded-md font-medium transition-colors">
           <Plus className="h-4 w-4 mr-2" />
           Create Task
         </DialogTrigger>
       )}
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-background dark:bg-card border border-border dark:border-border">
         <DialogHeader>
-          <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-2">
-            <FileText className="h-5 w-5 text-[#008080]" />
+          <DialogTitle className="text-foreground dark:text-foreground flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" />
             {step === 'main' ? 'Create New Task' : 'Add Sub-tasks (Required)'}
           </DialogTitle>
-          <DialogDescription className="text-gray-600 dark:text-gray-400">
+          <DialogDescription className="text-muted-foreground dark:text-muted-foreground">
             {step === 'main' 
               ? 'Create a main task to organize your project work. Deadline is required.'
               : 'Break down your main task into smaller, assignable sub-tasks. At least one subtask with an assigned member is required.'

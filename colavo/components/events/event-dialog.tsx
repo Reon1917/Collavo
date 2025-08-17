@@ -111,7 +111,7 @@ export function EventDialog({
                   onChange={(e) => handleInputChange('startDate', new Date(e.target.value))}
                   required
                 />
-                <CalendarIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <CalendarIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               </div>
             </div>
 
@@ -125,7 +125,7 @@ export function EventDialog({
                   onChange={(e) => handleInputChange('endDate', new Date(e.target.value))}
                   required
                 />
-                <Clock className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Clock className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               </div>
             </div>
           </div>
@@ -139,7 +139,7 @@ export function EventDialog({
                 onChange={(e) => handleInputChange('location', e.target.value)}
                 placeholder="Enter event location"
               />
-              <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
           </div>
 
@@ -160,7 +160,7 @@ export function EventDialog({
               id="isAllDay"
               checked={formData.isAllDay}
               onChange={(e) => handleInputChange('isAllDay', e.target.checked)}
-              className="rounded border-gray-300"
+              className="rounded border-border"
             />
             <Label htmlFor="isAllDay" className="text-sm">
               All day event

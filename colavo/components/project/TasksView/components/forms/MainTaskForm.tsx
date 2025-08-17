@@ -111,7 +111,7 @@ export function MainTaskForm({
 
       {/* Task Title */}
       <div className="space-y-2">
-        <Label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Label htmlFor="title" className="text-sm font-medium text-foreground">
           Task Title *
         </Label>
         <Input
@@ -120,7 +120,7 @@ export function MainTaskForm({
           placeholder="Enter task title..."
           value={mainTaskData.title}
           onChange={(e) => setMainTaskData(prev => ({ ...prev, title: e.target.value }))}
-          className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]"
+          className="bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary"
           maxLength={500}
           required
           disabled={isLoading}
@@ -129,7 +129,7 @@ export function MainTaskForm({
 
       {/* Task Description */}
       <div className="space-y-2">
-        <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Label htmlFor="description" className="text-sm font-medium text-foreground">
           Description
         </Label>
         <Textarea
@@ -137,14 +137,14 @@ export function MainTaskForm({
           placeholder="Describe the task objectives and requirements..."
           value={mainTaskData.description}
           onChange={(e) => setMainTaskData(prev => ({ ...prev, description: e.target.value }))}
-          className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] min-h-[80px] resize-none"
+          className="bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary min-h-[80px] resize-none"
           disabled={isLoading}
         />
       </div>
 
       {/* Importance Level */}
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Label className="text-sm font-medium text-foreground">
           Importance Level
         </Label>
         <Select
@@ -155,7 +155,7 @@ export function MainTaskForm({
         >
           <SelectTrigger 
             className={cn(
-              "bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]",
+              "bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary",
               isLoading && "opacity-50 cursor-not-allowed"
             )}
           >
@@ -172,7 +172,7 @@ export function MainTaskForm({
 
       {/* Deadline */}
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Label className="text-sm font-medium text-foreground">
           Deadline *
         </Label>
         <Popover>
@@ -180,8 +180,8 @@ export function MainTaskForm({
             <Button
               variant="outline"
               className={cn(
-                "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 hover:bg-white dark:hover:bg-gray-900 hover:border-[#008080] dark:hover:border-[#00FFFF]",
-                !mainTaskData.deadline && "text-gray-500 dark:text-gray-400"
+                "w-full justify-start text-left font-normal bg-background dark:bg-muted border-border dark:border-border hover:bg-background dark:hover:bg-card hover:border-primary dark:hover:border-secondary",
+                !mainTaskData.deadline && "text-muted-foreground dark:text-muted-foreground"
               )}
               disabled={isLoading}
             >
@@ -189,7 +189,7 @@ export function MainTaskForm({
               {mainTaskData.deadline ? format(mainTaskData.deadline, "PPP") : "Select deadline *"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+          <PopoverContent className="w-auto p-0 bg-background dark:bg-card border border-border dark:border-border">
             <Calendar
               mode="single"
               selected={mainTaskData.deadline}
@@ -221,7 +221,7 @@ export function MainTaskForm({
         <Button
           type="submit"
           disabled={isLoading || !mainTaskData.title.trim() || !mainTaskData.importanceLevel || !mainTaskData.deadline}
-          className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+          className="flex-1 bg-primary hover:bg-[#006666] text-foreground"
         >
           {isLoading ? (
             <>

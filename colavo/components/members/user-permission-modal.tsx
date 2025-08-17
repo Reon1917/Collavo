@@ -156,36 +156,36 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md sm:max-w-lg max-h-[80vh] bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 flex flex-col p-0">
+      <DialogContent className="max-w-md sm:max-w-lg max-h-[80vh] flex flex-col p-0">
         <DialogHeader className="px-6 pt-6">
           <DialogTitle className="flex items-center gap-3">
-            <Settings className="h-6 w-6 text-[#008080]" aria-hidden="true" />
+            <Settings className="h-6 w-6 text-primary" aria-hidden="true" />
             <Avatar className="h-10 w-10">
               <AvatarImage src={member.userImage} alt={member.userName} />
-              <AvatarFallback className="bg-[#008080] text-white">
+              <AvatarFallback className="bg-primary text-primary-foreground">
                 {member.userName?.[0]}
               </AvatarFallback>
             </Avatar>
             <div>
-              <span className="text-gray-900 dark:text-white font-bold">Permissions for {member.userName}</span>
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-normal">
+              <span className="text-foreground font-bold">Permissions for {member.userName}</span>
+              <p className="text-sm text-muted-foreground font-normal">
                 {member.userEmail}
               </p>
             </div>
           </DialogTitle>
-          <DialogDescription className="text-gray-600 dark:text-gray-400">
+          <DialogDescription className="text-muted-foreground dark:text-muted-foreground">
             Configure what this team member can access and modify in the project.
           </DialogDescription>
         </DialogHeader>
         
         <div className="flex-1 overflow-y-auto px-6 pb-2">
-          <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl shadow-sm transition-all duration-200">
+          <div className="bg-muted dark:bg-muted p-4 rounded-xl shadow-sm transition-all duration-200">
             {/* Members Section */}
-            <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2 tracking-wider">Members</h4>
+            <h4 className="text-xs font-semibold text-muted-foreground dark:text-muted-foreground uppercase mb-2 tracking-wider">Members</h4>
             <div className="flex items-center justify-between py-2">
               <div>
-                <Label htmlFor="addMember" className="font-medium text-gray-900 dark:text-white">Manage Members</Label>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Add new members to the project and remove members</p>
+                <Label htmlFor="addMember" className="font-medium text-foreground dark:text-foreground">Manage Members</Label>
+                <p className="text-sm text-muted-foreground dark:text-muted-foreground">Add new members to the project and remove members</p>
               </div>
               <Switch
                 id="addMember"
@@ -197,11 +197,11 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
             </div>
             <Separator className="my-2" />
             {/* Tasks Section */}
-            <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2 tracking-wider">Tasks</h4>
+            <h4 className="text-xs font-semibold text-muted-foreground dark:text-muted-foreground uppercase mb-2 tracking-wider">Tasks</h4>
             <div className="flex items-center justify-between py-2">
               <div>
-                <Label htmlFor="createTask" className="font-medium text-gray-900 dark:text-white">Create Tasks</Label>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Create main tasks and sub tasks</p>
+                <Label htmlFor="createTask" className="font-medium text-foreground dark:text-foreground">Create Tasks</Label>
+                <p className="text-sm text-muted-foreground dark:text-muted-foreground">Create main tasks and sub tasks</p>
               </div>
               <Switch
                 id="createTask"
@@ -213,8 +213,8 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
             </div>
             <div className="flex items-center justify-between py-2">
               <div>
-                <Label htmlFor="handleTask" className="font-medium text-gray-900 dark:text-white">Manage Tasks</Label>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Edit and delete task details like deadline or assigned member</p>
+                <Label htmlFor="handleTask" className="font-medium text-foreground dark:text-foreground">Manage Tasks</Label>
+                <p className="text-sm text-muted-foreground dark:text-muted-foreground">Edit and delete task details like deadline or assigned member</p>
               </div>
               <Switch
                 id="handleTask"
@@ -226,8 +226,8 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
             </div>
             <div className="flex items-center justify-between py-2">
               <div>
-                <Label htmlFor="updateTask" className="font-medium text-gray-900 dark:text-white">Update Sub-tasks</Label>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Update sub-task status and add/edit short notes</p>
+                <Label htmlFor="updateTask" className="font-medium text-foreground dark:text-foreground">Update Sub-tasks</Label>
+                <p className="text-sm text-muted-foreground dark:text-muted-foreground">Update sub-task status and add/edit short notes</p>
               </div>
               <Switch
                 id="updateTask"
@@ -239,11 +239,11 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
             </div>
             <Separator className="my-2" />
             {/* Events Section */}
-            <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2 tracking-wider">Events</h4>
+            <h4 className="text-xs font-semibold text-muted-foreground dark:text-muted-foreground uppercase mb-2 tracking-wider">Events</h4>
             <div className="flex items-center justify-between py-2">
               <div>
-                <Label htmlFor="createEvent" className="font-medium text-gray-900 dark:text-white">Create Events</Label>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Create new events with title, description, date, time, and location</p>
+                <Label htmlFor="createEvent" className="font-medium text-foreground dark:text-foreground">Create Events</Label>
+                <p className="text-sm text-muted-foreground dark:text-muted-foreground">Create new events with title, description, date, time, and location</p>
               </div>
               <Switch
                 id="createEvent"
@@ -255,8 +255,8 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
             </div>
             <div className="flex items-center justify-between py-2">
               <div>
-                <Label htmlFor="handleEvent" className="font-medium text-gray-900 dark:text-white">Manage Events</Label>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Edit and delete event details</p>
+                <Label htmlFor="handleEvent" className="font-medium text-foreground dark:text-foreground">Manage Events</Label>
+                <p className="text-sm text-muted-foreground dark:text-muted-foreground">Edit and delete event details</p>
               </div>
               <Switch
                 id="handleEvent"
@@ -268,11 +268,11 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
             </div>
             <Separator className="my-2" />
             {/* Files Section */}
-            <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2 tracking-wider">Files</h4>
+            <h4 className="text-xs font-semibold text-muted-foreground dark:text-muted-foreground uppercase mb-2 tracking-wider">Files</h4>
             <div className="flex items-center justify-between py-2">
               <div>
-                <Label htmlFor="handleFile" className="font-medium text-gray-900 dark:text-white">Manage Files</Label>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Add and delete files and links</p>
+                <Label htmlFor="handleFile" className="font-medium text-foreground dark:text-foreground">Manage Files</Label>
+                <p className="text-sm text-muted-foreground dark:text-muted-foreground">Add and delete files and links</p>
               </div>
               <Switch
                 id="handleFile"
@@ -284,8 +284,8 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
             </div>
             <div className="flex items-center justify-between py-2">
               <div>
-                <Label htmlFor="viewFiles" className="font-medium text-gray-900 dark:text-white">View Files</Label>
-                <p className="text-sm text-gray-600 dark:text-gray-400">View and download files and links</p>
+                <Label htmlFor="viewFiles" className="font-medium text-foreground dark:text-foreground">View Files</Label>
+                <p className="text-sm text-muted-foreground dark:text-muted-foreground">View and download files and links</p>
               </div>
               <Switch
                 id="viewFiles"
@@ -298,13 +298,13 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
           </div>
         </div>
         {/* Sticky footer for actions */}
-        <div className="bg-white dark:bg-gray-900 border-t border-gray-200/60 dark:border-gray-700 px-6 pb-4 pt-3 shadow-lg">
+        <div className="bg-background dark:bg-card border-t border-border/60 dark:border-border px-6 pb-4 pt-3 shadow-lg">
           <DialogFooter className="flex gap-3 sm:justify-between">
             <Button variant="outline" onClick={onClose} disabled={isSaving} className="flex-1 focus-visible:ring-2 transition-all duration-200" aria-label="Cancel">
               <X className="mr-2 h-4 w-4" />
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={isSaving} className="flex-1 bg-[#008080] hover:bg-[#006666] text-white focus-visible:ring-2 transition-all duration-200" aria-label="Save Permissions">
+            <Button onClick={handleSave} disabled={isSaving} className="flex-1 bg-primary hover:bg-[#006666] text-foreground focus-visible:ring-2 transition-all duration-200" aria-label="Save Permissions">
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               <Check className="mr-2 h-4 w-4" />
               Save Permissions

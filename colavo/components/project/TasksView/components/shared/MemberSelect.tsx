@@ -26,7 +26,7 @@ export function MemberSelect({
     <Select value={value} onValueChange={onValueChange}>
       <SelectTrigger 
         className={cn(
-          "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600",
+          "bg-background dark:bg-card border-border dark:border-gray-600",
           disabled && "opacity-50 cursor-not-allowed",
           className
         )}

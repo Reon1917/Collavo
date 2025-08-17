@@ -113,13 +113,13 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
   const inputProps = getInputValidation();
 
   return (
-    <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 shadow-md">
+    <Card className="bg-background dark:bg-card border border-border/60 dark:border-border shadow-md">
       <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          <UserPlus className="h-5 w-5 text-[#008080]" />
+        <CardTitle className="text-lg font-semibold text-foreground dark:text-foreground flex items-center gap-2">
+          <UserPlus className="h-5 w-5 text-primary" />
           Add Team Member
         </CardTitle>
-        <CardDescription className="text-gray-600 dark:text-gray-400">
+        <CardDescription className="text-muted-foreground dark:text-muted-foreground">
           Invite a new member to join this project by their email, username, or user ID.
         </CardDescription>
       </CardHeader>
@@ -127,7 +127,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Identifier Type Selection */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label className="text-sm font-medium text-foreground">
               Search by
             </Label>
             <Select
@@ -137,7 +137,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
                 setFormData(prev => ({ ...prev, identifierType: typedValue, identifier: '' }));
               }}
             >
-              <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
+              <SelectTrigger className="bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -150,26 +150,26 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
 
           {/* Identifier Input */}
           <div className="space-y-2">
-            <Label htmlFor="identifier" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label htmlFor="identifier" className="text-sm font-medium text-foreground">
               {formData.identifierType === 'email' ? 'Email Address' : 
                formData.identifierType === 'username' ? 'Username' : 'User ID'}
             </Label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="identifier"
                 type={inputProps.type}
                 placeholder={getPlaceholderText()}
                 value={formData.identifier}
                 onChange={(e) => setFormData(prev => ({ ...prev, identifier: e.target.value }))}
-                className="pl-10 bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] transition-colors"
+                className="pl-10 bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary transition-colors"
                 required
                 disabled={isLoading}
                 pattern={inputProps.pattern}
               />
             </div>
             {formData.identifierType === 'email' && (
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                 The user must have a Collavo account with this email address.
               </p>
             )}
@@ -179,7 +179,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
           <Button
             type="submit"
             disabled={isLoading || !formData.identifier.trim()}
-            className="w-full bg-[#008080] hover:bg-[#006666] dark:bg-[#008080] dark:hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-200"
+            className="w-full bg-primary hover:bg-[#006666] dark:bg-primary dark:hover:bg-[#006666] text-foreground shadow-md hover:shadow-lg transition-all duration-200"
           >
             {isLoading ? (
               <>

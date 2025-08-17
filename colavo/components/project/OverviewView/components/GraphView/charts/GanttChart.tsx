@@ -114,12 +114,12 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="text-gray-400 dark:text-gray-500 mb-2">
+          <div className="text-muted-foreground dark:text-muted-foreground mb-2">
             <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
             </svg>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-300">No subtasks to display</p>
+          <p className="text-sm text-muted-foreground">No subtasks to display</p>
         </div>
       </div>
     );
@@ -382,20 +382,20 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
       <div className="mt-4 flex justify-center gap-4 text-xs flex-wrap">
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 bg-emerald-600 rounded"></div>
-          <span className="text-gray-700 dark:text-gray-300">Completed ({completedCount})</span>
+          <span className="text-foreground">Completed ({completedCount})</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 bg-amber-600 rounded"></div>
-          <span className="text-gray-700 dark:text-gray-300">In Progress ({inProgressCount})</span>
+          <span className="text-foreground">In Progress ({inProgressCount})</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 bg-gray-600 rounded"></div>
-          <span className="text-gray-700 dark:text-gray-300">Pending ({pendingCount})</span>
+          <span className="text-foreground">Pending ({pendingCount})</span>
         </div>
         {overdueCount > 0 && (
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 bg-red-600 rounded"></div>
-            <span className="text-gray-700 dark:text-gray-300">Overdue ({overdueCount})</span>
+            <span className="text-foreground">Overdue ({overdueCount})</span>
           </div>
         )}
       </div>
@@ -403,9 +403,9 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
       {/* Additional info for large size */}
       {size === 'large' && (
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Timeline Overview</h4>
-            <div className="space-y-1 text-gray-600 dark:text-gray-300">
+          <div className="bg-muted dark:bg-muted/50 rounded-lg p-4">
+            <h4 className="font-semibold text-foreground dark:text-foreground mb-2">Timeline Overview</h4>
+            <div className="space-y-1 text-muted-foreground">
               <p>Total Subtasks: {ganttItems.length}</p>
               <p>Project Start: {format(projectStart, 'MMM dd, yyyy')}</p>
               <p>Project End: {format(projectEnd, 'MMM dd, yyyy')}</p>
@@ -413,9 +413,9 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
             </div>
           </div>
           
-          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Progress Summary</h4>
-            <div className="space-y-1 text-gray-600 dark:text-gray-300">
+          <div className="bg-muted dark:bg-muted/50 rounded-lg p-4">
+            <h4 className="font-semibold text-foreground dark:text-foreground mb-2">Progress Summary</h4>
+            <div className="space-y-1 text-muted-foreground">
               <p>Completed: {completedCount} ({Math.round((completedCount / ganttItems.length) * 100)}%)</p>
               <p>In Progress: {inProgressCount} ({Math.round((inProgressCount / ganttItems.length) * 100)}%)</p>
               <p>Pending: {pendingCount} ({Math.round((pendingCount / ganttItems.length) * 100)}%)</p>
@@ -425,9 +425,9 @@ export function GanttChart({ tasks, size }: GanttChartProps) {
             </div>
           </div>
           
-          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Task Distribution</h4>
-            <div className="space-y-1 text-gray-600 dark:text-gray-300">
+          <div className="bg-muted dark:bg-muted/50 rounded-lg p-4">
+            <h4 className="font-semibold text-foreground dark:text-foreground mb-2">Task Distribution</h4>
+            <div className="space-y-1 text-muted-foreground">
               <p>Main Tasks: {tasks.length}</p>
               <p>Subtasks: {ganttItems.length}</p>
               <p>Avg per Task: {Math.round(ganttItems.length / tasks.length * 10) / 10}</p>

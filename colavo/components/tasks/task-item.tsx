@@ -58,7 +58,7 @@ export function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
       case "pending":
         return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
+        return "bg-muted text-foreground dark:bg-muted ";
     }
   };
 */
@@ -71,9 +71,9 @@ export function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
       case "medium":
         return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
       case "low":
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
+        return "bg-muted text-foreground dark:bg-muted ";
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
+        return "bg-muted text-foreground dark:bg-muted ";
     }
   };  
 
@@ -89,12 +89,12 @@ export function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <Card className="hover:shadow-md transition-shadow bg-background dark:bg-card border border-border dark:border-border">
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <h3 className="font-semibold text-lg text-gray-900 dark:text-white">{task.title}</h3>
+              <h3 className="font-semibold text-lg text-foreground dark:text-foreground">{task.title}</h3>
               <Badge className={getImportanceColor(task.importanceLevel)}>
                 {task.importanceLevel}
               </Badge>
@@ -106,10 +106,10 @@ export function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
             </div>
             
             {task.description && (
-              <p className="text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{task.description}</p>
+              <p className="text-muted-foreground dark:text-muted-foreground mb-3 line-clamp-2">{task.description}</p>
             )}
             
-            <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex items-center gap-4 text-sm text-muted-foreground dark:text-muted-foreground">
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
                 <span>
@@ -135,7 +135,7 @@ export function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
             </div>
 
             {task.subTasks && task.subTasks.length > 0 && (
-              <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+              <div className="mt-3 text-xs text-muted-foreground dark:text-muted-foreground">
                 {task.subTasks.length} subtask{task.subTasks.length !== 1 ? 's' : ''} • 
                 {task.subTasks.filter(st => st.status === 'completed').length} completed
               </div>
@@ -144,12 +144,12 @@ export function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground dark:text-muted-foreground dark:hover:text-gray-200">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-              <DropdownMenuItem onClick={onUpdate} className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+            <DropdownMenuContent align="end" className="bg-background dark:bg-card border border-border dark:border-border">
+              <DropdownMenuItem onClick={onUpdate} className="text-foreground hover:bg-muted dark:hover:bg-muted">
                 Edit Task
               </DropdownMenuItem>
               <DropdownMenuItem 

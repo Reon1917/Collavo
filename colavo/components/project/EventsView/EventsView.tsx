@@ -60,8 +60,8 @@ export function EventsView({ projectId }: EventsViewProps) {
   if (error) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Error loading events</h2>
-        <p className="text-gray-600 dark:text-gray-400">{error}</p>
+        <h2 className="text-2xl font-bold text-foreground dark:text-foreground mb-2">Error loading events</h2>
+        <p className="text-muted-foreground dark:text-muted-foreground">{error}</p>
       </div>
     );
   }
@@ -69,8 +69,8 @@ export function EventsView({ projectId }: EventsViewProps) {
   if (!project) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Project not found</h2>
-        <p className="text-gray-600 dark:text-gray-400">Unable to load project details or you don&apos;t have access to this project.</p>
+        <h2 className="text-2xl font-bold text-foreground dark:text-foreground mb-2">Project not found</h2>
+        <p className="text-muted-foreground dark:text-muted-foreground">Unable to load project details or you don&apos;t have access to this project.</p>
       </div>
     );
   }

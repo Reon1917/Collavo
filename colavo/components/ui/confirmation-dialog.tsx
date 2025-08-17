@@ -34,15 +34,15 @@ export function ConfirmationDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2">
             {variant === 'destructive' && (
               <AlertTriangle className="h-5 w-5 text-red-600" />
             )}
             {title}
           </DialogTitle>
-          <DialogDescription className="text-gray-600 dark:text-gray-400">
+          <DialogDescription>
             {description}
           </DialogDescription>
         </DialogHeader>
@@ -61,11 +61,8 @@ export function ConfirmationDialog({
             type="button"
             onClick={handleConfirm}
             disabled={isLoading}
-            className={`flex-1 ${
-              variant === 'destructive' 
-                ? 'bg-red-600 hover:bg-red-700 text-white' 
-                : 'bg-[#008080] hover:bg-[#006666] text-white'
-            }`}
+            variant={variant === 'destructive' ? 'destructive' : 'default'}
+            className="flex-1"
           >
             {isLoading ? (
               <>

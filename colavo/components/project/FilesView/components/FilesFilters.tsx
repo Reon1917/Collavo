@@ -30,7 +30,7 @@ export function FilesFilters({
           placeholder="Search files and links by name or description..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 h-10 bg-white dark:bg-gray-800 border-2 border-primary/20 dark:border-primary/30 focus:border-primary dark:focus:border-primary shadow-sm"
+          className="pl-10 h-10 bg-background dark:bg-muted border-2 border-primary/20 dark:border-primary/30 focus:border-primary dark:focus:border-primary shadow-sm"
         />
       </div>
 
@@ -40,9 +40,9 @@ export function FilesFilters({
         <div className="flex flex-wrap gap-3 items-center">
           {/* Added By Filter */}
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400 hidden sm:block">Filter by:</span>
+            <span className="text-sm font-medium text-muted-foreground dark:text-muted-foreground hidden sm:block">Filter by:</span>
             <Select value={filterByUser} onValueChange={setFilterByUser}>
-              <SelectTrigger className="w-[200px] h-9 bg-white dark:bg-gray-800 border-2 border-primary/20 dark:border-primary/30 focus:border-primary dark:focus:border-primary shadow-sm">
+              <SelectTrigger className="w-[200px] h-9 bg-background dark:bg-muted border-2 border-primary/20 dark:border-primary/30 focus:border-primary dark:focus:border-primary shadow-sm">
                 <div className="flex items-center gap-2">
                   <User className="w-3 h-3 text-primary" />
                   <SelectValue placeholder="All members" />

@@ -103,7 +103,7 @@ export function SelectContent({ children }: SelectContentProps) {
   if (!context.open) return null;
 
   return (
-    <div className="absolute top-full left-0 z-50 w-full mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
+    <div className="absolute top-full left-0 z-50 w-full mt-1 bg-background dark:bg-card border border-border dark:border-border rounded-md shadow-lg">
       {children}
     </div>
   );
@@ -147,7 +147,7 @@ export function SelectItem({ value, children }: SelectItemProps) {
   return (
     <button
       type="button"
-      className="w-full px-3 py-2 text-left text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-800 focus:outline-none"
+      className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted dark:hover:bg-muted focus:bg-muted dark:focus:bg-muted focus:outline-none"
       onClick={handleClick}
     >
       {children}

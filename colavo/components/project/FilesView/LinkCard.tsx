@@ -39,12 +39,12 @@ export function LinkCard({ link, onClick, onEdit, onDelete }: LinkCardProps) {
     if (domain.includes('canva')) return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300';
     if (domain.includes('figma')) return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300';
     if (domain.includes('google')) return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300';
-    if (domain.includes('github')) return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
-    if (domain.includes('notion')) return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+    if (domain.includes('github')) return 'bg-muted text-foreground dark:bg-muted ';
+    if (domain.includes('notion')) return 'bg-muted text-foreground dark:bg-muted ';
     if (domain.includes('slack')) return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
     if (domain.includes('discord')) return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-300';
     
-    return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+    return 'bg-muted text-foreground dark:bg-muted ';
   };
 
   const handleClick = () => {
@@ -72,7 +72,7 @@ export function LinkCard({ link, onClick, onEdit, onDelete }: LinkCardProps) {
 
   return (
     <Card 
-      className="bg-white dark:bg-gray-900/50 hover:shadow-md transition-all duration-200 cursor-pointer group border border-gray-200 dark:border-gray-700 hover:border-primary/50 dark:hover:border-primary/50 h-[140px]"
+      className="bg-background dark:bg-card/50 hover:shadow-md transition-all duration-200 cursor-pointer group border border-border dark:border-border hover:border-primary/50 dark:hover:border-primary/50 h-[140px]"
       onClick={handleClick}
     >
       <CardContent className="p-4 h-full">
@@ -88,17 +88,17 @@ export function LinkCard({ link, onClick, onEdit, onDelete }: LinkCardProps) {
           <div className="flex-1 min-w-0 flex flex-col justify-between h-full">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-gray-900 dark:text-white truncate group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                <h3 className="font-medium text-foreground dark:text-foreground truncate group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
                   {link.name}
                 </h3>
                 {link.description && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                  <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1 line-clamp-2">
                     {link.description}
                   </p>
                 )}
                 <div className="flex items-center gap-1 mt-2">
                   <ExternalLink className="h-3 w-3 text-primary/60" />
-                  <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  <span className="text-xs text-muted-foreground dark:text-muted-foreground truncate">
                     {getDomainFromUrl(link.url)}
                   </span>
                 </div>
@@ -146,7 +146,7 @@ export function LinkCard({ link, onClick, onEdit, onDelete }: LinkCardProps) {
             </div>
 
             {/* Link Metadata */}
-            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mt-auto">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground dark:text-muted-foreground mt-auto">
               {/* Added By */}
               <div className="flex items-center gap-1">
                 <User className="h-3 w-3" />

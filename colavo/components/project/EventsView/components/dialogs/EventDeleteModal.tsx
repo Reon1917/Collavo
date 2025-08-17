@@ -92,12 +92,12 @@ export function EventDeleteModal({
           </div>
 
           {/* Event Info */}
-          <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <p className="font-medium text-gray-900 dark:text-white">{event.title}</p>
+          <div className="p-3 bg-muted dark:bg-muted rounded-lg">
+            <p className="font-medium text-foreground dark:text-foreground">{event.title}</p>
             {event.description && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{event.description}</p>
+              <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1">{event.description}</p>
             )}
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 space-y-1">
+            <div className="text-xs text-muted-foreground dark:text-muted-foreground mt-2 space-y-1">
               <p>Scheduled: {new Date(event.datetime).toLocaleDateString()} at {new Date(event.datetime).toLocaleTimeString()}</p>
               {event.location && <p>Location: {event.location}</p>}
               <p>Created by {event.creatorName} • {new Date(event.createdAt).toLocaleDateString()}</p>

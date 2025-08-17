@@ -33,7 +33,7 @@ export function ReplyDisplay({
           }
         </div>
       </div>
-      <div className="text-xs text-gray-600 dark:text-gray-300 bg-white/60 dark:bg-gray-800/60 p-2.5 rounded border-l-4 border-blue-400 dark:border-blue-500 italic leading-relaxed">
+      <div className="text-xs text-muted-foreground bg-background/60 dark:bg-muted/60 p-2.5 rounded border-l-4 border-blue-400 dark:border-blue-500 italic leading-relaxed">
         {message.parentMessage.content}
       </div>
     </div>

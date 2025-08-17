@@ -37,7 +37,7 @@ interface CalendarTaskItemProps {
 export function CalendarTaskItem({ task }: CalendarTaskItemProps) {
   // Determine color based on importance level from database
   const importanceColors = {
-    'low': 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
+    'low': 'bg-muted text-foreground dark:bg-muted ',
     'medium': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
     'high': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
     'critical': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'

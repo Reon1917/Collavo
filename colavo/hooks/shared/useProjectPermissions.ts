@@ -26,7 +26,7 @@ export function useProjectPermissions(project: Project | null) {
       return {
         label: 'Project Leader',
         icon: 'Crown',
-        className: "bg-[#008080] hover:bg-[#006666] text-white"
+        className: "bg-secondary hover:bg-secondary/90 text-secondary-foreground"
       };
     }
     return {

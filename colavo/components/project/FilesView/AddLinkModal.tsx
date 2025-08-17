@@ -178,7 +178,7 @@ export function AddLinkModal({
               required
               disabled={isAdding}
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground">
               You can paste the full URL here.
             </p>
           </div>
@@ -204,7 +204,7 @@ export function AddLinkModal({
             <Button
               type="submit"
               disabled={!linkName.trim() || !linkUrl.trim() || isAdding}
-              className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+              className="flex-1 bg-primary hover:bg-[#006666] text-foreground"
             >
               {isAdding ? (
                 <>

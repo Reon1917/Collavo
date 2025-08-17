@@ -92,18 +92,18 @@ export function GanttChart({ tasks }: GanttChartProps) {
   // If no tasks, show a message
   if (tasks.length === 0) {
     return (
-      <div className="p-8 text-center bg-white dark:bg-gray-900 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Tasks Available</h3>
-        <p className="text-gray-500 dark:text-gray-400">Create tasks in this project to view them in the Gantt chart.</p>
+      <div className="p-8 text-center bg-background dark:bg-card rounded-lg shadow border border-border dark:border-border">
+        <h3 className="text-lg font-medium text-foreground dark:text-foreground mb-2">No Tasks Available</h3>
+        <p className="text-muted-foreground dark:text-muted-foreground">Create tasks in this project to view them in the Gantt chart.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-4">
+    <div className="bg-background dark:bg-card rounded-lg shadow border border-border dark:border-border p-4">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Project Timeline</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400">Gantt chart view of project tasks and progress</p>
+        <h3 className="text-lg font-semibold text-foreground dark:text-foreground">Project Timeline</h3>
+        <p className="text-sm text-muted-foreground dark:text-muted-foreground">Gantt chart view of project tasks and progress</p>
       </div>
       <Chart
         width="100%"
@@ -122,7 +122,7 @@ export function GanttChart({ tasks }: GanttChartProps) {
               </div>
               <div className="absolute inset-0 w-8 h-8 mx-auto bg-blue-600/20 dark:bg-blue-400/20 rounded-full blur-xl animate-pulse"></div>
             </div>
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Loading Chart...</p>
+            <p className="text-sm font-medium text-foreground mb-2">Loading Chart...</p>
             <div className="flex justify-center space-x-1">
               <div className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
               <div className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>

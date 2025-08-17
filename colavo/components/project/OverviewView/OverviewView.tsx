@@ -124,8 +124,8 @@ export function OverviewView({ projectId }: OverviewViewProps) {
   if (!project) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Project not found</h2>
-        <p className="text-gray-600 dark:text-gray-400">The project you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Project not found</h2>
+        <p className="text-muted-foreground">The project you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.</p>
       </div>
     );
   }

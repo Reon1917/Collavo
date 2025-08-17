@@ -35,7 +35,7 @@ export function TypingIndicator({ typingUserIds, onlineMembers, className }: Typ
       {/* Show avatars of typing users (max 3) */}
       <div className="flex -space-x-1">
         {typingUsers.slice(0, 3).map((user) => (
-          <Avatar key={user.userId} className="h-6 w-6 border-2 border-white dark:border-gray-800">
+          <Avatar key={user.userId} className="h-6 w-6 border-2 border-white dark:border-border">
             <AvatarImage src={user.user?.image || undefined} alt={user.user?.name || 'User'} />
             <AvatarFallback className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
               {(user.user?.name || 'U').charAt(0).toUpperCase()}
@@ -45,12 +45,12 @@ export function TypingIndicator({ typingUserIds, onlineMembers, className }: Typ
       </div>
 
       {/* Typing text with animated dots */}
-      <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+      <div className="flex items-center gap-1 text-sm text-muted-foreground dark:text-muted-foreground">
         <span>{getTypingText()}</span>
         <div className="flex gap-0.5">
-          <div className="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
-          <div className="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
-          <div className="w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" />
+          <div className="w-1 h-1 bg-gray-400 dark:bg-muted0 rounded-full animate-bounce [animation-delay:-0.3s]" />
+          <div className="w-1 h-1 bg-gray-400 dark:bg-muted0 rounded-full animate-bounce [animation-delay:-0.15s]" />
+          <div className="w-1 h-1 bg-gray-400 dark:bg-muted0 rounded-full animate-bounce" />
         </div>
       </div>
     </div>

@@ -93,11 +93,11 @@ export function Calendar({ items, onDateClick, onItemClick }: CalendarProps) {
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden">
+    <div className="bg-background dark:bg-card border border-border dark:border-border rounded-lg shadow-sm overflow-hidden">
       {/* Calendar Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+      <div className="flex items-center justify-between p-4 border-b border-border dark:border-border bg-muted dark:bg-muted">
         <div className="flex items-center gap-4">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <h2 className="text-xl font-semibold text-foreground dark:text-foreground">
             {monthNames[month]} {year}
           </h2>
           <Button
@@ -130,14 +130,14 @@ export function Calendar({ items, onDateClick, onItemClick }: CalendarProps) {
       </div>
 
       {/* Day Headers */}
-      <div className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700">
+      <div className="grid grid-cols-7 border-b border-border dark:border-border">
         {dayNames.map((day, index) => (
           <div
             key={day}
-            className={`p-3 text-center text-sm font-medium bg-gray-50 dark:bg-gray-800 transition-colors duration-200 ${
+            className={`p-3 text-center text-sm font-medium bg-muted dark:bg-muted transition-colors duration-200 ${
               index === 0 || index === 6 
                 ? 'text-blue-600 dark:text-blue-400' 
-                : 'text-gray-700 dark:text-gray-300'
+                : 'text-foreground '
             }`}
           >
             {day}

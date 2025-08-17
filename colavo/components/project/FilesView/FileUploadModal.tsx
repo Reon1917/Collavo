@@ -177,7 +177,7 @@ export function FileUploadModal({
       case 'pptx':
         return <Presentation className="h-6 w-6 text-orange-500" />;
       default:
-        return <File className="h-6 w-6 text-gray-400" />;
+        return <File className="h-6 w-6 text-muted-foreground" />;
     }
   };
 
@@ -251,13 +251,13 @@ export function FileUploadModal({
           {/* File Selection */}
           <div className="space-y-2">
             <Label htmlFor="file-upload">Select File</Label>
-            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+            <div className="border-2 border-dashed border-border dark:border-gray-600 rounded-lg p-6 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
               {!selectedFile ? (
                 <div>
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                    <Upload className="h-8 w-8 text-gray-400" />
+                  <div className="w-16 h-16 mx-auto mb-4 bg-muted dark:bg-muted rounded-full flex items-center justify-center">
+                    <Upload className="h-8 w-8 text-muted-foreground" />
                   </div>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                  <p className="text-muted-foreground dark:text-muted-foreground text-sm mb-4">
                     You can upload PDF files, Word (.docx) files, Excel (.xlsx) files and PowerPoint (.pptx) files up to 4MB.
                   </p>
                   <Button
@@ -265,7 +265,7 @@ export function FileUploadModal({
                     variant="outline"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
-                    className="bg-[#008080] hover:bg-[#006666] text-white border-[#008080] hover:border-[#006666]"
+                    className="bg-primary hover:bg-[#006666] text-foreground border-primary hover:border-[#006666]"
                   >
                     Choose File
                   </Button>
@@ -331,7 +331,7 @@ export function FileUploadModal({
             <Button
               type="submit"
               disabled={!selectedFile || !fileName.trim() || isUploading}
-              className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+              className="flex-1 bg-primary hover:bg-[#006666] text-foreground"
             >
               {isUploading ? (
                 <>

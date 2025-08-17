@@ -105,8 +105,8 @@ export function SubTaskDetailsDialog({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
-        <DialogContent className="max-w-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
+        <DialogContent className="max-w-3xl bg-background dark:bg-card border border-border dark:border-border max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-4 border-b border-border dark:border-border">
             <CustomDialogHeader editMode={editMode} subTask={subTask} />
           </DialogHeader>
 
@@ -122,7 +122,7 @@ export function SubTaskDetailsDialog({
                   isLoading={isLoading}
                 />
                 
-                <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex gap-3 pt-4 border-t border-border dark:border-border">
                   <ActionButtons
                     editMode={editMode}
                     permissions={permissions}
@@ -149,7 +149,7 @@ export function SubTaskDetailsDialog({
                     isLoading={isLoading}
                   />
 
-                  <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex gap-3 pt-4 border-t border-border dark:border-border">
                     <ActionButtons
                       editMode={editMode}
                       permissions={permissions}

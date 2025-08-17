@@ -135,7 +135,7 @@ export function EditEventDialog({ event, projectId, projectData, onEventUpdated,
                 disabled={isLoading}
                 max={projectDeadline ? formatDateForInput(projectDeadline) : undefined}
               />
-              <CalendarIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <CalendarIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
           </div>
 
@@ -149,7 +149,7 @@ export function EditEventDialog({ event, projectId, projectData, onEventUpdated,
                 placeholder="Enter event location"
                 disabled={isLoading}
               />
-              <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
           </div>
 
@@ -179,7 +179,7 @@ export function EditEventDialog({ event, projectId, projectData, onEventUpdated,
             <Button 
               type="submit" 
               disabled={isLoading || !formData.title.trim()}
-              className="bg-[#008080] hover:bg-[#006666] text-white"
+              className="bg-primary hover:bg-[#006666] text-foreground"
             >
               {isLoading ? (
                 <>

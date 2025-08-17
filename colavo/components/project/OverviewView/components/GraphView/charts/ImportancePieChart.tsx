@@ -58,10 +58,10 @@ export function ImportancePieChart({ tasks, size }: ImportancePieChartProps) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="text-gray-400 dark:text-gray-500 mb-2">
-            <div className="w-12 h-12 mx-auto rounded-full border-4 border-gray-200 dark:border-gray-700"></div>
+          <div className="text-muted-foreground dark:text-muted-foreground mb-2">
+            <div className="w-12 h-12 mx-auto rounded-full border-4 border-border dark:border-border"></div>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-300">No tasks to analyze</p>
+          <p className="text-sm text-muted-foreground">No tasks to analyze</p>
         </div>
       </div>
     );
@@ -201,25 +201,25 @@ export function ImportancePieChart({ tasks, size }: ImportancePieChartProps) {
             {criticalTasks > 0 && (
               <div className="flex items-center gap-1.5">
                 <div className="w-2.5 h-2.5 bg-red-600 rounded-full"></div>
-                <span className="text-gray-700 dark:text-gray-300">{criticalTasks}</span>
+                <span className="text-foreground">{criticalTasks}</span>
               </div>
             )}
             {highTasks > 0 && (
               <div className="flex items-center gap-1.5">
                 <div className="w-2.5 h-2.5 bg-orange-600 rounded-full"></div>
-                <span className="text-gray-700 dark:text-gray-300">{highTasks}</span>
+                <span className="text-foreground">{highTasks}</span>
               </div>
             )}
             {mediumTasks > 0 && (
               <div className="flex items-center gap-1.5">
                 <div className="w-2.5 h-2.5 bg-blue-600 rounded-full"></div>
-                <span className="text-gray-700 dark:text-gray-300">{mediumTasks}</span>
+                <span className="text-foreground">{mediumTasks}</span>
               </div>
             )}
             {lowTasks > 0 && (
               <div className="flex items-center gap-1.5">
                 <div className="w-2.5 h-2.5 bg-green-600 rounded-full"></div>
-                <span className="text-gray-700 dark:text-gray-300">{lowTasks}</span>
+                <span className="text-foreground">{lowTasks}</span>
               </div>
             )}
           </div>
@@ -228,9 +228,9 @@ export function ImportancePieChart({ tasks, size }: ImportancePieChartProps) {
 
       {/* Detailed stats for large size */}
       {size === 'large' && (
-        <div className="mt-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
+        <div className="mt-4 bg-muted dark:bg-muted/50 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
-            <h5 className="text-sm font-medium text-gray-900 dark:text-white">Priority Analysis</h5>
+            <h5 className="text-sm font-medium text-foreground dark:text-foreground">Priority Analysis</h5>
             <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${risk.bgColor} ${risk.color}`}>
               {risk.level}
             </div>
@@ -238,14 +238,14 @@ export function ImportancePieChart({ tasks, size }: ImportancePieChartProps) {
           
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <div className="text-gray-600 dark:text-gray-300 mb-1">High Priority Tasks</div>
-              <div className="font-semibold text-gray-900 dark:text-white">
+              <div className="text-muted-foreground mb-1">High Priority Tasks</div>
+              <div className="font-semibold text-foreground dark:text-foreground">
                 {criticalTasks + highTasks} of {totalTasks} ({riskLevel}%)
               </div>
             </div>
             <div>
-              <div className="text-gray-600 dark:text-gray-300 mb-1">Most Common Priority</div>
-              <div className="font-semibold text-gray-900 dark:text-white">
+              <div className="text-muted-foreground mb-1">Most Common Priority</div>
+              <div className="font-semibold text-foreground dark:text-foreground">
                 {mediumTasks >= Math.max(criticalTasks, highTasks, lowTasks) ? 'Medium' :
                  highTasks >= Math.max(criticalTasks, mediumTasks, lowTasks) ? 'High' :
                  criticalTasks >= Math.max(highTasks, mediumTasks, lowTasks) ? 'Critical' : 'Low'}

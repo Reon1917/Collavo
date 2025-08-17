@@ -283,7 +283,7 @@ export function FilesView({ projectId }: FilesViewProps) {
         <header className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold mb-2">Files & Resources</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage project files and external links</p>
+            <p className="text-muted-foreground dark:text-muted-foreground">Manage project files and external links</p>
           </div>
         </header>
         

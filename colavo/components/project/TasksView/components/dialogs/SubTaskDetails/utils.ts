@@ -5,7 +5,7 @@ export const getStatusColor = (status: string) => {
     case 'in_progress': 
       return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200 dark:border-blue-800';
     default: 
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400 border-gray-200 dark:border-gray-700';
+      return 'bg-muted text-foreground dark:bg-card/20 dark:text-muted-foreground border-border dark:border-border';
   }
 };
 

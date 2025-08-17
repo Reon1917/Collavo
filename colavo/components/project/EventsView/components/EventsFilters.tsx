@@ -51,12 +51,12 @@ export function EventsFilters({
     <div className="space-y-4">
       {/* Search - More prominent */}
       <div className="relative max-w-lg">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
           placeholder="Search events by title, description, or location..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 h-10 bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]"
+          className="pl-10 h-10 bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary"
         />
       </div>
 
@@ -66,9 +66,9 @@ export function EventsFilters({
         <div className="flex flex-wrap gap-3 items-center">
           {/* Time Frame Filter with Icons */}
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400 hidden sm:block">Filter:</span>
+            <span className="text-sm font-medium text-muted-foreground dark:text-muted-foreground hidden sm:block">Filter:</span>
             <Select value={filterTimeframe} onValueChange={(value) => setFilterTimeframe(value as 'all' | 'upcoming' | 'past' | 'today')}>
-              <SelectTrigger className="w-[140px] h-9 bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
+              <SelectTrigger className="w-[140px] h-9 bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary">
                 <div className="flex items-center gap-2">
                   {getTimeFrameIcon(filterTimeframe)}
                   <SelectValue />
@@ -109,10 +109,10 @@ export function EventsFilters({
         {/* Right Side - Sort */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <SortAsc className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400 hidden sm:block">Sort:</span>
+            <SortAsc className="w-4 h-4 text-muted-foreground dark:text-muted-foreground" />
+            <span className="text-sm font-medium text-muted-foreground dark:text-muted-foreground hidden sm:block">Sort:</span>
             <Select value={sortBy} onValueChange={(value) => setSortBy(value as 'datetime' | 'title' | 'created')}>
-              <SelectTrigger className="w-[140px] h-9 bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
+              <SelectTrigger className="w-[140px] h-9 bg-background dark:bg-muted border-border dark:border-border focus:bg-background dark:focus:bg-card focus:border-primary dark:focus:border-secondary">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -129,7 +129,7 @@ export function EventsFilters({
             variant="outline"
             size="sm"
             onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-            className="h-9 px-3 bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 hover:bg-white dark:hover:bg-gray-900 hover:border-[#008080] dark:hover:border-[#00FFFF]"
+            className="h-9 px-3 bg-background dark:bg-muted border-border dark:border-border hover:bg-background dark:hover:bg-card hover:border-primary dark:hover:border-secondary"
           >
             <ArrowUpDown className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">{sortOrder === 'asc' ? 'Asc' : 'Desc'}</span>
