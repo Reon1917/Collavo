@@ -104,8 +104,8 @@ export function CreateTaskForm({ projectId, onTaskCreated, members, trigger, pro
           </DialogTitle>
           <DialogDescription className="text-gray-600 dark:text-gray-400">
             {step === 'main' 
-              ? 'Create a main task to organize your project work. Deadline is required.'
-              : 'Break down your main task into smaller, assignable sub-tasks. At least one subtask with an assigned member is required.'
+              ? 'Create a main task to organize your project work. Setting a deadline helps keep your team on track.'
+              : 'Time to break down your task! Create subtasks and assign them to team members to distribute the work effectively.'
             }
           </DialogDescription>
         </DialogHeader>

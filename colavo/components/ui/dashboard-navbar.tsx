@@ -18,6 +18,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { formatInitials } from '@/utils/format';
+import { InvitationModal } from '@/components/dashboard/InvitationModal';
 
 export function DashboardNavbar(): React.JSX.Element {
   const { user, isAuthenticated, refetch } = useAuth();
@@ -27,10 +28,10 @@ export function DashboardNavbar(): React.JSX.Element {
     try {
       await authClient.signOut();
       await refetch();
-      toast.success('Logged out successfully');
       router.push('/');
+      toast.success('Logged out successfully');
     } catch {
-      //console.error('Logout error:', error);
+      // Silently handle logout errors
       toast.error('Failed to logout');
     }
   };
@@ -58,6 +59,11 @@ export function DashboardNavbar(): React.JSX.Element {
                 Create
               </Link>
             </Button>
+
+            {/* Invitation Modal */}
+            {isAuthenticated && (
+              <InvitationModal onInvitationAccepted={refetch} />
+            )}
 
             {/* Theme Toggle */}
             <ThemeToggle />

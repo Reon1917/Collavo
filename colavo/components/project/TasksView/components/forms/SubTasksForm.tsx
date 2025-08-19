@@ -7,7 +7,7 @@ import { MemberSelect } from '../shared';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Loader2, Plus, X, AlertCircle } from 'lucide-react';
+import { CalendarIcon, Loader2, Plus, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -165,17 +165,10 @@ export function SubTasksForm({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-        <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-        <p className="text-sm text-amber-800 dark:text-amber-200">
-          At least one subtask must be created and assigned to a team member. All subtasks require deadlines and cannot exceed the main task deadline ({mainTaskData.deadline ? format(mainTaskData.deadline, "PPP") : 'N/A'}).
-        </p>
-      </div>
-
-      <div className="space-y-4">
+      <div className="space-y-6">
         {subTasks.map((subTask, index) => (
           <Card key={index} className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-gray-900 dark:text-white">
                   Sub-task {index + 1} *
@@ -193,25 +186,29 @@ export function SubTasksForm({
                 )}
               </div>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <Input
-                placeholder="Sub-task title... *"
-                value={subTask.title}
-                onChange={(e) => handleSubTaskChange(index, 'title', e.target.value)}
-                className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600"
-                maxLength={500}
-                required
-              />
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  placeholder="Sub-task title... *"
+                  value={subTask.title}
+                  onChange={(e) => handleSubTaskChange(index, 'title', e.target.value)}
+                  className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600"
+                  maxLength={500}
+                  required
+                />
+              </div>
 
-              <Textarea
-                placeholder="Sub-task description..."
-                value={subTask.description}
-                onChange={(e) => handleSubTaskChange(index, 'description', e.target.value)}
-                className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600 min-h-[60px] resize-none"
-              />
+              <div className="space-y-2">
+                <Textarea
+                  placeholder="Sub-task description..."
+                  value={subTask.description}
+                  onChange={(e) => handleSubTaskChange(index, 'description', e.target.value)}
+                  className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600 min-h-[60px] resize-none"
+                />
+              </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">
                     Assign to *
                   </Label>
@@ -224,7 +221,7 @@ export function SubTasksForm({
                   />
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <Label className="text-xs font-medium text-gray-700 dark:text-gray-300">
                     Deadline *
                   </Label>
@@ -233,11 +230,11 @@ export function SubTasksForm({
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full justify-start text-left font-normal bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600 text-xs",
+                          "w-full justify-start text-left font-normal bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-600 text-xs h-10",
                           !subTask.deadline && "text-gray-500"
                         )}
                       >
-                        <CalendarIcon className="mr-1 h-3 w-3" />
+                        <CalendarIcon className="mr-2 h-3 w-3" />
                         {subTask.deadline ? format(subTask.deadline, "MMM dd") : "Set date *"}
                       </Button>
                     </PopoverTrigger>
@@ -267,14 +264,14 @@ export function SubTasksForm({
           type="button"
           variant="outline"
           onClick={handleAddSubTask}
-          className="w-full border-dashed border-2 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-[#008080] hover:text-[#008080]"
+          className="w-full border-dashed border-2 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-[#008080] hover:text-[#008080] py-4"
         >
           <Plus className="h-4 w-4 mr-2" />
           Add Another Sub-task
         </Button>
       </div>
 
-      <div className="flex gap-3 pt-4">
+      <div className="flex gap-3 pt-2">
         <Button
           type="button"
           variant="outline"
