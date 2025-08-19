@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { invitations, members, permissions, user } from '@/db/schema';
 import { createId } from '@paralleldrive/cuid2';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import { autoCleanupExpiredInvitations } from '@/lib/invitation-cleanup';
 
 export async function POST(request: NextRequest) {
@@ -20,12 +20,11 @@ export async function POST(request: NextRequest) {
     // Auto-cleanup expired invitations first
     await autoCleanupExpiredInvitations();
 
-    return await db.transaction(async (tx) => {
-      // Find invitation by token
-      const invitation = await tx.select().from(invitations)
+    // Find invitation by token
+    const invitation = await db.select().from(invitations)
         .where(and(
           eq(invitations.token, token),
-          eq(invitations.acceptedAt, null as any)
+          isNull(invitations.acceptedAt)
         )).limit(1);
 
       if (!invitation.length) {
@@ -35,7 +34,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const invitationData = invitation[0];
+      const invitationData = invitation[0]!;
 
       // Double-check if invitation has expired (after cleanup)
       if (new Date() > invitationData.expiresAt) {
@@ -45,8 +44,8 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Check if user exists with this email
-      const existingUser = await tx.select().from(user)
+    // Check if user exists with this email
+    const existingUser = await db.select().from(user)
         .where(eq(user.email, invitationData.email))
         .limit(1);
 
@@ -61,20 +60,20 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      const userId = existingUser[0].id;
+      const userId = existingUser[0]!.id;
 
-      // Check if user is already a member
-      const existingMember = await tx.select().from(members)
+    // Check if user is already a member
+    const existingMember = await db.select().from(members)
         .where(and(
           eq(members.userId, userId),
           eq(members.projectId, invitationData.projectId)
         )).limit(1);
 
       if (existingMember.length) {
-        // Mark invitation as accepted
-        await tx.update(invitations)
-          .set({ acceptedAt: new Date() })
-          .where(eq(invitations.id, invitationData.id));
+      // Mark invitation as accepted
+      await db.update(invitations)
+        .set({ acceptedAt: new Date() })
+        .where(eq(invitations.id, invitationData.id));
 
         return NextResponse.json({
           message: 'User is already a member of this project',
@@ -82,8 +81,8 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Create member record
-      const newMember = await tx.insert(members).values({
+    // Create member record
+    const newMember = await db.insert(members).values({
         id: createId(),
         userId,
         projectId: invitationData.projectId,
@@ -106,28 +105,27 @@ export async function POST(request: NextRequest) {
 
       const permissionInserts = defaultPermissions.map(perm => ({
         id: createId(),
-        memberId: newMember[0].id,
+        memberId: newMember[0]!.id,
         permission: perm.permission as 'handleFile' | 'viewFiles',
         granted: perm.granted,
         grantedAt: new Date(),
         grantedBy: invitationData.invitedBy
       }));
 
-      await tx.insert(permissions).values(permissionInserts);
+    await db.insert(permissions).values(permissionInserts);
 
-      // Mark invitation as accepted
-      await tx.update(invitations)
-        .set({ acceptedAt: new Date() })
-        .where(eq(invitations.id, invitationData.id));
+    // Mark invitation as accepted
+    await db.update(invitations)
+      .set({ acceptedAt: new Date() })
+      .where(eq(invitations.id, invitationData.id));
 
-      return NextResponse.json({
-        message: 'Successfully joined project',
-        projectId: invitationData.projectId,
-        memberId: newMember[0].id
-      }, { status: 201 });
-    });
+    return NextResponse.json({
+      message: 'Successfully joined project',
+      projectId: invitationData.projectId,
+      memberId: newMember[0]!.id
+    }, { status: 201 });
 
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to accept invitation' },
       { status: 500 }

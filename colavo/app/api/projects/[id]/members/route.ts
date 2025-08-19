@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { members, permissions, user, mainTasks, subTasks, events, files } from '@/db/schema';
-import { createId } from '@paralleldrive/cuid2';
+
 import { eq, and } from 'drizzle-orm';
 import { requireProjectAccess, checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
 import { handleEmailInvitation } from '@/lib/invitation-helpers';
@@ -106,6 +106,7 @@ export async function POST(
 
     // Check if user has addMember permission with detailed error info
     const permissionCheck = await checkPermissionDetailed(session.user.id, projectId, 'addMember');
+    
     if (!permissionCheck.hasPermission) {
       const statusCode = permissionCheck.errorType === 'INVALID_PROJECT' ? 404 : 403;
       return NextResponse.json(
@@ -115,12 +116,19 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { identifier, identifierType } = body;
+    const { identifier, identifierType, userType } = body;
 
     // Validate input
     if (!identifier || !identifierType) {
       return NextResponse.json(
         { error: 'Identifier and identifier type are required' },
+        { status: 400 }
+      );
+    }
+
+    if (!userType || !['existing', 'new'].includes(userType)) {
+      return NextResponse.json(
+        { error: 'User type is required. Must be existing or new' },
         { status: 400 }
       );
     }
@@ -132,42 +140,52 @@ export async function POST(
       );
     }
 
-    // Find user by identifier
+    // Validate combinations
+    if (userType === 'new' && identifierType !== 'email') {
+      return NextResponse.json(
+        { error: 'New users can only be invited by email address' },
+        { status: 400 }
+      );
+    }
+    
+    // Handle based on user type selection
+    if (userType === 'new') {
+      // For new users, we just send invitation email without checking if user exists
+      // This eliminates the database lookup completely
+      return await handleEmailInvitation(identifier, projectId, session.user.id, 'new_user');
+    }
+
+    // For existing users, we need to find them and validate
     let targetUser: any[] = [];
-    switch (identifierType) {
-      case 'id':
-        targetUser = await db.select().from(user).where(eq(user.id, identifier)).limit(1);
-        break;
-      case 'email':
-        targetUser = await db.select().from(user).where(eq(user.email, identifier)).limit(1);
-        break;
-      case 'username':
-        // Assuming name field is used as username
-        targetUser = await db.select().from(user).where(eq(user.name, identifier)).limit(1);
-        break;
-    }
-
-    // If user not found and identifier is email, create invitation
-    if (!targetUser.length) {
-      if (identifierType === 'email') {
-        return await handleEmailInvitation(identifier, projectId, session.user.id, 'new_user');
-      } else {
-        return NextResponse.json(
-          { error: 'User not found' },
-          { status: 404 }
-        );
+    try {
+      switch (identifierType) {
+        case 'id':
+          targetUser = await db.select().from(user).where(eq(user.id, identifier)).limit(1);
+          break;
+        case 'email':
+          targetUser = await db.select().from(user).where(eq(user.email, identifier)).limit(1);
+          break;
+        case 'username':
+          // Assuming name field is used as username
+          targetUser = await db.select().from(user).where(eq(user.name, identifier)).limit(1);
+          break;
       }
+    } catch (dbError) {
+      // Silently handle database errors
+      throw dbError;
     }
 
-    const foundUser = targetUser[0];
-    if (!foundUser) {
+    // For existing users, they must be found in database
+    if (!targetUser.length) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       );
     }
 
-    // Check if user is trying to add themselves (already handled by leader check, but good to be explicit)
+    const foundUser = targetUser[0];
+    
+    // Check if user is trying to add themselves
     if (foundUser.id === session.user.id) {
       return NextResponse.json(
         { error: 'Cannot add yourself as a member' },
@@ -189,53 +207,14 @@ export async function POST(
       );
     }
 
-    // Create member record
-    const newMember = await db.insert(members).values({
-      id: createId(),
-      userId: foundUser.id,
-      projectId: projectId,
-      role: 'member',
-      joinedAt: new Date()
-    }).returning();
-
-    if (!newMember.length || !newMember[0]) {
-      return NextResponse.json(
-        { error: 'Failed to create member record' },
-        { status: 500 }
-      );
-    }
-
-    // Grant default permissions (handleFile and viewFiles as specified in the plan)
-    const defaultPermissions = [
-      { permission: 'handleFile', granted: true },
-      { permission: 'viewFiles', granted: true }
-    ];
-
-    const permissionInserts = defaultPermissions.map(perm => ({
-      id: createId(),
-      memberId: newMember[0]!.id,
-      permission: perm.permission as 'handleFile' | 'viewFiles',
-      granted: perm.granted,
-      grantedAt: new Date(),
-      grantedBy: session.user.id
-    }));
-
-    await db.insert(permissions).values(permissionInserts);
-
-    // Return member with user details
-    return NextResponse.json({
-      id: newMember[0]!.id,
-      userId: foundUser.id,
-      role: newMember[0]!.role,
-      joinedAt: newMember[0]!.joinedAt,
-      userName: foundUser.name,
-      userEmail: foundUser.email,
-      userImage: foundUser.image,
-      permissions: defaultPermissions.map(p => p.permission)
-    }, { status: 201 });
+    // Send invitation email to existing user
+    return await handleEmailInvitation(foundUser.email, projectId, session.user.id, 'existing_user');
 
   } catch (error) {
+    // Silently handle API errors
+    
     if (error instanceof Error) {
+      
       if (error.message.includes('not found') || error.message.includes('access denied')) {
         return NextResponse.json(
           { error: error.message },

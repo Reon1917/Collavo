@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cleanupInvitations, getInvitationStats, autoCleanupExpiredInvitations } from '@/lib/invitation-cleanup';
+import { cleanupInvitations, getInvitationStats } from '@/lib/invitation-cleanup';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Get session to verify admin access
     const session = await auth.api.getSession({

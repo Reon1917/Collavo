@@ -30,8 +30,8 @@ export function DashboardNavbar(): React.JSX.Element {
       await refetch();
       router.push('/');
       toast.success('Logged out successfully');
-    } catch (error) {
-      console.error('Logout error:', error);
+    } catch {
+      // Silently handle logout errors
       toast.error('Failed to logout');
     }
   };

@@ -108,7 +108,7 @@ export function CreateProjectModal({ trigger, onProjectCreated }: CreateProjectM
           {trigger}
         </div>
       ) : (
-        <DialogTrigger asChild>
+        <DialogTrigger>
           <Button className="bg-[#008080] hover:bg-[#006666] dark:bg-[#008080] dark:hover:bg-[#006666] text-white px-8 py-3 h-auto rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium">
             <PlusCircle className="h-5 w-5 mr-2" />
             Create Project

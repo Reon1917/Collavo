@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { invitations, projects, user } from '@/db/schema';
-import { lt, gt, and, eq } from 'drizzle-orm';
+import { lt, gt, and, eq, isNull } from 'drizzle-orm';
 
 export interface CleanupStats {
   expiredDeleted: number;
@@ -19,12 +19,13 @@ export async function autoCleanupExpiredInvitations(): Promise<number> {
     const result = await db.delete(invitations)
       .where(and(
         lt(invitations.expiresAt, now),
-        eq(invitations.acceptedAt, null as any)
+        isNull(invitations.acceptedAt)
       ))
       .returning({ id: invitations.id });
     
     return result.length;
-  } catch (error) {
+  } catch {
+    // Silently handle cleanup errors
     // Silent fail - don't break the main operation if cleanup fails
     return 0;
   }
@@ -38,7 +39,7 @@ export async function getPendingInvitations(email: string) {
   // Auto-cleanup first
   await autoCleanupExpiredInvitations();
   
-  return await db.select({
+  const result = await db.select({
     id: invitations.id,
     token: invitations.token,
     projectId: invitations.projectId,
@@ -52,9 +53,11 @@ export async function getPendingInvitations(email: string) {
   .innerJoin(user, eq(invitations.invitedBy, user.id))
   .where(and(
     eq(invitations.email, email),
-    eq(invitations.acceptedAt, null as any)
+    isNull(invitations.acceptedAt)
   ))
   .orderBy(invitations.createdAt);
+  
+  return result;
 }
 
 /**
@@ -72,7 +75,7 @@ export async function cleanupInvitations(gracePeriodDays: number = 30): Promise<
     const expiredResult = await tx.delete(invitations)
       .where(and(
         lt(invitations.expiresAt, now),
-        eq(invitations.acceptedAt, null as any)
+        isNull(invitations.acceptedAt)
       ))
       .returning({ id: invitations.id });
 
@@ -106,7 +109,7 @@ export async function getInvitationStats() {
     const activeInvitations = await tx.select({ count: invitations.id })
       .from(invitations)
       .where(and(
-        eq(invitations.acceptedAt, null as any),
+        isNull(invitations.acceptedAt),
         gt(invitations.expiresAt, now)
       ));
 
@@ -114,7 +117,7 @@ export async function getInvitationStats() {
     const expiredInvitations = await tx.select({ count: invitations.id })
       .from(invitations)
       .where(and(
-        eq(invitations.acceptedAt, null as any),
+        isNull(invitations.acceptedAt),
         lt(invitations.expiresAt, now)
       ));
 
@@ -150,7 +153,7 @@ export async function cleanupProjectInvitations(projectId: string): Promise<Clea
       .where(and(
         eq(invitations.projectId, projectId),
         lt(invitations.expiresAt, now),
-        eq(invitations.acceptedAt, null as any)
+        isNull(invitations.acceptedAt)
       ))
       .returning({ id: invitations.id });
 

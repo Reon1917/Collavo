@@ -230,6 +230,15 @@ types/                # TypeScript type definitions
 - Email templates must be properly formatted
 - Handle timezone calculations correctly with Luxon
 
+## Current Development Focus
+
+### Project Invitation Flow Redesign
+Currently working on improving the project invitation system:
+- Transitioning from dashboard-based invitations to project-specific invite flows
+- Implementing invitation management within individual project contexts
+- Enhancing user experience for team collaboration features
+- Updating invitation UI/UX patterns and components
+
 ## Deployment
 
 - Production deployment on Vercel

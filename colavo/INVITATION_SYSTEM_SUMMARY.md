@@ -45,16 +45,17 @@
 ## 📊 INVITATION LIFECYCLE
 
 ```
-1. User invites someone via email
+1. User invites someone via email (existing or new user)
    ↓
 2. System creates invitation with 48h/24h expiration
    ↓  
-3. Email sent with invitation link
+3a. If existing user → notification email "check your dashboard inbox"
+3b. If new user → invitation email "sign up for Collavo"
    ↓
-4. Recipient clicks link → accept-invitation page
+4a. Existing user → goes to dashboard → accepts from inbox
+4b. New user → signs up → redirected to dashboard → accepts from inbox
    ↓
-5a. If user exists → immediate project joining
-5b. If new user → registration form → project joining
+5. Dashboard inbox calls /api/accept-invitation to join project
    ↓
 6. Auto-cleanup removes expired invitations during operations
 ```

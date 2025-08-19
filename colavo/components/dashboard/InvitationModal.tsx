@@ -46,8 +46,8 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
       
       const data = await response.json();
       setInvitations(data.invitations || []);
-    } catch (error) {
-      console.error('Failed to load invitations:', error);
+    } catch {
+      // Silently fail - errors handled by UI state
     } finally {
       setIsLoading(false);
     }
@@ -130,7 +130,7 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger>
         <Button variant="ghost" size="sm" className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
           <Mail className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           {invitationCount > 0 && (
@@ -155,7 +155,7 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
             )}
           </DialogTitle>
           <DialogDescription>
-            Manage your pending project invitations
+            Manage your pending project invitations. You can also accept invitations directly from your email.
           </DialogDescription>
         </DialogHeader>
 
@@ -171,7 +171,7 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
               </div>
               <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-white">No pending invitations</h3>
               <p className="text-gray-600 dark:text-gray-400 text-sm">
-                You'll see project invitations here when team leaders invite you to collaborate.
+                You&apos;ll see project invitations here when team leaders invite you to collaborate.
               </p>
             </div>
           ) : (

@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserPlus, Loader2, Search } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { UserPlus, Loader2, Mail, UserCheck, UserX } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface AddMemberFormProps {
@@ -15,17 +16,20 @@ interface AddMemberFormProps {
 }
 
 type IdentifierType = 'email' | 'username' | 'id';
+type UserType = 'existing' | 'new';
 
 interface AddMemberFormData {
   identifier: string;
   identifierType: IdentifierType;
+  userType: UserType;
 }
 
 export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<AddMemberFormData>({
     identifier: '',
-    identifierType: 'email'
+    identifierType: 'username',
+    userType: 'existing'
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,6 +37,25 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
     
     if (!formData.identifier.trim()) {
       toast.error('Please enter a valid identifier');
+      return;
+    }
+
+    // Validation based on user type and identifier type
+    if (formData.userType === 'new' && formData.identifierType !== 'email') {
+      toast.error('Invalid selection', {
+        description: 'New users can only be invited by email address. Please select "Email Address" or change to "Existing User".',
+      });
+      return;
+    }
+
+    if (formData.userType === 'existing' && formData.identifierType === 'email') {
+      toast.error('Are you sure this user exists?', {
+        description: 'You selected "Existing User" but are using an email. If they don\'t have a Collavo account yet, please select "New User" instead.',
+        action: {
+          label: 'Switch to New User',
+          onClick: () => setFormData(prev => ({ ...prev, userType: 'new' })),
+        },
+      });
       return;
     }
 
@@ -46,23 +69,77 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
         },
         body: JSON.stringify({
           identifier: formData.identifier.trim(),
-          identifierType: formData.identifierType
+          identifierType: formData.identifierType,
+          userType: formData.userType
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to add member');
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || `Server error (${response.status})`;
+        
+        // Provide specific error messages for common cases
+        if (response.status === 409) {
+          toast.error('Cannot send invitation', {
+            description: errorMessage.includes('already a member') 
+              ? 'This user is already a member of the project.'
+              : errorMessage.includes('already sent')
+              ? 'An invitation has already been sent to this email address.'
+              : errorMessage,
+          });
+          return;
+        } else if (response.status === 404) {
+          if (formData.userType === 'existing') {
+            toast.error('User not found', {
+              description: 'No user found with this identifier. Please check the spelling or try selecting "New User" if they don\'t have an account yet.',
+              action: {
+                label: 'Switch to New User',
+                onClick: () => setFormData(prev => ({ ...prev, userType: 'new', identifierType: 'email' })),
+              },
+            });
+          } else {
+            toast.error('System error', {
+              description: 'Unexpected error occurred. Please try again.',
+            });
+          }
+          return;
+        } else if (response.status === 403) {
+          toast.error('Permission denied', {
+            description: 'You don&apos;t have permission to add members to this project.',
+          });
+          return;
+        } else if (response.status === 400) {
+          toast.error('Invalid request', {
+            description: errorMessage.includes('New users can only be invited by email') 
+              ? 'New users can only be invited by email address. Please check your selection.'
+              : errorMessage.includes('Cannot add yourself')
+              ? 'You cannot add yourself as a member.'
+              : errorMessage,
+          });
+          return;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
       
-      // Handle different response types
+      // Handle different response types with more specific feedback
       if (result.message) {
-        // Email invitation sent
-        toast.success(result.message);
+        if (formData.userType === 'new') {
+          toast.success('🎉 Invitation sent to new user!', {
+            description: `They'll receive a welcome email with signup instructions and project details. The invitation will appear in their inbox after they create their account.`,
+          });
+        } else {
+          toast.success('📧 Invitation sent!', {
+            description: `They'll receive an email notification and can accept the invitation from their dashboard inbox.`,
+          });
+        }
       } else if (result.userName) {
         // Existing user added directly
-        toast.success(`Successfully added ${result.userName} to the project!`);
+        toast.success(`Welcome ${result.userName} to the team! 🎉`, {
+          description: `${result.userName} has been added to the project and can now start collaborating.`,
+        });
       } else {
         toast.success('Member added successfully!');
       }
@@ -70,13 +147,23 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
       // Reset form
       setFormData({
         identifier: '',
-        identifierType: 'email'
+        identifierType: 'username',
+        userType: 'existing'
       });
 
       // Trigger refresh callback
       onMemberAdded?.();
-    } catch {
-      toast.error('Failed to add member');
+    } catch (error) {
+      // Handle network and other errors
+      if (error instanceof Error) {
+        toast.error('Failed to add member', {
+          description: error.message || 'Please check your connection and try again.',
+        });
+      } else {
+        toast.error('Failed to add member', {
+          description: 'An unexpected error occurred. Please try again.',
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -95,32 +182,9 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
     }
   };
 
-  const getInputValidation = () => {
-    switch (formData.identifierType) {
-      case 'email':
-        return {
-          type: 'email' as const,
-          pattern: undefined
-        };
-      case 'username':
-        return {
-          type: 'text' as const,
-          pattern: undefined
-        };
-      case 'id':
-        return {
-          type: 'text' as const,
-          pattern: undefined
-        };
-      default:
-        return {
-          type: 'text' as const,
-          pattern: undefined
-        };
-    }
-  };
+  // Input validation logic removed as it was unused
 
-  const inputProps = getInputValidation();
+
 
   return (
     <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 shadow-md">
@@ -134,53 +198,103 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Identifier Type Selection */}
-          <div className="space-y-2">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* User Type Selection */}
+          <div className="space-y-3">
             <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Search by
+              Are you inviting an existing Collavo user or someone new?
             </Label>
-            <Select
-              value={formData.identifierType}
+            <RadioGroup
+              value={formData.userType}
               onValueChange={(value) => {
-                const typedValue = value as IdentifierType;
-                setFormData(prev => ({ ...prev, identifierType: typedValue, identifier: '' }));
+                const typedValue = value as UserType;
+                setFormData(prev => ({ 
+                  ...prev, 
+                  userType: typedValue,
+                  // Reset identifier type: email for new users, username for existing users
+                  identifierType: typedValue === 'new' ? 'email' : 'username',
+                  identifier: '' // Reset identifier when switching types
+                }));
               }}
+              className="grid grid-cols-1 gap-3"
             >
-              <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="email">Email Address</SelectItem>
-                <SelectItem value="username">Username</SelectItem>
-                <SelectItem value="id">User ID</SelectItem>
-              </SelectContent>
-            </Select>
+              <div className="flex items-center space-x-2 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                <RadioGroupItem value="existing" id="existing" />
+                <Label htmlFor="existing" className="flex items-center space-x-2 cursor-pointer flex-1">
+                  <UserCheck className="h-4 w-4 text-[#008080]" />
+                  <div>
+                    <div className="font-medium text-gray-900 dark:text-white">Existing User</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">They already have a Collavo account</div>
+                  </div>
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                <RadioGroupItem value="new" id="new" />
+                <Label htmlFor="new" className="flex items-center space-x-2 cursor-pointer flex-1">
+                  <UserX className="h-4 w-4 text-[#008080]" />
+                  <div>
+                    <div className="font-medium text-gray-900 dark:text-white">New User</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">They need to create a Collavo account first</div>
+                  </div>
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
+
+          {/* Identifier Type Selection - Only show for existing users */}
+          {formData.userType === 'existing' && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Search by
+              </Label>
+              <Select
+                value={formData.identifierType}
+                onValueChange={(value) => {
+                  const typedValue = value as IdentifierType;
+                  setFormData(prev => ({ ...prev, identifierType: typedValue, identifier: '' }));
+                }}
+              >
+                <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="username">Username</SelectItem>
+                  <SelectItem value="id">User ID</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Identifier Input */}
           <div className="space-y-2">
             <Label htmlFor="identifier" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {formData.identifierType === 'email' ? 'Email Address' : 
+              {formData.userType === 'new' ? 'Email Address' :
                formData.identifierType === 'username' ? 'Username' : 'User ID'}
             </Label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              {formData.userType === 'new' ? (
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              ) : (
+                <UserCheck className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              )}
               <Input
                 id="identifier"
-                type={inputProps.type}
-                placeholder={getPlaceholderText()}
+                type={formData.userType === 'new' ? 'email' : 'text'}
+                placeholder={formData.userType === 'new' ? 'user@example.com' : getPlaceholderText()}
                 value={formData.identifier}
                 onChange={(e) => setFormData(prev => ({ ...prev, identifier: e.target.value }))}
                 className="pl-10 bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] transition-colors"
                 required
                 disabled={isLoading}
-                pattern={inputProps.pattern}
               />
             </div>
-            {formData.identifierType === 'email' && (
+            {formData.userType === 'new' ? (
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                The user must have a Collavo account with this email address.
+                They&apos;ll receive a welcome email with signup instructions and project details.
+              </p>
+            ) : (
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                They must have an existing Collavo account.
               </p>
             )}
           </div>
