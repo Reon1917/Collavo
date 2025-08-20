@@ -140,15 +140,15 @@ export function MemberCard({ member, permissions, projectId, currentUserId, onMe
                   variant="default"
                   className="bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1"
                 >
-                  <Crown className="h-3 w-3 mr-1 text-yellow-300" />
+                  <Crown className="h-3 w-3 mr-1 text-primary-foreground/80" />
                   Leader
                 </Badge>
               ) : (
                 <Badge
                   variant="secondary"
-                  className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1"
+                  className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1"
                 >
-                  <User className="h-3 w-3 mr-1 text-gray-500 dark:text-gray-400" />
+                  <User className="h-3 w-3 mr-1 text-secondary-foreground/60" />
                   Member
                 </Badge>
               )}

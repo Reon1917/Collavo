@@ -20,7 +20,7 @@ export function NavItem({
     <li>
       <Link 
         href={href}
-        className="block px-4 py-2 rounded-md hover:bg-gray-100 text-gray-700 hover:text-blue-600 transition-colors data-[active=true]:bg-blue-50 data-[active=true]:text-blue-600 data-[active=true]:font-medium"
+        className="block px-4 py-2 rounded-md hover:bg-muted text-muted-foreground hover:text-primary transition-colors data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-medium"
         data-active={isActive}
       >
         {children}

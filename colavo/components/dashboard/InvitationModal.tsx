@@ -130,7 +130,7 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger>
+      <DialogTrigger asChild>
         <Button variant="ghost" size="sm" className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
           <Mail className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           {invitationCount > 0 && (

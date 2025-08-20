@@ -261,14 +261,14 @@ export const SidebarLink = ({
         transition={{ duration: 0.2 }}
         className={cn(
           "font-medium whitespace-pre inline-block !p-0 !m-0 transition-all duration-300",
-          isActive ? "text-[#008080] dark:text-[#00FFFF]" : ""
+          isActive ? "text-primary" : ""
         )}
       >
         <span>{link.label}</span>
       </motion.span>
 
       {isActive && (
-        <div className="absolute inset-0 bg-gradient-to-r from-[#008080]/5 to-[#008080]/10 dark:from-[#00FFFF]/5 dark:to-[#00FFFF]/10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary/10 pointer-events-none" />
       )}
     </Link>
   );
