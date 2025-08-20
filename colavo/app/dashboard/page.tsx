@@ -129,7 +129,7 @@ export default function DashboardPage() {
               <div className="bg-card rounded-xl p-12 text-center border border-border shadow-md backdrop-blur-sm">
                 <div className="max-w-md mx-auto">
                   <div className="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-full mb-6 shadow-lg">
-                    <FolderOpen className="h-10 w-10 text-white" />
+                    <FolderOpen className="h-10 w-10 text-primary-foreground" />
                   </div>
                   <h3 className="text-2xl font-semibold mb-3 text-foreground">No projects yet</h3>
                   <p className="text-muted-foreground mb-8 leading-relaxed">
@@ -171,7 +171,7 @@ export default function DashboardPage() {
               <div className="bg-card rounded-xl p-12 text-center border border-border shadow-md backdrop-blur-sm">
                 <div className="max-w-md mx-auto">
                   <div className="inline-flex items-center justify-center w-20 h-20 bg-muted rounded-full mb-6 shadow-lg">
-                    <UserPlus className="h-10 w-10 text-white" />
+                    <UserPlus className="h-10 w-10 text-muted-foreground" />
                   </div>
                   <h3 className="text-2xl font-semibold mb-3 text-foreground">No memberships yet</h3>
                   <p className="text-muted-foreground leading-relaxed">

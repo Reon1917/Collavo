@@ -89,7 +89,7 @@ export function DetailsEditForm({
             id="edit-title"
             value={detailsFormData.title}
             onChange={(e) => setDetailsFormData(prev => ({ ...prev, title: e.target.value }))}
-            className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700"
+            className="bg-background border-border"
             disabled={isLoading}
             required
           />
@@ -104,7 +104,7 @@ export function DetailsEditForm({
             value={detailsFormData.assignedId}
             onValueChange={(value) => setDetailsFormData(prev => ({ ...prev, assignedId: value }))}
             placeholder="Select member *"
-            className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700"
+            className="bg-background border-border"
             disabled={isLoading}
           />
           {detailsFormData.assignedId && !members.find(m => m.userId === detailsFormData.assignedId) && (
@@ -123,7 +123,7 @@ export function DetailsEditForm({
           id="edit-description"
           value={detailsFormData.description}
           onChange={(e) => setDetailsFormData(prev => ({ ...prev, description: e.target.value }))}
-          className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 min-h-[100px] resize-none"
+          className="bg-background border-border min-h-[100px] resize-none"
           disabled={isLoading}
           placeholder="Describe the subtask requirements and objectives..."
         />
@@ -138,7 +138,7 @@ export function DetailsEditForm({
             <Button
               variant="outline"
               className={cn(
-                "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700",
+                "w-full justify-start text-left font-normal bg-background border-border",
                 !detailsFormData.deadline && "text-gray-500 dark:text-gray-400",
                 isLoading && "opacity-50 cursor-not-allowed"
               )}

@@ -209,7 +209,7 @@ export function CreateProjectModal({ trigger, onProjectCreated }: CreateProjectM
             <Button
               type="submit"
               disabled={isLoading || !formData.name.trim()}
-              className="flex-1 bg-[#008080] hover:bg-[#006666] dark:bg-[#008080] dark:hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-200"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200"
             >
               {isLoading ? (
                 <>

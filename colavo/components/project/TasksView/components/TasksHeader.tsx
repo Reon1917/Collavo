@@ -36,8 +36,8 @@ export function TasksHeader({ project, onTaskCreated }: TasksHeaderProps) {
           <Badge 
             variant={project.isLeader ? "default" : "secondary"}
             className={project.isLeader 
-              ? "bg-[#008080] hover:bg-[#006666] text-white" 
-              : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+              ? "bg-primary hover:bg-primary/90 text-primary-foreground" 
+              : "bg-secondary text-secondary-foreground"
             }
           >
             {roleInfo.label}

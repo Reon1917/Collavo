@@ -120,7 +120,7 @@ export function MainTaskForm({
           placeholder="Enter task title..."
           value={mainTaskData.title}
           onChange={(e) => setMainTaskData(prev => ({ ...prev, title: e.target.value }))}
-          className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]"
+          className="bg-background border-border focus:bg-card focus:border-primary"
           maxLength={500}
           required
           disabled={isLoading}
@@ -137,7 +137,7 @@ export function MainTaskForm({
           placeholder="Describe the task objectives and requirements..."
           value={mainTaskData.description}
           onChange={(e) => setMainTaskData(prev => ({ ...prev, description: e.target.value }))}
-          className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] min-h-[80px] resize-none"
+          className="bg-background border-border focus:bg-card focus:border-primary min-h-[80px] resize-none"
           disabled={isLoading}
         />
       </div>
@@ -155,7 +155,7 @@ export function MainTaskForm({
         >
           <SelectTrigger 
             className={cn(
-              "bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]",
+              "bg-background border-border focus:bg-card focus:border-primary",
               isLoading && "opacity-50 cursor-not-allowed"
             )}
           >
@@ -180,7 +180,7 @@ export function MainTaskForm({
             <Button
               variant="outline"
               className={cn(
-                "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 hover:bg-white dark:hover:bg-gray-900 hover:border-[#008080] dark:hover:border-[#00FFFF]",
+                "w-full justify-start text-left font-normal bg-background border-border hover:bg-card hover:border-primary",
                 !mainTaskData.deadline && "text-gray-500 dark:text-gray-400"
               )}
               disabled={isLoading}
@@ -221,7 +221,7 @@ export function MainTaskForm({
         <Button
           type="submit"
           disabled={isLoading || !mainTaskData.title.trim() || !mainTaskData.importanceLevel || !mainTaskData.deadline}
-          className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+          className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           {isLoading ? (
             <>

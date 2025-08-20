@@ -203,7 +203,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
                 {tasks.length > 0 && (
                   <button 
                     onClick={() => onTabChange('tasks')}
-                    className="text-sm text-[#008080] hover:text-[#006666] font-medium flex items-center gap-1"
+                    className="text-sm text-primary hover:text-primary/80 font-medium flex items-center gap-1"
                   >
                     View all {tasks.length} tasks →
                   </button>
@@ -238,7 +238,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
                 {files.length > 0 && (
                   <button 
                     onClick={() => onTabChange('files')}
-                    className="text-sm text-[#008080] hover:text-[#006666] font-medium flex items-center gap-1"
+                    className="text-sm text-primary hover:text-primary/80 font-medium flex items-center gap-1"
                   >
                     View all {files.length} files →
                   </button>
@@ -304,7 +304,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
                       <div key={member.id || member.userId} className="flex items-center gap-2">
                         <Avatar className="h-6 w-6">
                           <AvatarImage src={(member as any).userImage || ''} alt={(member as any).userName || 'User'} />
-                          <AvatarFallback className="bg-[#008080] text-white text-xs">
+                          <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                             {formatInitials((member as any).userName || 'U')}
                           </AvatarFallback>
                         </Avatar>
@@ -317,7 +317,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
                           </span>
                         </div>
                         {(member.role === 'leader' || project.leaderId === member.userId) && (
-                          <Crown className="h-3 w-3 text-[#008080]" />
+                          <Crown className="h-3 w-3 text-primary" />
                         )}
                       </div>
                     ))
@@ -329,7 +329,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
                   {project.members && project.members.length > 4 && (
                     <button 
                       onClick={() => onTabChange('members')}
-                      className="text-xs text-[#008080] hover:text-[#006666] font-medium"
+                      className="text-xs text-primary hover:text-primary/80 font-medium"
                     >
                       +{project.members.length - 4} more members
                     </button>
@@ -354,7 +354,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
                     members={project.members}
                     trigger={
                       <div className="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors text-center">
-                        <Plus className="h-6 w-6 mb-2 text-[#008080]" />
+                        <Plus className="h-6 w-6 mb-2 text-primary" />
                         <span className="text-sm font-medium text-gray-900 dark:text-white">Create Task</span>
                       </div>
                     }
@@ -364,7 +364,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
                 {permissions.canAddMembers && (
                   <div className="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors text-center"
                        onClick={() => onTabChange('members')}>
-                    <UserPlus className="h-6 w-6 mb-2 text-[#008080]" />
+                    <UserPlus className="h-6 w-6 mb-2 text-primary" />
                     <span className="text-sm font-medium text-gray-900 dark:text-white">Add Member</span>
                   </div>
                 )}
@@ -453,7 +453,7 @@ function TaskPreviewCard({ task, project }: { task: Task; project: Project }) {
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
             <div 
-              className="bg-[#008080] h-1.5 rounded-full transition-all duration-300" 
+              className="bg-primary h-1.5 rounded-full transition-all duration-300" 
               style={{ width: `${(task.subTasks.filter(st => st.status === 'completed').length / task.subTasks.length) * 100}%` }}
             />
           </div>

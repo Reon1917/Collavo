@@ -56,7 +56,7 @@ export function StatusUpdateForm({
             placeholder="Add notes about your progress, challenges, or updates..."
             value={statusFormData.note}
             onChange={(e) => setStatusFormData(prev => ({ ...prev, note: e.target.value }))}
-            className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] min-h-[120px] resize-none"
+            className="bg-background border-border focus:bg-card focus:border-primary min-h-[120px] resize-none"
             disabled={isLoading}
           />
         ) : (

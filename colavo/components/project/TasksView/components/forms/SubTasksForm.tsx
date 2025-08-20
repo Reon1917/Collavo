@@ -264,7 +264,7 @@ export function SubTasksForm({
           type="button"
           variant="outline"
           onClick={handleAddSubTask}
-          className="w-full border-dashed border-2 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-[#008080] hover:text-[#008080] py-4"
+          className="w-full border-dashed border-2 border-border text-muted-foreground hover:border-primary hover:text-primary py-4"
         >
           <Plus className="h-4 w-4 mr-2" />
           Add Another Sub-task
@@ -285,7 +285,7 @@ export function SubTasksForm({
           type="button"
           onClick={handleCreateSubTasks}
           disabled={isLoading}
-          className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+          className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           {isLoading ? (
             <>

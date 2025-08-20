@@ -190,7 +190,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
     <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 shadow-md">
       <CardHeader className="pb-4">
         <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          <UserPlus className="h-5 w-5 text-[#008080]" />
+          <UserPlus className="h-5 w-5 text-primary" />
           Add Team Member
         </CardTitle>
         <CardDescription className="text-gray-600 dark:text-gray-400">
@@ -221,7 +221,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
               <div className="flex items-center space-x-2 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                 <RadioGroupItem value="existing" id="existing" />
                 <Label htmlFor="existing" className="flex items-center space-x-2 cursor-pointer flex-1">
-                  <UserCheck className="h-4 w-4 text-[#008080]" />
+                  <UserCheck className="h-4 w-4 text-primary" />
                   <div>
                     <div className="font-medium text-gray-900 dark:text-white">Existing User</div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">They already have a Collavo account</div>
@@ -231,7 +231,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
               <div className="flex items-center space-x-2 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                 <RadioGroupItem value="new" id="new" />
                 <Label htmlFor="new" className="flex items-center space-x-2 cursor-pointer flex-1">
-                  <UserX className="h-4 w-4 text-[#008080]" />
+                  <UserX className="h-4 w-4 text-primary" />
                   <div>
                     <div className="font-medium text-gray-900 dark:text-white">New User</div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">They need to create a Collavo account first</div>
@@ -254,7 +254,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
                   setFormData(prev => ({ ...prev, identifierType: typedValue, identifier: '' }));
                 }}
               >
-                <SelectTrigger className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
+                <SelectTrigger className="bg-background border-border focus:bg-card focus:border-primary">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -283,7 +283,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
                 placeholder={formData.userType === 'new' ? 'user@example.com' : getPlaceholderText()}
                 value={formData.identifier}
                 onChange={(e) => setFormData(prev => ({ ...prev, identifier: e.target.value }))}
-                className="pl-10 bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] transition-colors"
+                className="pl-10 bg-background border-border focus:bg-card focus:border-primary transition-colors"
                 required
                 disabled={isLoading}
               />
@@ -303,7 +303,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
           <Button
             type="submit"
             disabled={isLoading || !formData.identifier.trim()}
-            className="w-full bg-[#008080] hover:bg-[#006666] dark:bg-[#008080] dark:hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-200"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200"
           >
             {isLoading ? (
               <>

@@ -14,6 +14,10 @@ export function applyTheme(theme: ColorTheme, isDark: boolean): void {
     root.style.setProperty(cssVarName, value);
   });
 
+  // Apply additional CSS variables for sidebar hover states
+  root.style.setProperty('--sidebar-hover', colors.sidebarHover);
+  root.style.setProperty('--sidebar-hover-foreground', colors.sidebarHoverForeground);
+
   // Store the current theme in localStorage for persistence
   localStorage.setItem('collavo-theme', theme);
 }
@@ -96,6 +100,34 @@ export function getEventTypeColors(type: 'meeting' | 'deadline' | 'milestone' | 
  */
 export function isDarkOptimizedTheme(theme: ColorTheme): boolean {
   return theme === 'amoled';
+}
+
+/**
+ * Check if a theme is accessibility-focused
+ */
+export function isAccessibilityTheme(theme: ColorTheme): boolean {
+  return theme === 'accessible';
+}
+
+/**
+ * Get theme category for grouping in UI
+ */
+export function getThemeCategory(theme: ColorTheme): 'colorful' | 'minimal' | 'professional' | 'accessibility' {
+  switch (theme) {
+    case 'creative':
+    case 'energy':
+      return 'colorful';
+    case 'daylight':
+    case 'amoled':
+      return 'minimal';
+    case 'default':
+    case 'graphite':
+      return 'professional';
+    case 'accessible':
+      return 'accessibility';
+    default:
+      return 'professional';
+  }
 }
 
 /**
