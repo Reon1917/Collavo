@@ -77,30 +77,57 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f9f8f0] dark:bg-gray-950 px-4 py-12">
-      <div className="absolute top-4 right-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 dark:from-emerald-900 dark:via-teal-800 dark:to-cyan-900 px-4 py-16 relative overflow-hidden">
+      {/* Decorative 3D Components */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Component 1 - Top Left */}
+        <div className="absolute top-10 left-10 lg:top-20 lg:left-20 opacity-60 animate-float">
+          <img 
+            src="/component1.png" 
+            alt="3D Component 1" 
+            className="w-20 h-20 lg:w-28 lg:h-28 object-contain drop-shadow-lg"
+          />
+        </div>
+        
+        {/* Component 2 - Bottom Right */}
+        <div className="absolute bottom-16 right-8 lg:bottom-24 lg:right-16 opacity-50 animate-float-slow">
+          <img 
+            src="/component3.png" 
+            alt="3D Component 3" 
+            className="w-24 h-24 lg:w-32 lg:h-32 object-contain drop-shadow-lg"
+          />
+        </div>
+        
+        {/* Additional subtle elements */}
+        <div className="absolute top-1/4 right-1/4 w-2 h-12 bg-white/10 rounded-full rotate-45 animate-pulse"></div>
+        <div className="absolute bottom-1/3 left-1/6 w-1 h-8 bg-white/8 rounded-full -rotate-12 animate-pulse"></div>
+      </div>
+
+      <div className="absolute top-4 right-4 z-20">
         <ThemeToggle />
       </div>
       
-      <div className="absolute top-4 left-4 flex items-center space-x-3">
-        <div className="w-8 h-8 bg-[#008080] rounded-lg flex items-center justify-center">
-          <span className="text-white font-bold text-sm">C</span>
-        </div>
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Collavo</h3>
+      <div className="absolute top-4 left-4 flex items-center space-x-3 z-20">
+        <Link href="/" className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/30">
+            <span className="text-white font-bold text-sm">C</span>
+          </div>
+          <h3 className="text-xl font-bold text-white">Collavo</h3>
+        </Link>
       </div>
       
-      <Card className="w-full max-w-md bg-white dark:bg-gray-900 border-[#e5e4dd] dark:border-gray-800 shadow-lg">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">Create your account</CardTitle>
-          <CardDescription className="text-center text-gray-600 dark:text-gray-400">
+      <Card className="w-full max-w-lg bg-white/10 backdrop-blur-md border-white/20 shadow-xl relative z-10">
+        <CardHeader className="space-y-3 pb-6">
+          <CardTitle className="text-2xl font-bold text-center text-white">Create your account</CardTitle>
+          <CardDescription className="text-center text-white/80">
             Enter your details to get started with Collavo
           </CardDescription>
         </CardHeader>
         
         <form onSubmit={handleEmailSignup}>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6 px-6">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-gray-700 dark:text-gray-300">Full Name</Label>
+              <Label htmlFor="name" className="text-white text-sm font-medium">Full Name</Label>
               <Input
                 id="name"
                 type="text"
@@ -109,12 +136,12 @@ export default function SignupPage() {
                 onChange={(e) => setName(e.target.value)}
                 disabled={isLoading}
                 required
-                className="bg-white dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-[#008080] dark:focus:border-[#00FFFF] focus:ring-[#008080] dark:focus:ring-[#00FFFF]"
+                className="bg-white/20 backdrop-blur-sm border-white/30 text-white placeholder-white/60 focus:border-white/50 focus:ring-white/30 h-11"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">Email</Label>
+              <Label htmlFor="email" className="text-white text-sm font-medium">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -123,12 +150,12 @@ export default function SignupPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
                 required
-                className="bg-white dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-[#008080] dark:focus:border-[#00FFFF] focus:ring-[#008080] dark:focus:ring-[#00FFFF]"
+                className="bg-white/20 backdrop-blur-sm border-white/30 text-white placeholder-white/60 focus:border-white/50 focus:ring-white/30 h-11"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">Password</Label>
+              <Label htmlFor="password" className="text-white text-sm font-medium">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -138,12 +165,12 @@ export default function SignupPage() {
                 disabled={isLoading}
                 required
                 minLength={8}
-                className="bg-white dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-[#008080] dark:focus:border-[#00FFFF] focus:ring-[#008080] dark:focus:ring-[#00FFFF]"
+                className="bg-white/20 backdrop-blur-sm border-white/30 text-white placeholder-white/60 focus:border-white/50 focus:ring-white/30 h-11"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-gray-700 dark:text-gray-300">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="text-white text-sm font-medium">Confirm Password</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -152,23 +179,23 @@ export default function SignupPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={isLoading}
                 required
-                className="bg-white dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-[#008080] dark:focus:border-[#00FFFF] focus:ring-[#008080] dark:focus:ring-[#00FFFF]"
+                className="bg-white/20 backdrop-blur-sm border-white/30 text-white placeholder-white/60 focus:border-white/50 focus:ring-white/30 h-11"
               />
             </div>
           </CardContent>
           
-          <CardFooter className="space-y-4">
-            <div className="w-full space-y-3">
-              <Button type="submit" className="w-full bg-[#008080] hover:bg-[#006666] dark:bg-[#008080] dark:hover:bg-[#006666] text-white" disabled={isLoading}>
+          <CardFooter className="space-y-4 pt-6 px-6">
+            <div className="w-full space-y-4">
+              <Button type="submit" className="w-full bg-white/90 hover:bg-white text-teal-600 hover:text-teal-700 border-0 font-semibold py-3" disabled={isLoading}>
                 {isLoading ? "Creating account..." : "Create Account"}
               </Button>
               
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-[#e5e4dd] dark:border-gray-700" />
+                  <span className="w-full border-t border-white/30" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white dark:bg-gray-900 px-2 text-gray-500 dark:text-gray-400">
+                  <span className="bg-white/10 backdrop-blur-sm px-2 text-white/80 rounded">
                     Or continue with
                   </span>
                 </div>
@@ -177,7 +204,7 @@ export default function SignupPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full border-[#e5e4dd] dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-[#f0efea] dark:hover:bg-gray-800 hover:border-[#008080] dark:hover:border-[#00FFFF]"
+                className="w-full border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 hover:border-white/50 py-3"
                 onClick={handleGoogleSignup}
                 disabled={isLoading}
               >
@@ -202,11 +229,11 @@ export default function SignupPage() {
                 {isLoading ? "Connecting..." : "Continue with Google"}
               </Button>
               
-              <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-center text-sm text-white/80">
                 Already have an account?{' '}
                 <Link 
                   href="/login" 
-                  className="text-[#008080] dark:text-[#00FFFF] hover:text-[#006666] dark:hover:text-[#00CCCC] hover:underline font-medium transition-colors"
+                  className="text-white hover:text-white/90 hover:underline font-medium transition-colors"
                 >
                   Sign in
                 </Link>

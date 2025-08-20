@@ -60,47 +60,74 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f9f8f0] dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 dark:from-emerald-900 dark:via-teal-800 dark:to-cyan-900 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Decorative 3D Components */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Component 2 - Top Right */}
+        <div className="absolute top-10 right-10 lg:top-20 lg:right-20 opacity-60 animate-float-delayed">
+          <img 
+            src="/component2.png" 
+            alt="3D Component 2" 
+            className="w-20 h-20 lg:w-28 lg:h-28 object-contain drop-shadow-lg"
+          />
+        </div>
+        
+        {/* Component 1 - Bottom Left */}
+        <div className="absolute bottom-16 left-8 lg:bottom-24 lg:left-16 opacity-50 animate-float">
+          <img 
+            src="/component1.png" 
+            alt="3D Component 1" 
+            className="w-24 h-24 lg:w-32 lg:h-32 object-contain drop-shadow-lg"
+          />
+        </div>
+        
+        {/* Additional subtle elements */}
+        <div className="absolute top-1/3 left-1/4 w-2 h-12 bg-white/10 rounded-full rotate-45 animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/3 w-1 h-8 bg-white/8 rounded-full -rotate-12 animate-pulse"></div>
+      </div>
+
       {/* Theme toggle in top right corner */}
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 z-20">
         <ThemeToggle />
       </div>
       
       {/* Logo in top left corner */}
-      <div className="absolute top-4 left-4 flex items-center space-x-3">
-        <div className="w-8 h-8 bg-[#008080] rounded-lg flex items-center justify-center">
-          <span className="text-white font-bold text-sm">C</span>
-        </div>
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Collavo</h3>
+      <div className="absolute top-4 left-4 flex items-center space-x-3 z-20">
+        <Link href="/" className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/30">
+            <span className="text-white font-bold text-sm">C</span>
+          </div>
+          <h3 className="text-xl font-bold text-white">Collavo</h3>
+        </Link>
       </div>
       
-      <div className="max-w-md w-full space-y-8">
+      <div className="max-w-md w-full space-y-8 relative z-10">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
             Sign in to your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-center text-sm text-white/80">
             Or{' '}
             <Link
               href="/signup"
-              className="font-medium text-[#008080] dark:text-[#00FFFF] hover:text-[#006666] dark:hover:text-[#00CCCC]"
+              className="font-medium text-white hover:text-white/90 hover:underline transition-colors"
             >
               create a new account
             </Link>
           </p>
         </div>
 
-        <Card className="bg-white dark:bg-gray-900 border-[#e5e4dd] dark:border-gray-800 shadow-lg">
+        <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-xl">
           <CardHeader>
-            <CardTitle className="text-gray-900 dark:text-white">Welcome Back</CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400">
+            <CardTitle className="text-white">Welcome Back</CardTitle>
+            <CardDescription className="text-white/80">
               Enter your credentials to access your account
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">Email</Label>
+                <Label htmlFor="email" className="text-white">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -108,11 +135,11 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-white dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-[#008080] dark:focus:border-[#00FFFF] focus:ring-[#008080] dark:focus:ring-[#00FFFF]"
+                  className="bg-white/20 backdrop-blur-sm border-white/30 text-white placeholder-white/60 focus:border-white/50 focus:ring-white/30"
                 />
               </div>
               <div>
-                <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">Password</Label>
+                <Label htmlFor="password" className="text-white">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -120,14 +147,14 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="bg-white dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-[#008080] dark:focus:border-[#00FFFF] focus:ring-[#008080] dark:focus:ring-[#00FFFF]"
+                  className="bg-white/20 backdrop-blur-sm border-white/30 text-white placeholder-white/60 focus:border-white/50 focus:ring-white/30"
                 />
               </div>
               <div className="flex items-center justify-between">
                 <div className="text-sm">
                   <Link
                     href="/forgot-password"
-                    className="font-medium text-[#008080] dark:text-[#00FFFF] hover:text-[#006666] dark:hover:text-[#00CCCC]"
+                    className="font-medium text-white hover:text-white/90 hover:underline transition-colors"
                   >
                     Forgot your password?
                   </Link>
@@ -137,7 +164,7 @@ export default function LoginPage() {
             <CardFooter>
               <Button 
                 type="submit" 
-                className="w-full bg-[#008080] hover:bg-[#006666] dark:bg-[#008080] dark:hover:bg-[#006666] text-white" 
+                className="w-full bg-white/90 hover:bg-white text-teal-600 hover:text-teal-700 border-0 font-semibold" 
                 disabled={isLoading}
               >
                 {isLoading ? 'Signing in...' : 'Sign in'}
@@ -147,11 +174,11 @@ export default function LoginPage() {
         </Card>
 
         <div className="text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-white/80">
             New to our platform?{' '}
             <Link
               href="/signup"
-              className="font-medium text-[#008080] dark:text-[#00FFFF] hover:text-[#006666] dark:hover:text-[#00CCCC]"
+              className="font-medium text-white hover:text-white/90 hover:underline transition-colors"
             >
               Sign up here
             </Link>
@@ -162,10 +189,10 @@ export default function LoginPage() {
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#e5e4dd] dark:border-gray-700" />
+              <div className="w-full border-t border-white/30" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-[#f9f8f0] dark:bg-gray-950 text-gray-500 dark:text-gray-400">
+              <span className="px-2 bg-white/10 backdrop-blur-sm text-white/80 rounded">
                 Or continue with
               </span>
             </div>
@@ -175,7 +202,7 @@ export default function LoginPage() {
             <Button
               variant="outline"
               onClick={handleGoogleSignIn}
-              className="w-full border-[#e5e4dd] dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-[#f0efea] dark:hover:bg-gray-800 hover:border-[#008080] dark:hover:border-[#00FFFF]"
+              className="w-full border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 hover:border-white/50"
             >
               <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
                 <path

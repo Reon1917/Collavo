@@ -38,16 +38,16 @@ export function Navbar() {
   };
 
   return (
-    <nav className="bg-background border-b border-border sticky top-0 z-50">
+    <nav className="bg-transparent border-b border-white/20 sticky top-0 z-50 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Left side - Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">C</span>
+              <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/30">
+                <span className="text-white font-bold text-sm">C</span>
               </div>
-              <span className="text-xl font-bold text-foreground">Collavo</span>
+              <span className="text-xl font-bold text-white">Collavo</span>
             </Link>
           </div>
 
@@ -96,10 +96,10 @@ export function Navbar() {
               </DropdownMenu>
             ) : (
               <div className="flex items-center space-x-2">
-                <Button variant="ghost" asChild>
+                <Button variant="ghost" asChild className="text-white hover:text-white/80 hover:bg-white/10">
                   <Link href="/login">Sign In</Link>
                 </Button>
-                <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                <Button asChild className="bg-white/90 hover:bg-white text-teal-600 border-0">
                   <Link href="/signup">Sign Up</Link>
                 </Button>
               </div>
