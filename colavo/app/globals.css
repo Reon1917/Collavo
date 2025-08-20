@@ -118,8 +118,42 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
   }
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Force theme variables to be applied immediately */
+  .bg-white {
+    background-color: var(--card) !important;
+  }
+  
+  .bg-gray-50 {
+    background-color: var(--muted) !important;
+  }
+  
+  .bg-gray-100 {
+    background-color: var(--muted) !important;
+  }
+  
+  .text-gray-900 {
+    color: var(--foreground) !important;
+  }
+  
+  .text-gray-600 {
+    color: var(--muted-foreground) !important;
+  }
+  
+  .text-gray-500 {
+    color: var(--muted-foreground) !important;
+  }
+  
+  .border-gray-200 {
+    border-color: var(--border) !important;
+  }
+  
+  .border-gray-300 {
+    border-color: var(--border) !important;
   }
 }
