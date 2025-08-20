@@ -47,14 +47,17 @@ export const useThemeStore = create<ThemeState>()(
           });
 
           if (!response.ok) {
-            throw new Error('Failed to sync theme with server');
+            const errorData = await response.json().catch(() => ({}));
+            console.warn('Failed to sync theme with server:', errorData.error || response.statusText);
+            // Don't throw error - continue with local theme change
           }
 
           set({ theme, isLoading: false });
         } catch (error) {
-          console.error('Error syncing theme:', error);
-          set({ isLoading: false });
-          throw error;
+          console.warn('Error syncing theme with server:', error);
+          // Still set the theme locally even if server sync fails
+          set({ theme, isLoading: false });
+          // Don't throw the error - let the theme change succeed locally
         }
       },
 

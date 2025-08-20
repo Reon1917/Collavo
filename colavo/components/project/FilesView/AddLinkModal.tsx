@@ -204,7 +204,7 @@ export function AddLinkModal({
             <Button
               type="submit"
               disabled={!linkName.trim() || !linkUrl.trim() || isAdding}
-              className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {isAdding ? (
                 <>

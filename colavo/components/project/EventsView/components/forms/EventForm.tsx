@@ -138,7 +138,7 @@ export function EventForm({
           placeholder="Enter event title..."
           value={eventData.title}
           onChange={(e) => setEventData((prev: EventFormData) => ({ ...prev, title: e.target.value }))}
-          className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]"
+          className="bg-background border-border focus:bg-card focus:border-primary"
           maxLength={500}
           required
           disabled={isLoading}
@@ -266,7 +266,7 @@ export function EventForm({
           placeholder="Enter event location (optional)"
           value={eventData.location}
           onChange={(e) => setEventData((prev: EventFormData) => ({ ...prev, location: e.target.value }))}
-          className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]"
+          className="bg-background border-border focus:bg-card focus:border-primary"
           maxLength={500}
           disabled={isLoading}
         />
@@ -279,14 +279,14 @@ export function EventForm({
           variant="outline"
           onClick={onCancel}
           disabled={isLoading}
-          className="flex-1 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700"
+          className="flex-1 bg-muted border-border hover:bg-muted/80"
         >
           Cancel
         </Button>
         <Button
           type="submit"
           disabled={isLoading || !eventData.title.trim() || !eventData.datetime}
-          className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+          className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           {isLoading ? (
             <>

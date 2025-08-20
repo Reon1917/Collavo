@@ -122,13 +122,13 @@ export function ChangePasswordModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+      <DialogContent className="max-w-md bg-card border border-border">
         <DialogHeader>
-          <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-2">
-            <Lock className="h-5 w-5 text-[#008080] dark:text-[#00FFFF]" />
+          <DialogTitle className="text-foreground flex items-center gap-2">
+            <Lock className="h-5 w-5 text-primary" />
             Change Password
           </DialogTitle>
-          <DialogDescription className="text-gray-600 dark:text-gray-400">
+          <DialogDescription className="text-muted-foreground">
             Update your account password. You&apos;ll remain signed in on this device.
           </DialogDescription>
         </DialogHeader>
@@ -136,7 +136,7 @@ export function ChangePasswordModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Current Password */}
           <div className="space-y-2">
-            <Label htmlFor="currentPassword" className="text-gray-700 dark:text-gray-300">
+            <Label htmlFor="currentPassword" className="text-foreground">
               Current Password
             </Label>
             <div className="relative">
@@ -159,7 +159,7 @@ export function ChangePasswordModal({
               <button
                 type="button"
                 onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 disabled={isLoading}
               >
                 {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -177,7 +177,7 @@ export function ChangePasswordModal({
 
           {/* New Password */}
           <div className="space-y-2">
-            <Label htmlFor="newPassword" className="text-gray-700 dark:text-gray-300">
+            <Label htmlFor="newPassword" className="text-foreground">
               New Password
             </Label>
             <div className="relative">
@@ -201,7 +201,7 @@ export function ChangePasswordModal({
               <button
                 type="button"
                 onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 disabled={isLoading}
               >
                 {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -213,14 +213,14 @@ export function ChangePasswordModal({
                 {errors.newPassword}
               </p>
             )}
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground">
               Password must be at least 8 characters long
             </p>
           </div>
 
           {/* Confirm New Password */}
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword" className="text-gray-700 dark:text-gray-300">
+            <Label htmlFor="confirmPassword" className="text-foreground">
               Confirm New Password
             </Label>
             <div className="relative">
@@ -243,7 +243,7 @@ export function ChangePasswordModal({
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 disabled={isLoading}
               >
                 {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -261,11 +261,11 @@ export function ChangePasswordModal({
 
           {/* Forgot Password Link */}
           <div className="text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground">
               Can&apos;t remember your current password?{' '}
               <Link 
                 href="/forgot-password" 
-                className="text-[#008080] hover:text-[#008080]/80 dark:text-[#00FFFF] dark:hover:text-[#00FFFF]/80 font-medium transition-colors"
+                className="text-primary hover:text-primary/80 font-medium transition-colors"
                 onClick={() => handleClose()}
               >
                 Reset it instead
@@ -287,7 +287,7 @@ export function ChangePasswordModal({
             <Button
               type="submit"
               disabled={isLoading}
-              className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {isLoading ? (
                 <>

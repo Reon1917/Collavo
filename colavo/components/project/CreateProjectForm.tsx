@@ -77,7 +77,7 @@ export function CreateProjectForm() {
     <Card className="w-full max-w-2xl mx-auto bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 shadow-md">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <PlusCircle className="h-6 w-6 text-[#008080]" />
+          <PlusCircle className="h-6 w-6 text-primary" />
           Create New Project
         </CardTitle>
         <CardDescription className="text-gray-600 dark:text-gray-400">
@@ -97,7 +97,7 @@ export function CreateProjectForm() {
               placeholder="Enter project name..."
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
-              className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] transition-colors"
+              className="bg-background border-border focus:bg-card focus:border-primary transition-colors"
               maxLength={255}
               required
               disabled={isLoading}
@@ -117,7 +117,7 @@ export function CreateProjectForm() {
               placeholder="Describe your project goals, scope, and objectives..."
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] transition-colors min-h-[100px] resize-none"
+              className="bg-background border-border focus:bg-card focus:border-primary transition-colors min-h-[100px] resize-none"
               disabled={isLoading}
             />
           </div>
@@ -132,8 +132,8 @@ export function CreateProjectForm() {
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 hover:bg-white dark:hover:bg-gray-900 hover:border-[#008080] dark:hover:border-[#00FFFF]",
-                    !formData.deadline && "text-gray-500 dark:text-gray-400"
+                    "w-full justify-start text-left font-normal bg-background border-border hover:bg-card hover:border-primary",
+                    !formData.deadline && "text-muted-foreground"
                   )}
                   disabled={isLoading}
                 >
@@ -141,7 +141,7 @@ export function CreateProjectForm() {
                   {formData.deadline ? format(formData.deadline, "PPP") : "Select deadline"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+              <PopoverContent className="w-auto p-0 bg-card border border-border">
                 <Calendar
                   mode="single"
                   selected={formData.deadline}
@@ -160,14 +160,14 @@ export function CreateProjectForm() {
               variant="outline"
               onClick={() => router.back()}
               disabled={isLoading}
-              className="flex-1 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+              className="flex-1 border-border hover:bg-muted"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isLoading || !formData.name.trim()}
-              className="flex-1 bg-[#008080] hover:bg-[#006666] dark:bg-[#008080] dark:hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-200"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200"
             >
               {isLoading ? (
                 <>

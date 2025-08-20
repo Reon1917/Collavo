@@ -99,13 +99,13 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           {/* View Mode Toggle */}
-          <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+          <div className="flex space-x-1 bg-muted rounded-lg p-1">
             <button
               onClick={() => setViewMode('overview')}
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 viewMode === 'overview'
-                  ? 'bg-[#008080] text-white shadow-sm'
-                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Overview
@@ -114,8 +114,8 @@ export function GraphView({ project, tasks = [] }: GraphViewProps) {
               onClick={() => setViewMode('detailed')}
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 viewMode === 'detailed'
-                  ? 'bg-[#008080] text-white shadow-sm'
-                  : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Detailed

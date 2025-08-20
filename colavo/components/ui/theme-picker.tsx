@@ -53,8 +53,9 @@ export function ThemePicker({ userId, className }: ThemePickerProps) {
         toast.success(`Applied ${getThemeDefinition(newTheme).displayName} theme! Sign in to save your preference.`);
       }
     } catch (error) {
-      toast.error('Failed to apply theme');
-      console.error('Error applying theme:', error);
+      // Even if server sync fails, the theme was still applied locally
+      toast.success(`Applied ${getThemeDefinition(newTheme).displayName} theme! (Server sync failed - changes saved locally)`);
+      console.warn('Theme applied locally, but server sync failed:', error);
     } finally {
       setIsApplying(false);
     }
