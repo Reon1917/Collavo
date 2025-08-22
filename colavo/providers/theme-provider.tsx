@@ -33,6 +33,7 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
 
       return () => observer.disconnect();
     }
+    return undefined;
   }, [mounted, theme]);
 
   if (!mounted) {

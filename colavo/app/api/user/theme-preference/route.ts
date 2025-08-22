@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { colorPreferences, user } from '@/db/schema';
+import { colorPreferences } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { ColorTheme } from '@/lib/themes/definitions';
 
@@ -23,11 +23,11 @@ export async function GET(request: NextRequest) {
       .limit(1);
 
     // Return default theme if no preference found
-    const theme = userPreference.length > 0 ? userPreference[0].theme : 'default';
+    const theme = userPreference.length > 0 ? userPreference[0]!.theme : 'default';
 
     return NextResponse.json({ theme });
-  } catch (error) {
-    console.error('Error fetching user theme preference:', error);
+  } catch {
+    // console.error('Error fetching user theme preference:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -83,8 +83,8 @@ export async function PUT(request: NextRequest) {
       success: true, 
       theme 
     });
-  } catch (error) {
-    console.error('Error updating user theme preference:', error);
+  } catch {
+    // console.error('Error updating user theme preference:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -108,8 +108,8 @@ export async function DELETE(request: NextRequest) {
       success: true,
       theme: 'default'
     });
-  } catch (error) {
-    console.error('Error deleting user theme preference:', error);
+  } catch {
+    // console.error('Error deleting user theme preference:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -35,7 +35,7 @@ export const useThemeStore = create<ThemeState>()(
         set({ theme });
       },
 
-      syncWithServer: async (userId: string, theme: ColorTheme) => {
+      syncWithServer: async (_userId: string, theme: ColorTheme) => {
         set({ isLoading: true });
         try {
           const response = await fetch('/api/user/theme-preference', {
@@ -47,21 +47,21 @@ export const useThemeStore = create<ThemeState>()(
           });
 
           if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.warn('Failed to sync theme with server:', errorData.error || response.statusText);
+            await response.json().catch(() => ({}));
+            // console.warn('Failed to sync theme with server:', response.statusText);
             // Don't throw error - continue with local theme change
           }
 
           set({ theme, isLoading: false });
-        } catch (error) {
-          console.warn('Error syncing theme with server:', error);
+        } catch {
+          // console.warn('Error syncing theme with server:', error);
           // Still set the theme locally even if server sync fails
           set({ theme, isLoading: false });
           // Don't throw the error - let the theme change succeed locally
         }
       },
 
-      loadUserTheme: async (userId: string) => {
+      loadUserTheme: async () => {
         set({ isLoading: true });
         try {
           const response = await fetch('/api/user/theme-preference');
@@ -77,8 +77,8 @@ export const useThemeStore = create<ThemeState>()(
           } else {
             set({ isLoading: false });
           }
-        } catch (error) {
-          console.error('Error loading user theme:', error);
+        } catch {
+          // console.error('Error loading user theme:', error);
           set({ isLoading: false });
         }
       },

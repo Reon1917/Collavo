@@ -44,7 +44,7 @@ export function initializeTheme(): void {
 /**
  * Get status colors that work with the current theme
  */
-export function getStatusColors(status: 'success' | 'warning' | 'error' | 'info', theme: ColorTheme = 'default') {
+export function getStatusColors(status: 'success' | 'warning' | 'error' | 'info') {
   const baseColors = {
     success: {
       light: 'bg-green-100 text-green-800 border-green-200',

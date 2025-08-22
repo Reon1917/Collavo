@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Palette, Eye, EyeOff } from 'lucide-react';
+import { Check, Palette, EyeOff } from 'lucide-react';
 import { ColorTheme, getAllThemes, getThemeDefinition } from '@/lib/themes/definitions';
 import { useThemeStore } from '@/lib/stores/theme-store';
 import { useTheme } from 'next-themes';
@@ -34,7 +34,7 @@ export function ThemePicker({ userId, className }: ThemePickerProps) {
   
   const allThemes = getAllThemes();
   const isDark = systemTheme === 'dark';
-  const currentDisplayTheme = previewTheme || theme;
+  // const currentDisplayTheme = previewTheme || theme;
 
   const handleThemeSelect = async (newTheme: ColorTheme) => {
     if (newTheme === theme) return;
@@ -52,10 +52,10 @@ export function ThemePicker({ userId, className }: ThemePickerProps) {
         setTheme(newTheme);
         toast.success(`Applied ${getThemeDefinition(newTheme).displayName} theme! Sign in to save your preference.`);
       }
-    } catch (error) {
+    } catch {
       // Even if server sync fails, the theme was still applied locally
       toast.success(`Applied ${getThemeDefinition(newTheme).displayName} theme! (Server sync failed - changes saved locally)`);
-      console.warn('Theme applied locally, but server sync failed:', error);
+      // Minor UI feedback - theme still works locally
     } finally {
       setIsApplying(false);
     }
