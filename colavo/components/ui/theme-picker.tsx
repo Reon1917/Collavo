@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Palette, EyeOff } from 'lucide-react';
-import { ColorTheme, getAllThemes, getThemeDefinition } from '@/lib/themes/definitions';
+import { Check, Palette, Monitor, Smartphone } from 'lucide-react';
+import { ColorTheme, getAllThemes, getThemeDefinition, ThemeColors } from '@/lib/themes/definitions';
 import { useThemeStore } from '@/lib/stores/theme-store';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
@@ -22,29 +21,22 @@ export function ThemePicker({ userId, className }: ThemePickerProps) {
     setTheme, 
     applyThemeToDocument, 
     syncWithServer, 
-    isLoading,
-    previewTheme,
-    previewThemeChange,
-    clearPreview
+    isLoading
   } = useThemeStore();
   
   const { theme: systemTheme } = useTheme();
   const [isApplying, setIsApplying] = useState(false);
-  const [hoveredTheme, setHoveredTheme] = useState<ColorTheme | null>(null);
   
   const allThemes = getAllThemes();
   const isDark = systemTheme === 'dark';
-  // const currentDisplayTheme = previewTheme || theme;
 
   const handleThemeSelect = async (newTheme: ColorTheme) => {
     if (newTheme === theme) return;
 
     setIsApplying(true);
     try {
-      // Apply the theme immediately
       applyThemeToDocument(newTheme, isDark);
       
-      // Sync with server if user is logged in
       if (userId) {
         await syncWithServer(userId, newTheme);
         toast.success(`Applied ${getThemeDefinition(newTheme).displayName} theme!`);
@@ -53,76 +45,98 @@ export function ThemePicker({ userId, className }: ThemePickerProps) {
         toast.success(`Applied ${getThemeDefinition(newTheme).displayName} theme! Sign in to save your preference.`);
       }
     } catch {
-      // Even if server sync fails, the theme was still applied locally
       toast.success(`Applied ${getThemeDefinition(newTheme).displayName} theme! (Server sync failed - changes saved locally)`);
-      // Minor UI feedback - theme still works locally
     } finally {
       setIsApplying(false);
     }
   };
 
-  const handleThemePreview = (themeToPreview: ColorTheme) => {
-    if (themeToPreview === theme) return;
-    previewThemeChange(themeToPreview, isDark);
-    setHoveredTheme(themeToPreview);
-  };
-
-  const handleClearPreview = () => {
-    clearPreview(isDark);
-    setHoveredTheme(null);
-  };
-
-  const ThemeCircle = ({ themeDefinition, isSelected, isPreview }: { 
-    themeDefinition: any, 
-    isSelected: boolean,
-    isPreview: boolean 
+  // Compact mockup component
+  const ThemeMockup = ({ themeDefinition, isDarkMode }: { 
+    themeDefinition: ThemeColors, 
+    isDarkMode: boolean 
   }) => {
-    const colors = isDark ? themeDefinition.dark : themeDefinition.light;
+    const colors = isDarkMode ? themeDefinition.dark : themeDefinition.light;
     
     return (
-      <div className="flex flex-col items-center gap-3">
-        <div className="relative">
-          <div 
-            className={cn(
-              "w-16 h-16 rounded-full border-4 transition-all duration-300 cursor-pointer relative overflow-hidden",
-              isSelected ? "border-primary scale-110 shadow-lg" : "border-border hover:border-primary/50 hover:scale-105",
-              isPreview && "ring-4 ring-primary/30"
-            )}
-            style={{
-              background: `conic-gradient(from 0deg, ${colors.primary} 0deg 120deg, ${colors.secondary} 120deg 240deg, ${colors.accent} 240deg 360deg)`,
-              boxShadow: isSelected ? `0 8px 25px ${colors.primary}40` : undefined
-            }}
-          >
-            {/* Inner circle for better visibility */}
-            <div 
-              className="absolute inset-2 rounded-full"
-              style={{ backgroundColor: colors.background }}
-            />
-            
-            {/* Center accent */}
-            <div 
-              className="absolute inset-4 rounded-full"
-              style={{ backgroundColor: colors.primary }}
-            />
+      <div className="w-full h-20 rounded-md overflow-hidden border border-border/30 shadow-sm bg-background">
+        {/* Header bar */}
+        <div 
+          className="h-3 flex items-center justify-between px-1.5 border-b border-border/30"
+          style={{ backgroundColor: colors.card }}
+        >
+          <div className="flex gap-0.5">
+            <div className="w-1 h-1 rounded-full bg-red-500/70" />
+            <div className="w-1 h-1 rounded-full bg-yellow-500/70" />
+            <div className="w-1 h-1 rounded-full bg-green-500/70" />
           </div>
-          
-          {/* Selection Indicator */}
-          {isSelected && (
-            <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full p-1 shadow-lg">
-              <Check className="h-3 w-3" />
-            </div>
-          )}
+          <div className="w-6 h-0.5 rounded-full" style={{ backgroundColor: colors.mutedForeground }} />
         </div>
         
-        <div className="text-center">
-          <p className="font-medium text-sm text-foreground">
-            {themeDefinition.displayName}
-          </p>
-          {isSelected && (
-            <Badge variant="secondary" className="text-xs mt-1">
-              Active
-            </Badge>
-          )}
+        {/* Content area */}
+        <div className="h-17 p-1.5 space-y-1" style={{ backgroundColor: colors.background }}>
+          {/* Top bar */}
+          <div 
+            className="h-2.5 rounded-sm px-1.5 flex items-center justify-between"
+            style={{ backgroundColor: colors.card }}
+          >
+            <div className="w-4 h-0.5 rounded-full" style={{ backgroundColor: colors.primary }} />
+            <div className="w-2 h-0.5 rounded-full" style={{ backgroundColor: colors.mutedForeground }} />
+          </div>
+          
+          {/* Content rows */}
+          <div className="space-y-0.5">
+            <div className="flex gap-1">
+              <div className="w-3 h-1.5 rounded-sm" style={{ backgroundColor: colors.secondary }} />
+              <div className="flex-1 h-1.5 rounded-sm" style={{ backgroundColor: colors.muted }} />
+            </div>
+            <div className="flex gap-1">
+              <div className="w-2 h-1.5 rounded-sm" style={{ backgroundColor: colors.accent }} />
+              <div className="flex-1 h-1.5 rounded-sm" style={{ backgroundColor: colors.muted }} />
+            </div>
+            <div className="flex gap-1 justify-end">
+              <div className="w-4 h-1.5 rounded-sm" style={{ backgroundColor: colors.primary }} />
+              <div className="w-4 h-1.5 rounded-sm" style={{ backgroundColor: colors.border }} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const ThemeCard = ({ themeDefinition, isSelected }: { 
+    themeDefinition: ThemeColors, 
+    isSelected: boolean 
+  }) => {
+    return (
+      <div className={cn(
+        "group relative transition-all duration-200 cursor-pointer rounded-lg border border-border/50",
+        "hover:border-primary/40 hover:shadow-sm",
+        isSelected && "border-primary/60 shadow-sm ring-1 ring-primary/20"
+      )}>
+        <div className="p-3 space-y-3">
+          <ThemeMockup themeDefinition={themeDefinition} isDarkMode={isDark} />
+          
+          <div className="text-center space-y-2">
+            <div className="flex items-center justify-center gap-1.5">
+              <h3 className="font-medium text-sm text-foreground truncate">
+                {themeDefinition.displayName}
+              </h3>
+              {isSelected && (
+                <div className="bg-primary text-primary-foreground rounded-full p-1 flex-shrink-0">
+                  <Check className="h-2.5 w-2.5" />
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground line-clamp-2 min-h-[2rem] flex items-center justify-center">
+              {themeDefinition.description}
+            </p>
+            {isSelected && (
+              <Badge variant="secondary" className="text-xs">
+                Active
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -130,42 +144,38 @@ export function ThemePicker({ userId, className }: ThemePickerProps) {
 
   return (
     <Card className={className}>
-      <CardHeader>
+      <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2">
           <Palette className="h-5 w-5" />
           Theme Preference
         </CardTitle>
         <CardDescription>
-          Choose your preferred color theme. {hoveredTheme && 'Hover to preview, click to apply.'}
+          Choose your preferred color theme. Click on a theme to apply it instantly.
         </CardDescription>
       </CardHeader>
+      
       <CardContent className="space-y-6">
-        {/* Theme Selection */}
-        <div className="flex justify-center">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-2xl">
-            {allThemes.map((themeDefinition) => {
-              const isSelected = theme === themeDefinition.name;
-              const isPreview = previewTheme === themeDefinition.name;
-              
-              return (
-                <Button
-                  key={themeDefinition.name}
-                  variant="ghost"
-                  className="p-4 h-auto flex-col hover:bg-transparent"
-                  onClick={() => handleThemeSelect(themeDefinition.name as ColorTheme)}
-                  onMouseEnter={() => handleThemePreview(themeDefinition.name as ColorTheme)}
-                  onMouseLeave={handleClearPreview}
-                  disabled={isLoading || isApplying}
-                >
-                  <ThemeCircle 
-                    themeDefinition={themeDefinition} 
-                    isSelected={isSelected}
-                    isPreview={isPreview}
-                  />
-                </Button>
-              );
-            })}
-          </div>
+        {/* Compact grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+          {allThemes.map((themeDefinition) => {
+            const isSelected = theme === themeDefinition.name;
+            
+            return (
+              <div
+                key={themeDefinition.name}
+                onClick={() => !isLoading && !isApplying && handleThemeSelect(themeDefinition.name as ColorTheme)}
+                className={cn(
+                  "transition-opacity",
+                  (isLoading || isApplying) && "opacity-50 pointer-events-none"
+                )}
+              >
+                <ThemeCard 
+                  themeDefinition={themeDefinition} 
+                  isSelected={isSelected}
+                />
+              </div>
+            );
+          })}
         </div>
         
         {/* Loading State */}
@@ -178,30 +188,15 @@ export function ThemePicker({ userId, className }: ThemePickerProps) {
           </div>
         )}
         
-        {/* Preview Clear Button */}
-        {previewTheme && (
-          <div className="flex items-center justify-center">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClearPreview}
-              className="gap-2"
-            >
-              <EyeOff className="h-4 w-4" />
-              Clear Preview
-            </Button>
-          </div>
-        )}
-        
         {/* Info Section */}
-        <div className="pt-4 border-t space-y-2">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <div className="w-2 h-2 rounded-full bg-primary" />
-            <span>Themes automatically adapt to your light/dark mode preference</span>
+        <div className="pt-4 border-t space-y-3">
+          <div className="flex items-start gap-2 text-xs text-muted-foreground">
+            <Monitor className="w-3 h-3 mt-0.5 flex-shrink-0" />
+            <span>Themes automatically adapt to your system&apos;s light/dark mode preference</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <div className="w-2 h-2 rounded-full bg-chart-1" />
-            <span>Midnight theme is optimized for AMOLED displays</span>
+          <div className="flex items-start gap-2 text-xs text-muted-foreground">
+            <Smartphone className="w-3 h-3 mt-0.5 flex-shrink-0" />
+            <span>All themes are optimized for mobile and desktop viewing</span>
           </div>
         </div>
       </CardContent>

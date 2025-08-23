@@ -1,5 +1,7 @@
 export type ColorTheme = 'default' | 'amoled' | 'creative' | 'energy' | 'daylight' | 'graphite' | 'accessible';
 
+export const ALLOWED_COLOR_THEMES = ['default', 'amoled', 'creative', 'energy', 'daylight', 'graphite', 'accessible'] as const satisfies readonly ColorTheme[];
+
 export interface ThemeColors {
   name: string;
   displayName: string;

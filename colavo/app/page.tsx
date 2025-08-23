@@ -74,6 +74,7 @@ export default function Home() {
             {/* CTA Button */}
             <div className="flex justify-center">
               <Button 
+                asChild
                 size="lg" 
                 className="bg-white/95 hover:bg-white text-primary text-xl px-12 py-6 rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 border-0"
               >
@@ -254,7 +255,7 @@ export default function Home() {
           <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
             Join thousands of teams who have already streamlined their workflow with Collavo.
           </p>
-          <Button size="lg" variant="secondary" className="text-lg px-8 py-4 bg-white/90 hover:bg-white text-teal-600 border-0">
+          <Button asChild size="lg" variant="secondary" className="text-lg px-8 py-4 bg-white/90 hover:bg-white text-teal-600 border-0">
             <Link href="/signup">Start Your Free Trial</Link>
           </Button>
         </div>

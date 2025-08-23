@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { colorPreferences } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { ColorTheme } from '@/lib/themes/definitions';
+import { ALLOWED_COLOR_THEMES } from '@/lib/themes/definitions';
 
 export async function GET(request: NextRequest) {
   try {
@@ -46,7 +46,7 @@ export async function PUT(request: NextRequest) {
     const { theme } = body;
 
     // Validate theme value
-    const validThemes: ColorTheme[] = ['default', 'amoled', 'creative', 'energy'];
+    const validThemes = ALLOWED_COLOR_THEMES;
     if (!validThemes.includes(theme)) {
       return NextResponse.json({ 
         error: 'Invalid theme value' 

@@ -6,25 +6,19 @@ import { applyTheme } from '@/lib/themes/utils';
 interface ThemeState {
   theme: ColorTheme;
   isLoading: boolean;
-  previewTheme: ColorTheme | null;
   
   // Actions
   setTheme: (theme: ColorTheme) => void;
   applyThemeToDocument: (theme: ColorTheme, isDark: boolean) => void;
   syncWithServer: (userId: string, theme: ColorTheme) => Promise<void>;
   loadUserTheme: (userId: string) => Promise<void>;
-  
-  // Preview actions
-  previewThemeChange: (theme: ColorTheme, isDark: boolean) => void;
-  clearPreview: (isDark: boolean) => void;
 }
 
 export const useThemeStore = create<ThemeState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       theme: 'default',
       isLoading: false,
-      previewTheme: null,
 
       setTheme: (theme: ColorTheme) => {
         set({ theme });
@@ -81,17 +75,6 @@ export const useThemeStore = create<ThemeState>()(
           // console.error('Error loading user theme:', error);
           set({ isLoading: false });
         }
-      },
-
-      previewThemeChange: (theme: ColorTheme, isDark: boolean) => {
-        applyTheme(theme, isDark);
-        set({ previewTheme: theme });
-      },
-
-      clearPreview: (isDark: boolean) => {
-        const { theme } = get();
-        applyTheme(theme, isDark);
-        set({ previewTheme: null });
       },
     }),
     {

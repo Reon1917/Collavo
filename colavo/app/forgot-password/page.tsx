@@ -48,7 +48,7 @@ export default function ForgotPasswordPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 dark:from-emerald-900 dark:via-teal-800 dark:to-cyan-900 px-4 relative overflow-hidden">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[hsl(var(--gradient-from))] via-[hsl(var(--gradient-via))] to-[hsl(var(--gradient-to))] px-4 relative overflow-hidden">
         {/* Decorative 3D Components */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-10 right-10 lg:top-20 lg:right-20 opacity-50 animate-float-delayed">
@@ -70,26 +70,26 @@ export default function ForgotPasswordPage() {
         {/* Logo in top left corner */}
         <div className="absolute top-4 left-4 flex items-center space-x-3 z-20">
           <Link href="/" className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/30">
-              <span className="text-white font-bold text-sm">C</span>
+            <div className="w-8 h-8 bg-card/20 backdrop-blur-sm rounded-lg flex items-center justify-center border border-border/30">
+              <span className="text-primary-foreground font-bold text-sm">C</span>
             </div>
-            <h3 className="text-xl font-bold text-white">Collavo</h3>
+            <h3 className="text-xl font-bold text-primary-foreground">Collavo</h3>
           </Link>
         </div>
 
-        <Card className="w-full max-w-md bg-white/10 backdrop-blur-md border-white/20 shadow-xl relative z-10">
+        <Card className="w-full max-w-md bg-card/10 backdrop-blur-md border-border/20 shadow-xl relative z-10">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-white">Check Your Email</CardTitle>
-            <CardDescription className="text-white/80">
+            <CardTitle className="text-2xl font-bold text-primary-foreground">Check Your Email</CardTitle>
+            <CardDescription className="text-foreground/80">
               We&apos;ve sent a password reset link to {email}
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <p className="text-white/80 mb-4">
+            <p className="text-foreground/80 mb-4">
               Click the link in the email to reset your password. If you don&apos;t see it, check your spam folder.
             </p>
             <Link href="/login">
-              <Button variant="outline" className="w-full border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 hover:border-white/50 py-3">
+              <Button variant="outline" className="w-full border-border/30 bg-card/10 backdrop-blur-sm text-primary-foreground hover:bg-card/20 hover:border-border/50 py-3">
                 Back to Sign In
               </Button>
             </Link>
@@ -100,7 +100,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 dark:from-emerald-900 dark:via-teal-800 dark:to-cyan-900 px-4 py-16 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[hsl(var(--gradient-from))] via-[hsl(var(--gradient-via))] to-[hsl(var(--gradient-to))] px-4 py-16 relative overflow-hidden">
       {/* Decorative 3D Components */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-10 right-10 lg:top-20 lg:right-20 opacity-60 animate-float-delayed">
@@ -124,24 +124,24 @@ export default function ForgotPasswordPage() {
       {/* Logo in top left corner */}
       <div className="absolute top-4 left-4 flex items-center space-x-3 z-20">
         <Link href="/" className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/30">
-            <span className="text-white font-bold text-sm">C</span>
+          <div className="w-8 h-8 bg-card/20 backdrop-blur-sm rounded-lg flex items-center justify-center border border-border/30">
+            <span className="text-primary-foreground font-bold text-sm">C</span>
           </div>
-          <h3 className="text-xl font-bold text-white">Collavo</h3>
+          <h3 className="text-xl font-bold text-primary-foreground">Collavo</h3>
         </Link>
       </div>
 
-      <Card className="w-full max-w-lg bg-white/10 backdrop-blur-md border-white/20 shadow-xl relative z-10">
+      <Card className="w-full max-w-lg bg-card/10 backdrop-blur-md border-border/20 shadow-xl relative z-10">
         <CardHeader className="space-y-3 pb-6">
-          <CardTitle className="text-2xl font-bold text-center text-white">Reset Password</CardTitle>
-          <CardDescription className="text-center text-white/80">
+          <CardTitle className="text-2xl font-bold text-center text-primary-foreground">Reset Password</CardTitle>
+          <CardDescription className="text-center text-foreground/80">
             Enter your email address and we&apos;ll send you instructions to reset your password
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 px-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white text-sm font-medium">Email</Label>
+              <Label htmlFor="email" className="text-primary-foreground text-sm font-medium">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -150,12 +150,12 @@ export default function ForgotPasswordPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
                 required
-                className="bg-white/20 backdrop-blur-sm border-white/30 text-white placeholder-white/60 focus:border-white/50 focus:ring-white/30 h-11"
+                className="bg-card/20 backdrop-blur-sm border-border/30 text-primary-foreground placeholder-foreground/60 focus:border-border/50 focus:ring-ring/30 h-11"
               />
             </div>
             <Button
               type="submit"
-              className="w-full bg-white/90 hover:bg-white text-teal-600 hover:text-teal-700 border-0 font-semibold py-3"
+              className="w-full bg-primary/90 hover:bg-primary text-primary-foreground hover:text-primary-foreground border-0 font-semibold py-3"
               disabled={isLoading}
             >
               {isLoading ? 'Sending instructions...' : 'Send Reset Instructions'}
@@ -163,9 +163,9 @@ export default function ForgotPasswordPage() {
           </form>
         </CardContent>
         <CardFooter className="flex justify-center pt-6 px-6">
-          <div className="text-sm text-white/80">
+          <div className="text-sm text-foreground/80">
             Remember your password?{' '}
-            <Link href="/login" className="text-white hover:text-white/90 hover:underline font-medium transition-colors">
+            <Link href="/login" className="text-primary-foreground hover:text-primary-foreground/90 hover:underline font-medium transition-colors">
               Sign in
             </Link>
           </div>
