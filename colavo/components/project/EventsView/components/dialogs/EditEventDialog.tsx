@@ -179,7 +179,7 @@ export function EditEventDialog({ event, projectId, projectData, onEventUpdated,
             <Button 
               type="submit" 
               disabled={isLoading || !formData.title.trim()}
-              className="bg-[#008080] hover:bg-[#006666] text-white"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {isLoading ? (
                 <>

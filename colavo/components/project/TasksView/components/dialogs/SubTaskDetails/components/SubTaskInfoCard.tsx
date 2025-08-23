@@ -31,7 +31,7 @@ export function SubTaskInfoCard({ subTask, currentUserId }: SubTaskInfoCardProps
             <span className="text-gray-900 dark:text-white font-medium">
               {subTask.assignedUserName || 'Unassigned'}
               {subTask.assignedId === currentUserId && (
-                <span className="text-[#008080] ml-1">(You)</span>
+                <span className="text-primary ml-1">(You)</span>
               )}
             </span>
           </div>

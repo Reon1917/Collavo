@@ -31,15 +31,15 @@ export function EventItem({ event, onEdit, onDelete }: EventItemProps) {
   const getEventTypeColor = (type: Event['type']) => {
     switch (type) {
       case 'meeting':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary';
       case 'deadline':
-        return 'bg-red-100 text-red-800';
+        return 'bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive';
       case 'milestone':
-        return 'bg-green-100 text-green-800';
+        return 'bg-chart-1/10 text-chart-1 dark:bg-chart-1/20 dark:text-chart-1';
       case 'reminder':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-chart-4/10 text-chart-4 dark:bg-chart-4/20 dark:text-chart-4';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -59,12 +59,12 @@ export function EventItem({ event, onEdit, onDelete }: EventItemProps) {
                 {event.type}
               </Badge>
               {isUpcoming && (
-                <Badge variant="outline" className="text-green-600 border-green-600">
+                <Badge variant="outline" className="text-chart-1 border-chart-1">
                   Upcoming
                 </Badge>
               )}
               {isPast && (
-                <Badge variant="outline" className="text-gray-500 border-gray-400">
+                <Badge variant="outline" className="text-muted-foreground border-muted-foreground">
                   Past
                 </Badge>
               )}
@@ -82,7 +82,7 @@ export function EventItem({ event, onEdit, onDelete }: EventItemProps) {
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDelete} className="text-red-600">
+              <DropdownMenuItem onClick={handleDelete} className="text-destructive">
                 <Trash className="h-4 w-4 mr-2" />
                 Delete
               </DropdownMenuItem>
@@ -93,12 +93,12 @@ export function EventItem({ event, onEdit, onDelete }: EventItemProps) {
 
       <CardContent className="pt-0">
         {event.description && (
-          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+          <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
             {event.description}
           </p>
         )}
 
-        <div className="space-y-2 text-sm text-gray-500">
+        <div className="space-y-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <CalendarIcon className="h-4 w-4" />
             <span>
@@ -128,7 +128,7 @@ export function EventItem({ event, onEdit, onDelete }: EventItemProps) {
             </div>
           )}
 
-          <div className="flex items-center gap-2 text-xs text-gray-400 mt-3">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground/70 mt-3">
             <span>Created {formatRelativeTime(event.createdAt)}</span>
           </div>
         </div>

@@ -103,20 +103,48 @@ export default function ResetPasswordPage() {
   // Success state
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f9f8f0] dark:bg-gray-950 px-4">
-        <Card className="w-full max-w-md bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 shadow-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
-              <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 dark:from-emerald-900 dark:via-teal-800 dark:to-cyan-900 px-4 relative overflow-hidden">
+        {/* Decorative 3D Components */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-10 right-10 lg:top-20 lg:right-20 opacity-50 animate-float-delayed">
+            <img 
+              src="/component2.png" 
+              alt="3D Component 2" 
+              className="w-16 h-16 lg:w-24 lg:h-24 object-contain drop-shadow-lg"
+            />
+          </div>
+          <div className="absolute bottom-16 left-8 lg:bottom-24 lg:left-16 opacity-40 animate-float">
+            <img 
+              src="/component1.png" 
+              alt="3D Component 1" 
+              className="w-20 h-20 lg:w-28 lg:h-28 object-contain drop-shadow-lg"
+            />
+          </div>
+        </div>
+
+        {/* Logo in top left corner */}
+        <div className="absolute top-4 left-4 flex items-center space-x-3 z-20">
+          <Link href="/" className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/30">
+              <span className="text-white font-bold text-sm">C</span>
             </div>
-            <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">Password Reset Successfully</CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400">
+            <h3 className="text-xl font-bold text-white">Collavo</h3>
+          </Link>
+        </div>
+
+        <Card className="w-full max-w-md bg-white/10 backdrop-blur-md border-white/20 shadow-xl relative z-10">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
+              <CheckCircle className="h-6 w-6 text-white" />
+            </div>
+            <CardTitle className="text-2xl font-bold text-white">Password Reset Successfully</CardTitle>
+            <CardDescription className="text-white/80">
               Your password has been updated. You can now sign in with your new password.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
             <Link href="/login">
-              <Button className="w-full bg-[#008080] hover:bg-[#008080]/90 dark:bg-[#008080] dark:hover:bg-[#008080]/70 text-white">
+              <Button className="w-full bg-white/90 hover:bg-white text-teal-600 hover:text-teal-700 border-0 font-semibold py-3">
                 Continue to Sign In
               </Button>
             </Link>
@@ -129,29 +157,57 @@ export default function ResetPasswordPage() {
   // Error state - invalid token
   if (errors.token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f9f8f0] dark:bg-gray-950 px-4">
-        <Card className="w-full max-w-md bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 shadow-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
-              <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 dark:from-emerald-900 dark:via-teal-800 dark:to-cyan-900 px-4 relative overflow-hidden">
+        {/* Decorative 3D Components */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-10 right-10 lg:top-20 lg:right-20 opacity-50 animate-float-delayed">
+            <img 
+              src="/component2.png" 
+              alt="3D Component 2" 
+              className="w-16 h-16 lg:w-24 lg:h-24 object-contain drop-shadow-lg"
+            />
+          </div>
+          <div className="absolute bottom-16 left-8 lg:bottom-24 lg:left-16 opacity-40 animate-float">
+            <img 
+              src="/component1.png" 
+              alt="3D Component 1" 
+              className="w-20 h-20 lg:w-28 lg:h-28 object-contain drop-shadow-lg"
+            />
+          </div>
+        </div>
+
+        {/* Logo in top left corner */}
+        <div className="absolute top-4 left-4 flex items-center space-x-3 z-20">
+          <Link href="/" className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/30">
+              <span className="text-white font-bold text-sm">C</span>
             </div>
-            <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">Invalid Reset Link</CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400">
+            <h3 className="text-xl font-bold text-white">Collavo</h3>
+          </Link>
+        </div>
+
+        <Card className="w-full max-w-md bg-white/10 backdrop-blur-md border-white/20 shadow-xl relative z-10">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
+              <AlertCircle className="h-6 w-6 text-white" />
+            </div>
+            <CardTitle className="text-2xl font-bold text-white">Invalid Reset Link</CardTitle>
+            <CardDescription className="text-white/80">
               This password reset link is invalid or has expired.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 text-center">
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-white/80">
               Please request a new password reset link to continue.
             </p>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Link href="/forgot-password">
-                <Button className="w-full bg-[#008080] hover:bg-[#008080]/90 dark:bg-[#008080] dark:hover:bg-[#008080]/70 text-white">
+                <Button className="w-full bg-white/90 hover:bg-white text-teal-600 hover:text-teal-700 border-0 font-semibold py-3">
                   Request New Reset Link
                 </Button>
               </Link>
               <Link href="/login">
-                <Button variant="outline" className="w-full border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
+                <Button variant="outline" className="w-full border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 hover:border-white/50 py-3">
                   Back to Sign In
                 </Button>
               </Link>
@@ -163,22 +219,52 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f9f8f0] dark:bg-gray-950 px-4 py-12">
-      <Card className="w-full max-w-md bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 shadow-md">
-        <CardHeader className="space-y-1">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#008080]/10 dark:bg-[#00FFFF]/10">
-            <Lock className="h-6 w-6 text-[#008080] dark:text-[#00FFFF]" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 dark:from-emerald-900 dark:via-teal-800 dark:to-cyan-900 px-4 py-16 relative overflow-hidden">
+      {/* Decorative 3D Components */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 right-10 lg:top-20 lg:right-20 opacity-60 animate-float-delayed">
+          <img 
+            src="/component2.png" 
+            alt="3D Component 2" 
+            className="w-20 h-20 lg:w-28 lg:h-28 object-contain drop-shadow-lg"
+          />
+        </div>
+        <div className="absolute bottom-16 left-8 lg:bottom-24 lg:left-16 opacity-50 animate-float">
+          <img 
+            src="/component1.png" 
+            alt="3D Component 1" 
+            className="w-24 h-24 lg:w-32 lg:h-32 object-contain drop-shadow-lg"
+          />
+        </div>
+        <div className="absolute top-1/3 left-1/4 w-2 h-12 bg-white/10 rounded-full rotate-45 animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/3 w-1 h-8 bg-white/8 rounded-full -rotate-12 animate-pulse"></div>
+      </div>
+
+      {/* Logo in top left corner */}
+      <div className="absolute top-4 left-4 flex items-center space-x-3 z-20">
+        <Link href="/" className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/30">
+            <span className="text-white font-bold text-sm">C</span>
           </div>
-          <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">Set New Password</CardTitle>
-          <CardDescription className="text-center text-gray-600 dark:text-gray-400">
+          <h3 className="text-xl font-bold text-white">Collavo</h3>
+        </Link>
+      </div>
+
+      <Card className="w-full max-w-lg bg-white/10 backdrop-blur-md border-white/20 shadow-xl relative z-10">
+        <CardHeader className="space-y-3 pb-6">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
+            <Lock className="h-6 w-6 text-white" />
+          </div>
+          <CardTitle className="text-2xl font-bold text-center text-white">Set New Password</CardTitle>
+          <CardDescription className="text-center text-white/80">
             Enter your new password below
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <CardContent className="space-y-6 px-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* New Password */}
             <div className="space-y-2">
-              <Label htmlFor="newPassword" className="text-gray-700 dark:text-gray-300">
+              <Label htmlFor="newPassword" className="text-white text-sm font-medium">
                 New Password
               </Label>
               <div className="relative">
@@ -195,7 +281,7 @@ export default function ResetPasswordPage() {
                     }
                   }}
                   disabled={isLoading}
-                  className={`pr-10 bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] transition-colors ${errors.newPassword ? 'border-red-500 focus:border-red-500' : ''}`}
+                  className={`pr-10 bg-white/20 backdrop-blur-sm border-white/30 text-white placeholder-white/60 focus:border-white/50 focus:ring-white/30 h-11 ${errors.newPassword ? 'border-red-300 focus:border-red-300' : ''}`}
                   placeholder="Enter your new password"
                   minLength={8}
                   required
@@ -203,26 +289,26 @@ export default function ResetPasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white/80"
                   disabled={isLoading}
                 >
                   {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
               {errors.newPassword && (
-                <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                <p className="text-sm text-red-200 flex items-center gap-1">
                   <AlertCircle className="h-3 w-3" />
                   {errors.newPassword}
                 </p>
               )}
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-white/60">
                 Password must be at least 8 characters long
               </p>
             </div>
 
             {/* Confirm New Password */}
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-gray-700 dark:text-gray-300">
+              <Label htmlFor="confirmPassword" className="text-white text-sm font-medium">
                 Confirm New Password
               </Label>
               <div className="relative">
@@ -239,21 +325,21 @@ export default function ResetPasswordPage() {
                     }
                   }}
                   disabled={isLoading}
-                  className={`pr-10 bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] transition-colors ${errors.confirmPassword ? 'border-red-500 focus:border-red-500' : ''}`}
+                  className={`pr-10 bg-white/20 backdrop-blur-sm border-white/30 text-white placeholder-white/60 focus:border-white/50 focus:ring-white/30 h-11 ${errors.confirmPassword ? 'border-red-300 focus:border-red-300' : ''}`}
                   placeholder="Confirm your new password"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white/80"
                   disabled={isLoading}
                 >
                   {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                <p className="text-sm text-red-200 flex items-center gap-1">
                   <AlertCircle className="h-3 w-3" />
                   {errors.confirmPassword}
                 </p>
@@ -262,7 +348,7 @@ export default function ResetPasswordPage() {
 
             <Button
               type="submit"
-              className="w-full bg-[#008080] hover:bg-[#008080]/90 dark:bg-[#008080] dark:hover:bg-[#008080]/70 text-white"
+              className="w-full bg-white/90 hover:bg-white text-teal-600 hover:text-teal-700 border-0 font-semibold py-3"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -276,10 +362,10 @@ export default function ResetPasswordPage() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
+        <CardFooter className="flex justify-center pt-6 px-6">
+          <div className="text-sm text-white/80">
             Remember your password?{' '}
-            <Link href="/login" className="text-[#008080] hover:text-[#008080]/80 dark:text-[#00FFFF] dark:hover:text-[#00FFFF]/80 font-medium transition-colors">
+            <Link href="/login" className="text-white hover:text-white/90 hover:underline font-medium transition-colors">
               Sign in
             </Link>
           </div>

@@ -48,20 +48,48 @@ export default function ForgotPasswordPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f9f8f0] dark:bg-gray-950 px-4">
-        <Card className="w-full max-w-md bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 shadow-md">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[hsl(var(--gradient-from))] via-[hsl(var(--gradient-via))] to-[hsl(var(--gradient-to))] px-4 relative overflow-hidden">
+        {/* Decorative 3D Components */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-10 right-10 lg:top-20 lg:right-20 opacity-50 animate-float-delayed">
+            <img 
+              src="/component2.png" 
+              alt="3D Component 2" 
+              className="w-16 h-16 lg:w-24 lg:h-24 object-contain drop-shadow-lg"
+            />
+          </div>
+          <div className="absolute bottom-16 left-8 lg:bottom-24 lg:left-16 opacity-40 animate-float">
+            <img 
+              src="/component1.png" 
+              alt="3D Component 1" 
+              className="w-20 h-20 lg:w-28 lg:h-28 object-contain drop-shadow-lg"
+            />
+          </div>
+        </div>
+
+        {/* Logo in top left corner */}
+        <div className="absolute top-4 left-4 flex items-center space-x-3 z-20">
+          <Link href="/" className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-card/20 backdrop-blur-sm rounded-lg flex items-center justify-center border border-border/30">
+              <span className="text-primary-foreground font-bold text-sm">C</span>
+            </div>
+            <h3 className="text-xl font-bold text-primary-foreground">Collavo</h3>
+          </Link>
+        </div>
+
+        <Card className="w-full max-w-md bg-card/10 backdrop-blur-md border-border/20 shadow-xl relative z-10">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">Check Your Email</CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400">
+            <CardTitle className="text-2xl font-bold text-primary-foreground">Check Your Email</CardTitle>
+            <CardDescription className="text-foreground/80">
               We&apos;ve sent a password reset link to {email}
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-foreground/80 mb-4">
               Click the link in the email to reset your password. If you don&apos;t see it, check your spam folder.
             </p>
             <Link href="/login">
-              <Button variant="outline" className="w-full border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
+              <Button variant="outline" className="w-full border-border/30 bg-card/10 backdrop-blur-sm text-primary-foreground hover:bg-card/20 hover:border-border/50 py-3">
                 Back to Sign In
               </Button>
             </Link>
@@ -72,18 +100,48 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f9f8f0] dark:bg-gray-950 px-4 py-12">
-      <Card className="w-full max-w-md bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 shadow-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">Reset Password</CardTitle>
-          <CardDescription className="text-center text-gray-600 dark:text-gray-400">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[hsl(var(--gradient-from))] via-[hsl(var(--gradient-via))] to-[hsl(var(--gradient-to))] px-4 py-16 relative overflow-hidden">
+      {/* Decorative 3D Components */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 right-10 lg:top-20 lg:right-20 opacity-60 animate-float-delayed">
+          <img 
+            src="/component2.png" 
+            alt="3D Component 2" 
+            className="w-20 h-20 lg:w-28 lg:h-28 object-contain drop-shadow-lg"
+          />
+        </div>
+        <div className="absolute bottom-16 left-8 lg:bottom-24 lg:left-16 opacity-50 animate-float">
+          <img 
+            src="/component1.png" 
+            alt="3D Component 1" 
+            className="w-24 h-24 lg:w-32 lg:h-32 object-contain drop-shadow-lg"
+          />
+        </div>
+        <div className="absolute top-1/3 left-1/4 w-2 h-12 bg-white/10 rounded-full rotate-45 animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/3 w-1 h-8 bg-white/8 rounded-full -rotate-12 animate-pulse"></div>
+      </div>
+
+      {/* Logo in top left corner */}
+      <div className="absolute top-4 left-4 flex items-center space-x-3 z-20">
+        <Link href="/" className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-card/20 backdrop-blur-sm rounded-lg flex items-center justify-center border border-border/30">
+            <span className="text-primary-foreground font-bold text-sm">C</span>
+          </div>
+          <h3 className="text-xl font-bold text-primary-foreground">Collavo</h3>
+        </Link>
+      </div>
+
+      <Card className="w-full max-w-lg bg-card/10 backdrop-blur-md border-border/20 shadow-xl relative z-10">
+        <CardHeader className="space-y-3 pb-6">
+          <CardTitle className="text-2xl font-bold text-center text-primary-foreground">Reset Password</CardTitle>
+          <CardDescription className="text-center text-foreground/80">
             Enter your email address and we&apos;ll send you instructions to reset your password
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <CardContent className="space-y-6 px-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">Email</Label>
+              <Label htmlFor="email" className="text-primary-foreground text-sm font-medium">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -92,22 +150,22 @@ export default function ForgotPasswordPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
                 required
-                className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] transition-colors"
+                className="bg-card/20 backdrop-blur-sm border-border/30 text-primary-foreground placeholder-foreground/60 focus:border-border/50 focus:ring-ring/30 h-11"
               />
             </div>
             <Button
               type="submit"
-              className="w-full bg-[#008080] hover:bg-[#008080]/90 dark:bg-[#008080] dark:hover:bg-[#008080]/70 text-white"
+              className="w-full bg-primary/90 hover:bg-primary text-primary-foreground hover:text-primary-foreground border-0 font-semibold py-3"
               disabled={isLoading}
             >
               {isLoading ? 'Sending instructions...' : 'Send Reset Instructions'}
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
+        <CardFooter className="flex justify-center pt-6 px-6">
+          <div className="text-sm text-foreground/80">
             Remember your password?{' '}
-            <Link href="/login" className="text-[#008080] hover:text-[#008080]/80 dark:text-[#00FFFF] dark:hover:text-[#00FFFF]/80 font-medium transition-colors">
+            <Link href="/login" className="text-primary-foreground hover:text-primary-foreground/90 hover:underline font-medium transition-colors">
               Sign in
             </Link>
           </div>

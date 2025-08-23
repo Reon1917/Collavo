@@ -349,6 +349,26 @@ export const filesRelations = relations(files, ({ one }) => ({
 	}),
 }));
 
+// Color theme enum and preferences table
+export const colorThemeEnum = pgEnum('color_theme', ['default', 'amoled', 'creative', 'energy']);
+
+export const colorPreferences = pgTable("color_preferences", {
+	id: text('id').primaryKey().$defaultFn(() => createId()),
+	userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+	theme: colorThemeEnum('theme').$defaultFn(() => 'default').notNull(),
+	createdAt: timestamp('created_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull(),
+	updatedAt: timestamp('updated_at').$defaultFn(() => /* @__PURE__ */ new Date()).notNull()
+}, (table) => ({
+	userIdx: index('color_preferences_user_idx').on(table.userId),
+}));
+
+export const colorPreferencesRelations = relations(colorPreferences, ({ one }) => ({
+	user: one(user, {
+		fields: [colorPreferences.userId],
+		references: [user.id],
+	}),
+}));
+
 export const scheduledNotificationsRelations = relations(scheduledNotifications, ({ one }) => ({
 	project: one(projects, {
 		fields: [scheduledNotifications.projectId],
@@ -394,3 +414,6 @@ export type NewFile = typeof files.$inferInsert;
 
 export type ScheduledNotification = typeof scheduledNotifications.$inferSelect;
 export type NewScheduledNotification = typeof scheduledNotifications.$inferInsert;
+
+export type ColorPreference = typeof colorPreferences.$inferSelect;
+export type NewColorPreference = typeof colorPreferences.$inferInsert;

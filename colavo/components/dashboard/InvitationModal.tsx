@@ -130,12 +130,12 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger>
+      <DialogTrigger asChild>
         <Button variant="ghost" size="sm" className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
           <Mail className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           {invitationCount > 0 && (
             <Badge 
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-[#008080] hover:bg-[#008080] text-white border-white dark:border-gray-950"
+              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-primary hover:bg-primary text-primary-foreground border-white dark:border-gray-950"
             >
               {invitationCount > 9 ? '9+' : invitationCount}
             </Badge>
@@ -146,10 +146,10 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
       <DialogContent className="sm:max-w-[500px] max-h-[80vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
-            <Mail className="h-5 w-5 text-[#008080]" />
+            <Mail className="h-5 w-5 text-primary" />
             <span>Project Invitations</span>
             {invitationCount > 0 && (
-              <Badge variant="outline" className="bg-[#008080]/10 text-[#008080] border-[#008080]/20">
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
                 {invitationCount}
               </Badge>
             )}
@@ -162,14 +162,14 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
         <ScrollArea className="max-h-[60vh] pr-4">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#008080]"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : invitations.length === 0 ? (
             <div className="text-center py-12">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
                 <Mail className="h-8 w-8 text-gray-400" />
               </div>
-              <h3 className="text-lg font-medium mb-2 text-gray-900 dark:text-white">No pending invitations</h3>
+              <h3 className="text-lg font-medium mb-2 text-foreground">No pending invitations</h3>
               <p className="text-gray-600 dark:text-gray-400 text-sm">
                 You&apos;ll see project invitations here when team leaders invite you to collaborate.
               </p>
@@ -184,13 +184,13 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
                   <div key={invitation.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-3 flex-1 min-w-0">
-                        <div className="inline-flex items-center justify-center w-10 h-10 bg-[#008080]/10 rounded-full flex-shrink-0">
-                          <UserPlus className="h-5 w-5 text-[#008080]" />
+                        <div className="inline-flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full flex-shrink-0">
+                          <UserPlus className="h-5 w-5 text-primary" />
                         </div>
                         
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-2 mb-1">
-                            <h3 className="font-semibold text-gray-900 dark:text-white truncate">
+                            <h3 className="font-semibold text-foreground truncate">
                               {invitation.projectName}
                             </h3>
                             {isExpiringSoon && (
@@ -226,7 +226,7 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
                           size="sm"
                           onClick={() => handleAcceptInvitation(invitation)}
                           disabled={isProcessing}
-                          className="bg-[#008080] hover:bg-[#006666] text-white h-8"
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground h-8"
                         >
                           {isProcessing ? (
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

@@ -108,21 +108,21 @@ export function CreateProjectModal({ trigger, onProjectCreated }: CreateProjectM
           {trigger}
         </div>
       ) : (
-        <DialogTrigger>
-          <Button className="bg-[#008080] hover:bg-[#006666] dark:bg-[#008080] dark:hover:bg-[#006666] text-white px-8 py-3 h-auto rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium">
+        <DialogTrigger asChild>
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 h-auto rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium">
             <PlusCircle className="h-5 w-5 mr-2" />
             Create Project
           </Button>
         </DialogTrigger>
       )}
       
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card border border-border">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <PlusCircle className="h-6 w-6 text-[#008080]" />
+          <DialogTitle className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <PlusCircle className="h-6 w-6 text-primary" />
             Create New Project
           </DialogTitle>
-          <DialogDescription className="text-gray-600 dark:text-gray-400">
+          <DialogDescription className="text-muted-foreground">
             Start a new project and begin collaborating with your team.
           </DialogDescription>
         </DialogHeader>
@@ -130,7 +130,7 @@ export function CreateProjectModal({ trigger, onProjectCreated }: CreateProjectM
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Project Name */}
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label htmlFor="name" className="text-sm font-medium text-foreground">
               Project Name *
             </Label>
             <Input
@@ -139,19 +139,19 @@ export function CreateProjectModal({ trigger, onProjectCreated }: CreateProjectM
               placeholder="Enter project name..."
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
-              className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] transition-colors"
+              className="bg-background border-border focus:bg-card focus:border-primary transition-colors"
               maxLength={255}
               required
               disabled={isLoading}
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground">
               {formData.name.length}/255 characters
             </p>
           </div>
 
           {/* Project Description */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label htmlFor="description" className="text-sm font-medium text-foreground">
               Description
             </Label>
             <Textarea
@@ -159,14 +159,14 @@ export function CreateProjectModal({ trigger, onProjectCreated }: CreateProjectM
               placeholder="Describe your project goals, scope, and objectives..."
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF] transition-colors min-h-[100px] resize-none"
+              className="bg-background border-border focus:bg-card focus:border-primary transition-colors min-h-[100px] resize-none"
               disabled={isLoading}
             />
           </div>
 
           {/* Project Deadline */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Label className="text-sm font-medium text-foreground">
               Deadline (Optional)
             </Label>
             <Popover>
@@ -174,8 +174,8 @@ export function CreateProjectModal({ trigger, onProjectCreated }: CreateProjectM
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 hover:bg-white dark:hover:bg-gray-900 hover:border-[#008080] dark:hover:border-[#00FFFF]",
-                    !formData.deadline && "text-gray-500 dark:text-gray-400"
+                    "w-full justify-start text-left font-normal bg-background border-border hover:bg-card hover:border-primary",
+                    !formData.deadline && "text-muted-foreground"
                   )}
                   disabled={isLoading}
                 >
@@ -209,7 +209,7 @@ export function CreateProjectModal({ trigger, onProjectCreated }: CreateProjectM
             <Button
               type="submit"
               disabled={isLoading || !formData.name.trim()}
-              className="flex-1 bg-[#008080] hover:bg-[#006666] dark:bg-[#008080] dark:hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-200"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200"
             >
               {isLoading ? (
                 <>

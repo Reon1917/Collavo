@@ -235,10 +235,10 @@ export const SidebarLink = ({
     <Link
       href={link.href}
       className={cn(
-        "flex items-center justify-start gap-3 group/sidebar py-3 px-4 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#008080]/20 dark:focus:ring-[#00FFFF]/20 relative overflow-hidden",
+        "flex items-center justify-start gap-3 group/sidebar py-3 px-4 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/20 relative overflow-hidden",
         isActive 
-          ? "text-[#008080] dark:text-[#00FFFF] bg-[#008080]/10 dark:bg-[#00FFFF]/10 border border-[#008080]/20 dark:border-[#00FFFF]/20 shadow-sm" 
-          : "text-gray-700 dark:text-gray-300 hover:text-[#008080] dark:hover:text-[#00FFFF] hover:bg-[#008080]/5 dark:hover:bg-[#00FFFF]/5",
+          ? "text-primary bg-primary/10 border border-primary/20 shadow-sm" 
+          : "text-sidebar-foreground hover:text-sidebar-hover-foreground hover:bg-sidebar-hover",
         className
       )}
       {...props}
@@ -246,8 +246,8 @@ export const SidebarLink = ({
       <div className={cn(
         "flex items-center justify-center w-10 h-10 transition-all duration-300",
         isActive 
-          ? "text-[#008080] dark:text-[#00FFFF]" 
-          : "text-gray-500 dark:text-gray-400 group-hover/sidebar:text-[#008080] dark:group-hover/sidebar:text-[#00FFFF]"
+          ? "text-primary" 
+          : "text-muted-foreground group-hover/sidebar:text-sidebar-hover-foreground"
       )}>
         {link.icon}
       </div>
@@ -261,14 +261,14 @@ export const SidebarLink = ({
         transition={{ duration: 0.2 }}
         className={cn(
           "font-medium whitespace-pre inline-block !p-0 !m-0 transition-all duration-300",
-          isActive ? "text-[#008080] dark:text-[#00FFFF]" : ""
+          isActive ? "text-primary" : ""
         )}
       >
         <span>{link.label}</span>
       </motion.span>
 
       {isActive && (
-        <div className="absolute inset-0 bg-gradient-to-r from-[#008080]/5 to-[#008080]/10 dark:from-[#00FFFF]/5 dark:to-[#00FFFF]/10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary/10 pointer-events-none" />
       )}
     </Link>
   );

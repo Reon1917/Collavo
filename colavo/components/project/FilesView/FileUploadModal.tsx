@@ -265,7 +265,7 @@ export function FileUploadModal({
                     variant="outline"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
-                    className="bg-[#008080] hover:bg-[#006666] text-white border-[#008080] hover:border-[#006666]"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground border-primary hover:border-primary/90"
                   >
                     Choose File
                   </Button>
@@ -331,7 +331,7 @@ export function FileUploadModal({
             <Button
               type="submit"
               disabled={!selectedFile || !fileName.trim() || isUploading}
-              className="flex-1 bg-[#008080] hover:bg-[#006666] text-white"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {isUploading ? (
                 <>

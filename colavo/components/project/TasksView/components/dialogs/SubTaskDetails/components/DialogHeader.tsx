@@ -14,19 +14,19 @@ export function DialogHeader({ editMode, subTask }: DialogHeaderProps) {
     switch (editMode) {
       case 'status':
         return {
-          icon: <Edit3 className="h-5 w-5 text-[#008080]" />,
+          icon: <Edit3 className="h-5 w-5 text-primary" />,
           title: 'Update Status & Notes',
           description: 'Update the status and add notes about your progress.'
         };
       case 'details':
         return {
-          icon: <Settings className="h-5 w-5 text-[#008080]" />,
+          icon: <Settings className="h-5 w-5 text-primary" />,
           title: 'Edit Subtask Details',
           description: 'Edit subtask details including title, deadline, and assignment.'
         };
       default:
         return {
-          icon: <Eye className="h-5 w-5 text-[#008080]" />,
+          icon: <Eye className="h-5 w-5 text-primary" />,
           title: 'Subtask Details',
           description: 'View and manage subtask details and progress.'
         };

@@ -19,5 +19,5 @@ This is a senior project developed by a 3-student team named **Stressed Coders**
 - **File Upload:** Uploadthing
 - **Real-time chat:** Supabase
 - **Email sending:** Resend, Qstash
-- **Deployment:**Vercel
+- **Deployment:** Vercel
 

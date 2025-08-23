@@ -73,7 +73,7 @@ export default function DashboardPage() {
   // Loading state
   if (isPending || isLoading) {
     return (
-      <div className="min-h-screen bg-[#f9f8f0] dark:bg-gray-950">
+      <div className="min-h-screen bg-background">
         <DashboardNavbar />
         <div className="container mx-auto px-4 py-8">
           <ContentLoading 
@@ -94,15 +94,15 @@ export default function DashboardPage() {
   const user = session.user;
 
   return (
-    <div className="min-h-screen bg-[#f9f8f0] dark:bg-gray-950">
+    <div className="min-h-screen bg-background">
       {/* Use the new DashboardNavbar for a more minimal design */}
       <DashboardNavbar />
       
       <div className="container mx-auto px-4 py-8">
         <header className="mb-10">
           <div>
-            <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">Dashboard</h1>
-            <p className="text-gray-600 dark:text-gray-400">Welcome back to Collavo, {user.name}!</p>
+            <h1 className="text-3xl font-bold mb-2 text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground">Welcome back to Collavo, {user.name}!</p>
           </div>
         </header>
 
@@ -110,7 +110,7 @@ export default function DashboardPage() {
           {/* Projects you lead */}
           <section>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Projects You Lead</h2>
+              <h2 className="text-2xl font-semibold text-foreground">Projects You Lead</h2>
               <Badge variant="outline" className="text-sm">
                 {projectsData.ledProjects.length} project{projectsData.ledProjects.length !== 1 ? 's' : ''}
               </Badge>
@@ -126,19 +126,19 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <div className="bg-white dark:bg-gray-900 rounded-xl p-12 text-center border border-gray-200/60 dark:border-gray-700 shadow-md dark:shadow-md backdrop-blur-sm">
+              <div className="bg-card rounded-xl p-12 text-center border border-border shadow-md backdrop-blur-sm">
                 <div className="max-w-md mx-auto">
-                  <div className="inline-flex items-center justify-center w-20 h-20 bg-[#008080] dark:bg-[#006666] rounded-full mb-6 shadow-lg">
-                    <FolderOpen className="h-10 w-10 text-white" />
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-full mb-6 shadow-lg">
+                    <FolderOpen className="h-10 w-10 text-primary-foreground" />
                   </div>
-                  <h3 className="text-2xl font-semibold mb-3 text-gray-900 dark:text-white">No projects yet</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+                  <h3 className="text-2xl font-semibold mb-3 text-foreground">No projects yet</h3>
+                  <p className="text-muted-foreground mb-8 leading-relaxed">
                     Take the lead and create your first project. Organize your team, set goals, and bring your ideas to life.
                   </p>
                   <CreateProjectModal 
                     onProjectCreated={fetchProjects}
                     trigger={
-                      <Button className="bg-[#008080] hover:bg-[#006666] dark:bg-[#008080] dark:hover:bg-[#006666] text-white px-8 py-3 h-auto rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium">
+                      <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 h-auto rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium">
                         <PlusCircle className="h-5 w-5 mr-2" />
                         Create Your First Project
                       </Button>
@@ -152,7 +152,7 @@ export default function DashboardPage() {
           {/* Projects you're a member of */}
           <section>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Projects You&apos;re In</h2>
+              <h2 className="text-2xl font-semibold text-foreground">Projects You&apos;re In</h2>
               <Badge variant="outline" className="text-sm">
                 {projectsData.memberProjects.length} project{projectsData.memberProjects.length !== 1 ? 's' : ''}
               </Badge>
@@ -168,13 +168,13 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <div className="bg-white dark:bg-gray-900 rounded-xl p-12 text-center border border-gray-200/60 dark:border-gray-700 shadow-md dark:shadow-md backdrop-blur-sm">
+              <div className="bg-card rounded-xl p-12 text-center border border-border shadow-md backdrop-blur-sm">
                 <div className="max-w-md mx-auto">
-                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-500 dark:bg-gray-600 rounded-full mb-6 shadow-lg">
-                    <UserPlus className="h-10 w-10 text-white" />
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-muted rounded-full mb-6 shadow-lg">
+                    <UserPlus className="h-10 w-10 text-muted-foreground" />
                   </div>
-                  <h3 className="text-2xl font-semibold mb-3 text-gray-900 dark:text-white">No memberships yet</h3>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                  <h3 className="text-2xl font-semibold mb-3 text-foreground">No memberships yet</h3>
+                  <p className="text-muted-foreground leading-relaxed">
                     You haven&apos;t been added to any projects as a member. Create a project or wait for team invitations to get started.
                   </p>
                 </div>
@@ -198,17 +198,17 @@ function ProjectCard({
   
   return (
     <Link href={`/project/${project.id}`}>
-      <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 shadow-md hover:shadow-lg transition-all duration-200 hover:border-[#00FFFF]/30 dark:hover:border-[#00FFFF]/50 backdrop-blur-sm group">
+      <Card className="bg-card border-border shadow-md hover:shadow-lg transition-all duration-200 hover:border-primary/50 backdrop-blur-sm group">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-[#008080] dark:group-hover:text-[#00FFFF] transition-colors">
+            <CardTitle className="text-lg font-semibold text-card-foreground group-hover:text-primary transition-colors">
               {project.name}
             </CardTitle>
             <Badge 
               variant={isLeader ? "default" : "secondary"}
               className={isLeader 
-                ? "bg-[#008080] hover:bg-[#006666] text-white" 
-                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                ? "bg-primary hover:bg-primary/90 text-primary-foreground" 
+                : "bg-muted text-muted-foreground"
               }
             >
               {isLeader ? (
@@ -225,7 +225,7 @@ function ProjectCard({
             </Badge>
           </div>
           {project.description && (
-            <CardDescription className="text-gray-600 dark:text-gray-400 line-clamp-2">
+            <CardDescription className="text-muted-foreground line-clamp-2">
               {project.description}
             </CardDescription>
           )}
@@ -233,12 +233,12 @@ function ProjectCard({
         <CardContent>
           <div className="space-y-2">
             {project.deadline && (
-              <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+              <div className="flex items-center text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4 mr-2" />
                 Due {formatDistanceToNow(new Date(project.deadline), { addSuffix: true })}
               </div>
             )}
-            <div className="text-xs text-gray-400 dark:text-gray-500">
+            <div className="text-xs text-muted-foreground/70">
               Created {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}
             </div>
           </div>

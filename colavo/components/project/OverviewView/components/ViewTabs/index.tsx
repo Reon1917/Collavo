@@ -31,7 +31,7 @@ const tabs = [
 
 export function ViewTabs({ value, onChange }: ViewTabsProps) {
   return (
-    <div className="flex items-center bg-gray-50 dark:bg-gray-900/50 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
+    <div className="flex items-center bg-muted rounded-lg p-1 border border-border">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = value === tab.id;
@@ -42,14 +42,14 @@ export function ViewTabs({ value, onChange }: ViewTabsProps) {
             onClick={() => onChange(tab.id)}
             className={`relative flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-colors duration-200 ${
               isActive
-                ? 'text-[#008080] dark:text-[#00a0a0]'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                ? 'text-primary'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             {isActive && (
               <motion.div
                 layoutId="activeTab"
-                className="absolute inset-0 bg-white dark:bg-gray-800 rounded-md shadow-sm border border-gray-200 dark:border-gray-600"
+                className="absolute inset-0 bg-card rounded-md shadow-sm border border-border"
                 initial={false}
                 transition={{
                   type: "spring",

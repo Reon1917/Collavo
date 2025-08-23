@@ -11,7 +11,7 @@ export function useProjectPermissions(project: Project | null) {
       roleDisplay: {
         label: 'Team Member',
         icon: 'User',
-        className: "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+        className: "bg-secondary text-secondary-foreground"
       }
     };
   }
@@ -26,13 +26,13 @@ export function useProjectPermissions(project: Project | null) {
       return {
         label: 'Project Leader',
         icon: 'Crown',
-        className: "bg-[#008080] hover:bg-[#006666] text-white"
+        className: "bg-primary hover:bg-primary/90 text-primary-foreground"
       };
     }
     return {
       label: 'Team Member',
       icon: 'User',
-      className: "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+      className: "bg-secondary text-secondary-foreground"
     };
   };
 
