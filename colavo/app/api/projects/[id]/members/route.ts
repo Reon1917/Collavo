@@ -3,9 +3,10 @@ import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { members, permissions, user, mainTasks, subTasks, events, files } from '@/db/schema';
 
-import { eq, and } from 'drizzle-orm';
+import { eq, and, count } from 'drizzle-orm';
 import { requireProjectAccess, checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
 import { handleEmailInvitation } from '@/lib/invitation-helpers';
+import { MAX_PROJECT_MEMBERS } from '@/types';
 
 // GET /api/projects/[id]/members - List project members
 export async function GET(
@@ -144,6 +145,25 @@ export async function POST(
     if (userType === 'new' && identifierType !== 'email') {
       return NextResponse.json(
         { error: 'New users can only be invited by email address' },
+        { status: 400 }
+      );
+    }
+
+    // Check member limit before adding new member
+    const currentMemberCount = await db
+      .select({ count: count() })
+      .from(members)
+      .where(eq(members.projectId, projectId));
+
+    const memberCount = currentMemberCount[0]?.count || 0;
+
+    if (memberCount >= MAX_PROJECT_MEMBERS) {
+      return NextResponse.json(
+        { 
+          error: `Project has reached the maximum limit of ${MAX_PROJECT_MEMBERS} members`,
+          currentCount: memberCount,
+          maxLimit: MAX_PROJECT_MEMBERS 
+        },
         { status: 400 }
       );
     }

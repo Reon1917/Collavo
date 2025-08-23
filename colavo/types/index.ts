@@ -468,7 +468,7 @@ export type Result<T, E = ApiError> =
 export const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 /** Maximum number of project members */
-export const MAX_PROJECT_MEMBERS = 50;
+export const MAX_PROJECT_MEMBERS = 8;
 
 /** Maximum number of tags per item */
 export const MAX_TAGS_PER_ITEM = 10;

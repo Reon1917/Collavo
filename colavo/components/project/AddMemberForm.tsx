@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { UserPlus, Loader2, Mail, UserCheck, UserX } from 'lucide-react';
+import { UserPlus, Loader2, Mail, UserCheck, UserX, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { MAX_PROJECT_MEMBERS } from '@/types';
 
 interface AddMemberFormProps {
   projectId: string;
@@ -26,11 +27,36 @@ interface AddMemberFormData {
 
 export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [memberCount, setMemberCount] = useState<number>(0);
+  const [isLoadingCount, setIsLoadingCount] = useState(true);
   const [formData, setFormData] = useState<AddMemberFormData>({
     identifier: '',
     identifierType: 'username',
     userType: 'existing'
   });
+
+  // Fetch current member count
+  const fetchMemberCount = async () => {
+    try {
+      setIsLoadingCount(true);
+      const response = await fetch(`/api/projects/${projectId}/members`);
+      if (response.ok) {
+        const members = await response.json();
+        setMemberCount(members.length);
+      }
+    } catch (error) {
+      console.error('Failed to fetch member count:', error);
+    } finally {
+      setIsLoadingCount(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMemberCount();
+  }, [projectId]);
+
+  // Check if at member limit
+  const isAtMemberLimit = memberCount >= MAX_PROJECT_MEMBERS;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,13 +135,22 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
           });
           return;
         } else if (response.status === 400) {
-          toast.error('Invalid request', {
-            description: errorMessage.includes('New users can only be invited by email') 
-              ? 'New users can only be invited by email address. Please check your selection.'
-              : errorMessage.includes('Cannot add yourself')
-              ? 'You cannot add yourself as a member.'
-              : errorMessage,
+          const description = errorMessage.includes('New users can only be invited by email') 
+            ? 'New users can only be invited by email address. Please check your selection.'
+            : errorMessage.includes('Cannot add yourself')
+            ? 'You cannot add yourself as a member.'
+            : errorMessage.includes('maximum limit')
+            ? `This project has reached the maximum limit of ${MAX_PROJECT_MEMBERS} members. Please remove a member before adding a new one.`
+            : errorMessage;
+          
+          toast.error('Cannot add member', {
+            description,
           });
+          
+          // Refresh member count if limit error
+          if (errorMessage.includes('maximum limit')) {
+            await fetchMemberCount();
+          }
           return;
         }
         
@@ -151,7 +186,8 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
         userType: 'existing'
       });
 
-      // Trigger refresh callback
+      // Refresh member count and trigger callback
+      await fetchMemberCount();
       onMemberAdded?.();
     } catch (error) {
       // Handle network and other errors
@@ -189,16 +225,45 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
   return (
     <Card className="bg-white dark:bg-gray-900 border border-gray-200/60 dark:border-gray-700 shadow-md">
       <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          <UserPlus className="h-5 w-5 text-primary" />
-          Add Team Member
+        <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <UserPlus className="h-5 w-5 text-primary" />
+            Add Team Member
+          </div>
+          <div className="flex items-center gap-1 text-sm">
+            <Users className="h-4 w-4" />
+            {isLoadingCount ? (
+              <span className="text-gray-500">Loading...</span>
+            ) : (
+              <span className={memberCount >= MAX_PROJECT_MEMBERS ? "text-red-500" : "text-gray-600 dark:text-gray-400"}>
+                {memberCount}/{MAX_PROJECT_MEMBERS}
+              </span>
+            )}
+          </div>
         </CardTitle>
         <CardDescription className="text-gray-600 dark:text-gray-400">
-          Invite a new member to join this project by their email, username, or user ID.
+          {isAtMemberLimit ? (
+            <span className="text-red-500 font-medium">
+              This project has reached the maximum limit of {MAX_PROJECT_MEMBERS} members. Remove a member to add a new one.
+            </span>
+          ) : (
+            "Invite a new member to join this project by their email, username, or user ID."
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {isAtMemberLimit && (
+            <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
+                <Users className="h-4 w-4" />
+                <span className="font-medium">Member limit reached</span>
+              </div>
+              <p className="text-sm text-red-600 dark:text-red-500 mt-1">
+                Remove an existing member before adding a new one.
+              </p>
+            </div>
+          )}
           {/* User Type Selection */}
           <div className="space-y-3">
             <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -217,9 +282,10 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
                 }));
               }}
               className="grid grid-cols-1 gap-3"
+              disabled={isAtMemberLimit}
             >
               <div className="flex items-center space-x-2 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <RadioGroupItem value="existing" id="existing" />
+                <RadioGroupItem value="existing" id="existing" disabled={isAtMemberLimit} />
                 <Label htmlFor="existing" className="flex items-center space-x-2 cursor-pointer flex-1">
                   <UserCheck className="h-4 w-4 text-primary" />
                   <div>
@@ -229,7 +295,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
                 </Label>
               </div>
               <div className="flex items-center space-x-2 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <RadioGroupItem value="new" id="new" />
+                <RadioGroupItem value="new" id="new" disabled={isAtMemberLimit} />
                 <Label htmlFor="new" className="flex items-center space-x-2 cursor-pointer flex-1">
                   <UserX className="h-4 w-4 text-primary" />
                   <div>
@@ -253,6 +319,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
                   const typedValue = value as IdentifierType;
                   setFormData(prev => ({ ...prev, identifierType: typedValue, identifier: '' }));
                 }}
+                disabled={isAtMemberLimit}
               >
                 <SelectTrigger className="bg-background border-border focus:bg-card focus:border-primary">
                   <SelectValue />
@@ -285,7 +352,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
                 onChange={(e) => setFormData(prev => ({ ...prev, identifier: e.target.value }))}
                 className="pl-10 bg-background border-border focus:bg-card focus:border-primary transition-colors"
                 required
-                disabled={isLoading}
+                disabled={isLoading || isAtMemberLimit}
               />
             </div>
             {formData.userType === 'new' ? (
@@ -302,7 +369,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
           {/* Submit Button */}
           <Button
             type="submit"
-            disabled={isLoading || !formData.identifier.trim()}
+            disabled={isLoading || !formData.identifier.trim() || isAtMemberLimit}
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200"
           >
             {isLoading ? (
