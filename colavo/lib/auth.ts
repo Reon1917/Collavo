@@ -100,7 +100,7 @@ export const auth = betterAuth({
           to: [user.email],
           subject: "Reset your Collavo password",
           html: emailHtml,
-          scheduledAt: new Date(), // Use same delivery path as notifications
+          scheduledAt: new Date(), // Use faster scheduled delivery queue instead of basic queue
         });
 
         // Log success in development
