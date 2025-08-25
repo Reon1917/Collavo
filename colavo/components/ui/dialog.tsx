@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { XIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -65,7 +66,21 @@ function DialogTrigger({ children, asChild = false, ...props }: React.ButtonHTML
 }
 
 function DialogPortal({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+    return () => setMounted(false)
+  }, [])
+
+  if (!mounted) return null
+
+  if (typeof window !== 'undefined') {
+    const portalRoot = document.body
+    return createPortal(children, portalRoot)
+  }
+
+  return null
 }
 
 function DialogClose({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
@@ -83,21 +98,6 @@ function DialogClose({ children, ...props }: React.ButtonHTMLAttributes<HTMLButt
   )
 }
 
-function DialogOverlay({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      data-slot="dialog-overlay"
-      className={cn(
-        "animate-in fade-in-0 fixed inset-0 z-50 bg-black/50",
-        className
-      )}
-      {...props}
-    />
-  )
-}
 
 function DialogContent({
   className,
@@ -147,35 +147,38 @@ function DialogContent({
   }
   
   return (
-    <div 
-      onClick={handleBackdropClick}
-      onKeyDown={handleKeyDown}
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      role="dialog"
-      aria-modal="true"
-      tabIndex={-1}
-    >
-      <DialogOverlay />
-      <div
-        data-slot="dialog-content"
-        className={cn(
-          "bg-background animate-in fade-in-0 zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
-          className
-        )}
-        onClick={handleContentClick}
-        {...props}
+    <DialogPortal>
+      <div 
+        onClick={handleBackdropClick}
+        onKeyDown={handleKeyDown}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 cursor-pointer"
+        style={{ pointerEvents: 'auto' }}
+        role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
       >
-        {children}
-        <button
-          onClick={() => onOpenChange(false)}
-          className="ring-offset-background absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none"
-          aria-label="Close"
+        <div
+          data-slot="dialog-content"
+          className={cn(
+            "bg-background animate-in fade-in-0 zoom-in-95 relative z-50 grid w-full max-w-[calc(100%-2rem)] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg cursor-default",
+            className
+          )}
+          style={{ pointerEvents: 'auto' }}
+          onClick={handleContentClick}
+          {...props}
         >
-          <XIcon className="h-4 w-4" />
-          <span className="sr-only">Close</span>
-        </button>
+          {children}
+          <button
+            onClick={() => onOpenChange(false)}
+            className="ring-offset-background absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none"
+            aria-label="Close"
+          >
+            <XIcon className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </button>
+        </div>
       </div>
-    </div>
+    </DialogPortal>
   )
 }
 
@@ -235,7 +238,6 @@ export {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogOverlay,
   DialogPortal,
   DialogTitle,
   DialogTrigger,
