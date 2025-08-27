@@ -81,6 +81,18 @@ export async function POST(request: NextRequest) {
         });
       }
 
+    // Check member limit before accepting invitation (8 members including leader)
+    const allMembers = await db.select()
+      .from(members)
+      .where(eq(members.projectId, invitationData.projectId));
+    
+    if (allMembers.length >= 8) {
+      return NextResponse.json(
+        { error: 'Project member limit reached. This project already has the maximum of 8 members.' },
+        { status: 400 }
+      );
+    }
+
     // Create member record
     const newMember = await db.insert(members).values({
         id: createId(),

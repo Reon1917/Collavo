@@ -11,6 +11,7 @@ import { ProjectDeleteDialog } from '../dialogs/ProjectDeleteDialog';
 import { ViewTabs } from '@/components/project/OverviewView/components/ViewTabs';
 import { TimelineView } from '@/components/project/OverviewView/components/TimelineView';
 import { GraphView } from '@/components/project/OverviewView/components/GraphView';
+import { AddMemberModal } from '@/components/project/AddMemberModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -35,6 +36,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
+  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
   const [selectedView, setSelectedView] = useState<'overview' | 'timeline' | 'graph'>('overview');
 
   // Format user permissions for display (excluding role)
@@ -363,7 +365,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
                 
                 {permissions.canAddMembers && (
                   <div className="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors text-center"
-                       onClick={() => onTabChange('members')}>
+                       onClick={() => setIsAddMemberModalOpen(true)}>
                     <UserPlus className="h-6 w-6 mb-2 text-primary" />
                     <span className="text-sm font-medium text-gray-900 dark:text-white">Add Member</span>
                   </div>
@@ -424,6 +426,14 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
         project={project}
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
+      />
+
+      <AddMemberModal
+        isOpen={isAddMemberModalOpen}
+        onClose={() => setIsAddMemberModalOpen(false)}
+        projectId={project.id}
+        currentMemberCount={project.members.length}
+        onMemberAdded={onRefresh}
       />
     </div>
   );

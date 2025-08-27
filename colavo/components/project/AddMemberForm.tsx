@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { UserPlus, Loader2, Mail, UserCheck, UserX } from 'lucide-react';
@@ -15,12 +15,10 @@ interface AddMemberFormProps {
   onMemberAdded?: () => void;
 }
 
-type IdentifierType = 'email' | 'username' | 'id';
 type UserType = 'existing' | 'new';
 
 interface AddMemberFormData {
   identifier: string;
-  identifierType: IdentifierType;
   userType: UserType;
 }
 
@@ -28,7 +26,6 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<AddMemberFormData>({
     identifier: '',
-    identifierType: 'username',
     userType: 'existing'
   });
 
@@ -36,25 +33,15 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
     e.preventDefault();
     
     if (!formData.identifier.trim()) {
-      toast.error('Please enter a valid identifier');
+      toast.error('Please enter a valid email address');
       return;
     }
 
-    // Validation based on user type and identifier type
-    if (formData.userType === 'new' && formData.identifierType !== 'email') {
-      toast.error('Invalid selection', {
-        description: 'New users can only be invited by email address. Please select "Email Address" or change to "Existing User".',
-      });
-      return;
-    }
-
-    if (formData.userType === 'existing' && formData.identifierType === 'email') {
-      toast.error('Are you sure this user exists?', {
-        description: 'You selected "Existing User" but are using an email. If they don\'t have a Collavo account yet, please select "New User" instead.',
-        action: {
-          label: 'Switch to New User',
-          onClick: () => setFormData(prev => ({ ...prev, userType: 'new' })),
-        },
+    // Basic email validation for both user types
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.identifier.trim())) {
+      toast.error('Invalid email address', {
+        description: 'Please enter a valid email address.',
       });
       return;
     }
@@ -69,7 +56,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
         },
         body: JSON.stringify({
           identifier: formData.identifier.trim(),
-          identifierType: formData.identifierType,
+          identifierType: 'email',
           userType: formData.userType
         }),
       });
@@ -91,10 +78,10 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
         } else if (response.status === 404) {
           if (formData.userType === 'existing') {
             toast.error('User not found', {
-              description: 'No user found with this identifier. Please check the spelling or try selecting "New User" if they don\'t have an account yet.',
+              description: 'No user found with this email address. Please check the spelling or try selecting "New User" if they don\'t have an account yet.',
               action: {
                 label: 'Switch to New User',
-                onClick: () => setFormData(prev => ({ ...prev, userType: 'new', identifierType: 'email' })),
+                onClick: () => setFormData(prev => ({ ...prev, userType: 'new' })),
               },
             });
           } else {
@@ -110,7 +97,9 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
           return;
         } else if (response.status === 400) {
           toast.error('Invalid request', {
-            description: errorMessage.includes('New users can only be invited by email') 
+            description: errorMessage.includes('member limit reached') || errorMessage.includes('Maximum 8 members')
+              ? 'This project has reached the maximum limit of 8 members. Remove existing members to add new ones.'
+              : errorMessage.includes('New users can only be invited by email') 
               ? 'New users can only be invited by email address. Please check your selection.'
               : errorMessage.includes('Cannot add yourself')
               ? 'You cannot add yourself as a member.'
@@ -147,7 +136,6 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
       // Reset form
       setFormData({
         identifier: '',
-        identifierType: 'username',
         userType: 'existing'
       });
 
@@ -169,20 +157,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
     }
   };
 
-  const getPlaceholderText = () => {
-    switch (formData.identifierType) {
-      case 'email':
-        return 'user@example.com';
-      case 'username':
-        return 'username';
-      case 'id':
-        return 'User ID';
-      default:
-        return 'Enter identifier';
-    }
-  };
 
-  // Input validation logic removed as it was unused
 
 
 
@@ -194,7 +169,7 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
           Add Team Member
         </CardTitle>
         <CardDescription className="text-gray-600 dark:text-gray-400">
-          Invite a new member to join this project by their email, username, or user ID.
+          Invite a new member to join this project by their email address.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -211,8 +186,6 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
                 setFormData(prev => ({ 
                   ...prev, 
                   userType: typedValue,
-                  // Reset identifier type: email for new users, username for existing users
-                  identifierType: typedValue === 'new' ? 'email' : 'username',
                   identifier: '' // Reset identifier when switching types
                 }));
               }}
@@ -241,46 +214,17 @@ export function AddMemberForm({ projectId, onMemberAdded }: AddMemberFormProps) 
             </RadioGroup>
           </div>
 
-          {/* Identifier Type Selection - Only show for existing users */}
-          {formData.userType === 'existing' && (
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Search by
-              </Label>
-              <Select
-                value={formData.identifierType}
-                onValueChange={(value) => {
-                  const typedValue = value as IdentifierType;
-                  setFormData(prev => ({ ...prev, identifierType: typedValue, identifier: '' }));
-                }}
-              >
-                <SelectTrigger className="bg-background border-border focus:bg-card focus:border-primary">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="username">Username</SelectItem>
-                  <SelectItem value="id">User ID</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Identifier Input */}
+          {/* Email Input */}
           <div className="space-y-2">
             <Label htmlFor="identifier" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {formData.userType === 'new' ? 'Email Address' :
-               formData.identifierType === 'username' ? 'Username' : 'User ID'}
+              Email Address
             </Label>
             <div className="relative">
-              {formData.userType === 'new' ? (
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              ) : (
-                <UserCheck className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              )}
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 id="identifier"
-                type={formData.userType === 'new' ? 'email' : 'text'}
-                placeholder={formData.userType === 'new' ? 'user@example.com' : getPlaceholderText()}
+                type="email"
+                placeholder="user@example.com"
                 value={formData.identifier}
                 onChange={(e) => setFormData(prev => ({ ...prev, identifier: e.target.value }))}
                 className="pl-10 bg-background border-border focus:bg-card focus:border-primary transition-colors"
