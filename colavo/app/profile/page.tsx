@@ -3,7 +3,7 @@
 import { useAuth } from '@/providers/auth-provider';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Navbar } from '@/components/ui/navbar';
+import { DashboardNavbar } from '@/components/ui/dashboard-navbar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -123,7 +123,7 @@ export default function ProfilePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
+        <DashboardNavbar />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -140,15 +140,19 @@ export default function ProfilePage() {
   return (
     <>
       <div className="min-h-screen bg-background">
-        <Navbar />
+        <DashboardNavbar />
         
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-6">
-            <Link href="/dashboard" className="text-primary hover:text-primary/80 flex items-center transition-colors">
+        {/* Sticky Back Button */}
+        <div className="sticky top-0 z-50 bg-background border-b border-border shadow-sm">
+          <div className="container mx-auto px-4 py-4">
+            <Link href="/dashboard" className="text-primary hover:text-primary/80 flex items-center transition-colors font-medium">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Dashboard
             </Link>
           </div>
+        </div>
+        
+        <div className="container mx-auto px-4 py-8">
           
           <div className="max-w-4xl mx-auto space-y-8">
             {/* Profile Info Card */}
@@ -257,36 +261,42 @@ export default function ProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                   <Button 
                     variant="outline" 
-                    className="h-auto py-4 px-6 border-primary text-primary hover:bg-primary/10 transition-colors rounded-lg"
+                    className="h-auto py-8 px-6 border-2 border-primary/50 text-foreground hover:bg-primary/5 hover:text-foreground hover:border-primary/80 transition-all duration-200 rounded-2xl shadow-xl hover:shadow-2xl bg-background/80 backdrop-blur-sm ring-1 ring-border/50"
                     onClick={() => setShowChangePasswordModal(true)}
                   >
-                    <div className="flex flex-col items-center space-y-2">
-                      <Lock className="h-5 w-5" />
-                      <span>Change Password</span>
+                    <div className="flex flex-col items-center space-y-4">
+                      <div className="p-3 rounded-xl bg-primary/15 ring-1 ring-primary/20">
+                        <Lock className="h-6 w-6 text-primary" />
+                      </div>
+                      <span className="font-semibold text-sm">Change Password</span>
                     </div>
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="h-auto py-4 px-6 border-primary text-primary hover:bg-primary/10 transition-colors rounded-lg"
+                    className="h-auto py-8 px-6 border-2 border-primary/50 text-foreground hover:bg-primary/5 hover:text-foreground hover:border-primary/80 transition-all duration-200 rounded-2xl shadow-xl hover:shadow-2xl bg-background/80 backdrop-blur-sm ring-1 ring-border/50"
                     onClick={handleSignOut}
                   >
-                    <div className="flex flex-col items-center space-y-2">
-                      <LogOut className="h-5 w-5" />
-                      <span>Logout</span>
+                    <div className="flex flex-col items-center space-y-4">
+                      <div className="p-3 rounded-xl bg-primary/15 ring-1 ring-primary/20">
+                        <LogOut className="h-6 w-6 text-primary" />
+                      </div>
+                      <span className="font-semibold text-sm">Logout</span>
                     </div>
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="h-auto py-4 px-6 border-destructive text-destructive hover:bg-destructive/10 transition-colors rounded-lg"
+                    className="h-auto py-8 px-6 border-2 border-destructive/70 text-destructive hover:bg-destructive/5 hover:text-destructive hover:border-destructive transition-all duration-200 rounded-2xl shadow-xl hover:shadow-2xl bg-background/80 backdrop-blur-sm ring-1 ring-destructive/20"
                     onClick={() => setShowDeleteDialog(true)}
                     disabled={isDeleting}
                   >
-                    <div className="flex flex-col items-center space-y-2">
-                      <Trash2 className="h-5 w-5" />
-                      <span>Delete Account</span>
+                    <div className="flex flex-col items-center space-y-4">
+                      <div className="p-3 rounded-xl bg-destructive/15 ring-1 ring-destructive/20">
+                        <Trash2 className="h-6 w-6 text-destructive" />
+                      </div>
+                      <span className="font-semibold text-sm">Delete Account</span>
                     </div>
                   </Button>
                 </div>

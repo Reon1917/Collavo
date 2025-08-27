@@ -40,6 +40,7 @@ export function MembersView({ projectId, onPermissionRefresh }: MembersViewProps
         projectId={projectId}
         permissions={permissions}
         onMemberAdded={refreshMembers}
+        currentMemberCount={members.length}
       />
 
       {members.length === 0 ? (
@@ -47,6 +48,7 @@ export function MembersView({ projectId, onPermissionRefresh }: MembersViewProps
           projectId={projectId}
           permissions={permissions}
           onMemberAdded={refreshMembers}
+          currentMemberCount={members.length}
         />
       ) : (
         // Sort members: leader first, then others
