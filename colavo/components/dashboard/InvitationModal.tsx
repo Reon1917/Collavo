@@ -124,13 +124,42 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
   };
 
   const handleDeclineInvitation = async (invitation: PendingInvitation) => {
-    // For now, just remove from UI - we could add a decline API endpoint later
-    setInvitations(prev => prev.filter(inv => inv.id !== invitation.id));
-    toast.info(`Declined invitation to "${invitation.projectName}"`);
+    setProcessingInvitations(prev => new Set(prev).add(invitation.id));
     
-    // Close modal if no more invitations
-    if (invitations.length === 1) {
-      handleOpenChange(false);
+    try {
+      const response = await fetch('/api/invitations/decline', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: invitation.token,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(`Declined invitation to "${invitation.projectName}"`);
+        
+        // Remove the declined invitation from the list
+        setInvitations(prev => prev.filter(inv => inv.id !== invitation.id));
+        
+        // Close modal if no more invitations
+        if (invitations.length === 1) {
+          handleOpenChange(false);
+        }
+      } else {
+        throw new Error(data.error || 'Failed to decline invitation');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to decline invitation');
+    } finally {
+      setProcessingInvitations(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(invitation.id);
+        return newSet;
+      });
     }
   };
 

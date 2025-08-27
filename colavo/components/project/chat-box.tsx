@@ -168,7 +168,7 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 40 }}
         transition={{ duration: 0.25, ease: 'easeOut' }}
-        className={cn("fixed bottom-24 right-6 w-96 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700", className)}
+        className={cn("fixed bottom-24 right-6 w-96 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50", className)}
         aria-modal="true"
         role="dialog"
         tabIndex={0}
@@ -188,7 +188,7 @@ export function ChatBox({ projectId, projectName, onClose, className }: ChatBoxP
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: 40 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
-      className={cn("fixed bottom-24 right-6 w-96 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden", className)}
+      className={cn("fixed bottom-24 right-6 w-96 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50", className)}
       aria-modal="true"
       role="dialog"
       tabIndex={0}

@@ -10,10 +10,11 @@ import { Button } from '@/components/ui/button';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { ChangePasswordModal } from '@/components/ui/change-password-modal';
 import Link from 'next/link';
-import { ArrowLeft, User, Lock, LogOut, Trash2 } from 'lucide-react';
+import { ArrowLeft, Lock, LogOut, Trash2, Edit3, Check, X } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { toast } from 'sonner';
 import { ThemePicker } from '@/components/ui/theme-picker';
+import { Input } from '@/components/ui/input';
 
 export default function ProfilePage() {
   const { user, isAuthenticated, isLoading, refetch } = useAuth();
@@ -21,6 +22,9 @@ export default function ProfilePage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState(user?.name || '');
+  const [isUpdatingName, setIsUpdatingName] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -29,6 +33,54 @@ export default function ProfilePage() {
       toast.success('Logged out successfully');
     } catch {
       toast.error('Error logging out');
+    }
+  };
+
+  const handleNameEdit = () => {
+    setEditedName(user?.name || '');
+    setIsEditingName(true);
+  };
+
+  const handleNameCancel = () => {
+    setEditedName(user?.name || '');
+    setIsEditingName(false);
+  };
+
+  const handleNameSave = async () => {
+    if (!editedName.trim()) {
+      toast.error('Name cannot be empty');
+      return;
+    }
+
+    if (editedName.trim() === user?.name) {
+      setIsEditingName(false);
+      return;
+    }
+
+    setIsUpdatingName(true);
+    try {
+      const response = await fetch('/api/user/update-profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: editedName.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update name');
+      }
+
+      await refetch();
+      toast.success('Name updated successfully');
+      setIsEditingName(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to update name');
+    } finally {
+      setIsUpdatingName(false);
     }
   };
 
@@ -61,6 +113,12 @@ export default function ProfilePage() {
       router.push('/login');
     }
   }, [isAuthenticated, isLoading, router]);
+
+  useEffect(() => {
+    if (user?.name) {
+      setEditedName(user.name);
+    }
+  }, [user?.name]);
 
   if (isLoading) {
     return (
@@ -118,7 +176,54 @@ export default function ProfilePage() {
                   <div className="flex-1 space-y-6">
                     <div className="p-4 bg-muted rounded-lg">
                       <h3 className="text-sm font-medium text-muted-foreground mb-1">Full Name</h3>
-                      <p className="text-lg font-medium text-foreground">{user.name}</p>
+                      {isEditingName ? (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={editedName}
+                            onChange={(e) => setEditedName(e.target.value)}
+                            className="text-lg font-medium"
+                            placeholder="Enter your name"
+                            disabled={isUpdatingName}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleNameSave();
+                              } else if (e.key === 'Escape') {
+                                handleNameCancel();
+                              }
+                            }}
+                            autoFocus
+                          />
+                          <Button
+                            size="sm"
+                            onClick={handleNameSave}
+                            disabled={isUpdatingName}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={handleNameCancel}
+                            disabled={isUpdatingName}
+                            className="h-8 w-8 p-0"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <p className="text-lg font-medium text-foreground">{user.name}</p>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={handleNameEdit}
+                            className="h-6 w-6 p-0"
+                          >
+                            <Edit3 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                     <div className="p-4 bg-muted rounded-lg">
                       <h3 className="text-sm font-medium text-muted-foreground mb-1">Email Address</h3>
@@ -152,16 +257,7 @@ export default function ProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <Button 
-                    variant="outline" 
-                    className="h-auto py-4 px-6 border-primary text-primary hover:bg-primary/10 transition-colors rounded-lg"
-                  >
-                    <div className="flex flex-col items-center space-y-2">
-                      <User className="h-5 w-5" />
-                      <span>Edit Profile</span>
-                    </div>
-                  </Button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <Button 
                     variant="outline" 
                     className="h-auto py-4 px-6 border-primary text-primary hover:bg-primary/10 transition-colors rounded-lg"
