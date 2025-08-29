@@ -60,7 +60,6 @@ export async function PATCH(request: NextRequest) {
     }, { status: 200 });
 
   } catch (error) {
-    console.error('Error updating profile:', error);
     return NextResponse.json(
       { error: 'Failed to update profile' },
       { status: 500 }

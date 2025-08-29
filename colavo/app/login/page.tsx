@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
 import { Button } from '@/components/ui/button';
@@ -65,18 +66,22 @@ export default function LoginPage() {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Component 2 - Top Right */}
         <div className="absolute top-10 right-10 lg:top-20 lg:right-20 opacity-60 animate-float-delayed">
-          <img 
-            src="/component2.png" 
-            alt="3D Component 2" 
+          <Image
+            src="/component2.png"
+            alt="3D Component 2"
+            width={112}
+            height={112}
             className="w-20 h-20 lg:w-28 lg:h-28 object-contain drop-shadow-lg"
           />
         </div>
         
         {/* Component 1 - Bottom Left */}
         <div className="absolute bottom-16 left-8 lg:bottom-24 lg:left-16 opacity-50 animate-float">
-          <img 
-            src="/component1.png" 
-            alt="3D Component 1" 
+          <Image
+            src="/component1.png"
+            alt="3D Component 1"
+            width={128}
+            height={128}
             className="w-24 h-24 lg:w-32 lg:h-32 object-contain drop-shadow-lg"
           />
         </div>

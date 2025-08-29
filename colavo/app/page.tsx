@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/ui/navbar';
 import { CheckCircle, Star, Users, Calendar, User} from 'lucide-react';
@@ -15,27 +16,33 @@ export default function Home() {
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {/* Component 1 - Top Left */}
           <div className="absolute top-10 left-10 lg:top-20 lg:left-20 opacity-80 animate-float">
-            <img 
-              src="/component1.png" 
-              alt="3D Component 1" 
+            <Image
+              src="/component1.png"
+              alt="3D Component 1"
+              width={160}
+              height={160}
               className="w-28 h-28 lg:w-40 lg:h-40 object-contain drop-shadow-lg"
             />
           </div>
           
           {/* Component 2 - Top Right */}
           <div className="absolute top-16 right-8 lg:top-32 lg:right-16 opacity-70 animate-float-delayed">
-            <img 
-              src="/component2.png" 
-              alt="3D Component 2" 
+            <Image
+              src="/component2.png"
+              alt="3D Component 2"
+              width={144}
+              height={144}
               className="w-24 h-24 lg:w-36 lg:h-36 object-contain drop-shadow-lg"
             />
           </div>
           
           {/* Component 3 - Bottom Right */}
           <div className="absolute bottom-20 right-12 lg:bottom-32 lg:right-24 opacity-75 animate-float-slow">
-            <img 
-              src="/component3.png" 
-              alt="3D Component 3" 
+            <Image
+              src="/component3.png"
+              alt="3D Component 3"
+              width={176}
+              height={176}
               className="w-32 h-32 lg:w-44 lg:h-44 object-contain drop-shadow-lg"
             />
           </div>

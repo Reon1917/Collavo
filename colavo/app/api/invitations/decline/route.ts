@@ -64,7 +64,6 @@ export async function POST(request: NextRequest) {
     }, { status: 200 });
 
   } catch (error) {
-    console.error('Error declining invitation:', error);
     return NextResponse.json(
       { error: 'Failed to decline invitation' },
       { status: 500 }

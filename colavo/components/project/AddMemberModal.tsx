@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AddMemberForm } from './AddMemberForm';
 import { UserPlus } from 'lucide-react';
@@ -83,7 +83,7 @@ export function AddMemberModal({
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 This project has reached the maximum limit of 8 members. 
-                To add new members, you'll need to remove existing ones first.
+                To add new members, you&apos;ll need to remove existing ones first.
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-500">
                 You can manage team members from the Members tab.
