@@ -81,6 +81,18 @@ export async function POST(request: NextRequest) {
         });
       }
 
+    // Check member limit before accepting invitation (8 members including leader)
+    // NOTE: Neon HTTP driver doesn't support transactions, so this check is not race-safe
+    // Multiple concurrent requests could potentially exceed the limit
+    const memberCount = await db.$count(members, eq(members.projectId, invitationData.projectId));
+
+    if (memberCount >= 8) {
+      return NextResponse.json(
+        { error: 'Project member limit reached. This project already has the maximum of 8 members.' },
+        { status: 409 } // Conflict status for business rule violations
+      );
+    }
+
     // Create member record
     const newMember = await db.insert(members).values({
         id: createId(),

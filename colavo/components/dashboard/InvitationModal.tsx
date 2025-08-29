@@ -53,19 +53,27 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
     }
   };
 
+  // Fetch invitations on component mount to show badge count immediately
+  useEffect(() => {
+    fetchInvitations();
+  }, []);
+
+  // Refresh when modal opens
   useEffect(() => {
     if (isOpen) {
       fetchInvitations();
     }
   }, [isOpen]);
 
-  // Refresh every 30 seconds when modal is open
+  // Refresh every 30 seconds when modal is open, and every 2 minutes when closed
   useEffect(() => {
-    if (!isOpen) return;
-    
-    const interval = setInterval(fetchInvitations, 30000);
+    const interval = setInterval(fetchInvitations, isOpen ? 30000 : 120000);
     return () => clearInterval(interval);
   }, [isOpen]);
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+  };
 
   const handleAcceptInvitation = async (invitation: PendingInvitation) => {
     setProcessingInvitations(prev => new Set(prev).add(invitation.id));
@@ -94,7 +102,7 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
         
         // Close modal if no more invitations
         if (invitations.length === 1) {
-          setIsOpen(false);
+          handleOpenChange(false);
         }
         
         // Optional: Redirect to the project after a delay
@@ -116,20 +124,49 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
   };
 
   const handleDeclineInvitation = async (invitation: PendingInvitation) => {
-    // For now, just remove from UI - we could add a decline API endpoint later
-    setInvitations(prev => prev.filter(inv => inv.id !== invitation.id));
-    toast.info(`Declined invitation to "${invitation.projectName}"`);
+    setProcessingInvitations(prev => new Set(prev).add(invitation.id));
     
-    // Close modal if no more invitations
-    if (invitations.length === 1) {
-      setIsOpen(false);
+    try {
+      const response = await fetch('/api/invitations/decline', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: invitation.token,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(`Declined invitation to "${invitation.projectName}"`);
+        
+        // Remove the declined invitation from the list
+        setInvitations(prev => prev.filter(inv => inv.id !== invitation.id));
+        
+        // Close modal if no more invitations
+        if (invitations.length === 1) {
+          handleOpenChange(false);
+        }
+      } else {
+        throw new Error(data.error || 'Failed to decline invitation');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to decline invitation');
+    } finally {
+      setProcessingInvitations(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(invitation.id);
+        return newSet;
+      });
     }
   };
 
   const invitationCount = invitations.length;
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm" className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
           <Mail className="h-5 w-5 text-gray-600 dark:text-gray-400" />
@@ -143,7 +180,7 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-[500px] max-h-[80vh]">
+      <DialogContent className="sm:max-w-[500px] max-h-[80vh] !top-[10%] !translate-y-0">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Mail className="h-5 w-5 text-primary" />
@@ -155,7 +192,7 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
             )}
           </DialogTitle>
           <DialogDescription>
-            Manage your pending project invitations. You can also accept invitations directly from your email.
+            Manage your pending project invitations. You will also receive an email for each invitation.
           </DialogDescription>
         </DialogHeader>
 

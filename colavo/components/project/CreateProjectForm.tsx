@@ -37,6 +37,11 @@ export function CreateProjectForm() {
       return;
     }
 
+    if (!formData.deadline) {
+      toast.error('Project deadline is required');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -48,7 +53,7 @@ export function CreateProjectForm() {
         body: JSON.stringify({
           name: formData.name.trim(),
           description: formData.description.trim() || null,
-          deadline: formData.deadline ? formData.deadline.toISOString() : null
+          deadline: formData.deadline.toISOString()
         }),
       });
 
@@ -125,7 +130,7 @@ export function CreateProjectForm() {
           {/* Project Deadline */}
           <div className="space-y-2">
             <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Deadline (Optional)
+              Deadline *
             </Label>
             <Popover>
               <PopoverTrigger asChild>
@@ -138,7 +143,7 @@ export function CreateProjectForm() {
                   disabled={isLoading}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.deadline ? format(formData.deadline, "PPP") : "Select deadline"}
+                  {formData.deadline ? format(formData.deadline, "PPP") : "Select deadline *"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 bg-card border border-border">
@@ -166,7 +171,7 @@ export function CreateProjectForm() {
             </Button>
             <Button
               type="submit"
-              disabled={isLoading || !formData.name.trim()}
+              disabled={isLoading || !formData.name.trim() || !formData.deadline}
               className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200"
             >
               {isLoading ? (

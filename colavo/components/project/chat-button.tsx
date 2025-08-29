@@ -16,7 +16,7 @@ export function ChatButton({ projectId, projectName, className }: ChatButtonProp
 
   return (
     <>
-      <div className="fixed bottom-6 right-6">
+      <div className="fixed bottom-6 right-6 z-40">
         <Button 
           size="lg" 
           className={`rounded-full h-14 w-14 shadow-lg ${className}`}

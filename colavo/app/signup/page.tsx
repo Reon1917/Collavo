@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
 import { Button } from '@/components/ui/button';
@@ -82,18 +83,22 @@ export default function SignupPage() {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Component 1 - Top Left */}
         <div className="absolute top-10 left-10 lg:top-20 lg:left-20 opacity-60 animate-float">
-          <img 
-            src="/component1.png" 
-            alt="3D Component 1" 
+          <Image
+            src="/component1.png"
+            alt="3D Component 1"
+            width={112}
+            height={112}
             className="w-20 h-20 lg:w-28 lg:h-28 object-contain drop-shadow-lg"
           />
         </div>
         
         {/* Component 2 - Bottom Right */}
         <div className="absolute bottom-16 right-8 lg:bottom-24 lg:right-16 opacity-50 animate-float-slow">
-          <img 
-            src="/component3.png" 
-            alt="3D Component 3" 
+          <Image
+            src="/component3.png"
+            alt="3D Component 3"
+            width={128}
+            height={128}
             className="w-24 h-24 lg:w-32 lg:h-32 object-contain drop-shadow-lg"
           />
         </div>

@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { buttonVariants } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { UserPlus } from 'lucide-react';
-import { AddMemberForm } from '@/components/project/AddMemberForm';
+import { AddMemberModal } from '@/components/project/AddMemberModal';
 import { cn } from '@/lib/utils';
 import type { ProjectPermissions } from '../types';
 
@@ -10,15 +9,11 @@ interface MembersHeaderProps {
   projectId: string;
   permissions: ProjectPermissions;
   onMemberAdded: () => void;
+  currentMemberCount: number;
 }
 
-export function MembersHeader({ projectId, permissions, onMemberAdded }: MembersHeaderProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const handleMemberAdded = () => {
-    setIsDialogOpen(false);
-    onMemberAdded();
-  };
+export function MembersHeader({ projectId, permissions, onMemberAdded, currentMemberCount }: MembersHeaderProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const canAddMembers = permissions.isLeader || permissions.userPermissions.includes('addMember');
 
@@ -31,24 +26,22 @@ export function MembersHeader({ projectId, permissions, onMemberAdded }: Members
         </p>
       </div>
       {canAddMembers && (
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger className={cn(buttonVariants(), "flex items-center gap-2")}>
+        <>
+          <button 
+            className={cn(buttonVariants(), "flex items-center gap-2")}
+            onClick={() => setIsModalOpen(true)}
+          >
             <UserPlus className="h-4 w-4" />
             Invite Member
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Invite Team Member</DialogTitle>
-              <DialogDescription>
-                Add a new member to this project.
-              </DialogDescription>
-            </DialogHeader>
-            <AddMemberForm 
-              projectId={projectId} 
-              onMemberAdded={handleMemberAdded}
-            />
-          </DialogContent>
-        </Dialog>
+          </button>
+          <AddMemberModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            projectId={projectId}
+            currentMemberCount={currentMemberCount}
+            onMemberAdded={onMemberAdded}
+          />
+        </>
       )}
     </div>
   );

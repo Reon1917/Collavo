@@ -11,7 +11,7 @@ import { authClient } from '@/lib/auth-client';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ContentLoading } from '@/components/ui/content-loading';
-import { CreateProjectModal } from '@/components/project/CreateProjectModal';
+
 
 interface Project {
   id: string;
@@ -135,15 +135,12 @@ export default function DashboardPage() {
                   <p className="text-muted-foreground mb-8 leading-relaxed">
                     Take the lead and create your first project. Organize your team, set goals, and bring your ideas to life.
                   </p>
-                  <CreateProjectModal 
-                    onProjectCreated={fetchProjects}
-                    trigger={
-                      <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 h-auto rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium">
-                        <PlusCircle className="h-5 w-5 mr-2" />
-                        Create Your First Project
-                      </Button>
-                    }
-                  />
+                  <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 h-auto rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium">
+                    <Link href="/project/new">
+                      <PlusCircle className="h-5 w-5 mr-2" />
+                      Create Your First Project
+                    </Link>
+                  </Button>
                 </div>
               </div>
             )}

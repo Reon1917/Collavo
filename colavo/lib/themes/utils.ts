@@ -116,11 +116,12 @@ export function getThemeCategory(theme: ColorTheme): 'colorful' | 'minimal' | 'p
   switch (theme) {
     case 'creative':
     case 'energy':
+    case 'girly':
       return 'colorful';
-    case 'daylight':
+    case 'default':
     case 'amoled':
       return 'minimal';
-    case 'default':
+    case 'daylight':
     case 'graphite':
       return 'professional';
     case 'accessible':
