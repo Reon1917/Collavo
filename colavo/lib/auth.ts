@@ -95,11 +95,12 @@ export const auth = betterAuth({
           expirationHours: 1, // Reset tokens expire in 1 hour
         });
 
-        // Send email using ResendEmailService
+        // Send email using ResendEmailService (immediate delivery)
         await ResendEmailService.sendEmail({
           to: [user.email],
           subject: "Reset your Collavo password",
           html: emailHtml,
+          // Explicitly omit scheduledAt to ensure immediate delivery
         });
 
         // Log success in development
