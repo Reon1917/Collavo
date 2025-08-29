@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       projectId: invitationData.projectId
     }, { status: 200 });
 
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to decline invitation' },
       { status: 500 }
