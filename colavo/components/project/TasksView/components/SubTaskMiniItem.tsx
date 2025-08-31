@@ -40,6 +40,22 @@ export function SubTaskMiniItem({
     setIsDialogOpen(true);
   };
 
+  // Get contextual action text based on permissions and assignment
+  const getContextualActionText = () => {
+    const isAssigned = subtask.assignedId === project.currentUserId;
+    const isOwner = project.isLeader;
+    const hasTaskPermissions = project.userPermissions.includes('updateTask') || 
+                              project.userPermissions.includes('handleTask');
+    
+    if (isOwner || hasTaskPermissions) {
+      return isAssigned ? 'Update Task' : 'Edit Task';
+    }
+    return 'View';
+  };
+
+  const actionText = getContextualActionText();
+  const isPrimaryAction = actionText !== 'View';
+
   return (
     <>
       <div 
@@ -62,36 +78,42 @@ export function SubTaskMiniItem({
             </span>
           )}
         </div>
+        
+        <span className={`text-xs font-medium transition-colors duration-200 cursor-pointer ml-2 ${
+          isPrimaryAction 
+            ? actionText === 'Update Task'
+              ? 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200'
+              : 'text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-200'
+            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+        }`}>
+          {actionText}
+        </span>
+
         {subtask.deadline && subtask.assignedId && (
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsNotificationModalOpen(true);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
                 e.stopPropagation();
                 setIsNotificationModalOpen(true);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsNotificationModalOpen(true);
-                }
-              }}
-              aria-label={`Set up email reminder for ${subtask.title}`}
-              className="h-7 w-7 p-0 rounded-md border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm 
-                         hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:border-blue-300 dark:hover:border-blue-600 
-                         hover:shadow-md hover:shadow-blue-200/50 dark:hover:shadow-blue-900/30
-                         transition-all duration-200 ease-out group"
-              title="Set up email reminder"
-            >
-              <Bell className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors" />
-            </Button>
-          </div>
+              }
+            }}
+            aria-label={`Set up email reminder for ${subtask.title}`}
+            className="h-7 w-7 p-0 rounded-md border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm 
+                       hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:border-blue-300 dark:hover:border-blue-600 
+                       hover:shadow-md hover:shadow-blue-200/50 dark:hover:shadow-blue-900/30
+                       transition-all duration-200 ease-out group flex-shrink-0 ml-2"
+            title="Set up email reminder"
+          >
+            <Bell className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors" />
+          </Button>
         )}
-        <span className="text-gray-400 text-xs">
-          {canUpdateSubtask ? 'Click to edit' : 'Click to view'}
-        </span>
       </div>
 
       {/* Subtask Details Dialog */}

@@ -105,14 +105,14 @@ export function SubTaskDetailsDialog({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
-        <DialogContent className="max-w-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
+        <DialogContent className="max-w-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 max-h-[85vh] overflow-y-auto">
+          <DialogHeader className="pb-3 border-b border-gray-200 dark:border-gray-700">
             <CustomDialogHeader editMode={editMode} subTask={subTask} />
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
+          <div className="space-y-4 py-3">
             {editMode === 'details' ? (
-              <form onSubmit={handleDetailsSubmit} className="space-y-6">
+              <form onSubmit={handleDetailsSubmit} className="space-y-4">
                 <DetailsEditForm
                   detailsFormData={detailsFormData}
                   setDetailsFormData={setDetailsFormData}
@@ -122,7 +122,7 @@ export function SubTaskDetailsDialog({
                   isLoading={isLoading}
                 />
                 
-                <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                   <ActionButtons
                     editMode={editMode}
                     permissions={permissions}
@@ -140,26 +140,26 @@ export function SubTaskDetailsDialog({
               <>
                 <SubTaskInfoCard subTask={subTask} currentUserId={currentUserId} />
                 
-                <form onSubmit={handleStatusSubmit} className="space-y-6">
+                <form onSubmit={handleStatusSubmit} className="space-y-4">
                   <StatusUpdateForm
                     subTask={subTask}
                     statusFormData={statusFormData}
                     setStatusFormData={setStatusFormData}
-                    editMode={editMode}
+                    editMode="status"
                     isLoading={isLoading}
                   />
 
-                  <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                     <ActionButtons
-                      editMode={editMode}
+                      editMode="view"
                       permissions={permissions}
                       isLoading={isLoading}
                       isDeleting={isDeleting}
                       onClose={() => handleDialogOpenChange(false)}
-                      onStatusEdit={() => setEditMode('status')}
+                      onStatusEdit={() => {}}
                       onDetailsEdit={() => setEditMode('details')}
                       onDelete={() => setShowDeleteDialog(true)}
-                      onCancel={handleStatusCancel}
+                      onCancel={() => {}}
                     />
                   </div>
                 </form>
