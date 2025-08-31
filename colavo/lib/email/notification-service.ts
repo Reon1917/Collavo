@@ -118,7 +118,7 @@ export class NotificationService {
       id: notificationId,
       type: 'subtask',
       entityId: subtaskId,
-      recipientUserId: userId,
+      recipientUserId: subtaskRecord.assignedUser.id,
       scheduledFor: finalScheduledTime,
       daysBefore,
       status: 'pending',
