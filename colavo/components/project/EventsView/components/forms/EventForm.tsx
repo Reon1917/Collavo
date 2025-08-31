@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TimePicker } from '@/components/ui/time-picker';
 import { CalendarIcon, Loader2, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -37,7 +37,7 @@ export function EventForm({
   onCancel 
 }: EventFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedTime, setSelectedTime] = useState({ hour: '12', minute: '00' });
+  const [selectedTime, setSelectedTime] = useState('12:00');
 
   // Get project deadline for validation
   const projectDeadline = projectData?.deadline ? new Date(projectData.deadline) : null;
@@ -63,7 +63,8 @@ export function EventForm({
 
     // Combine date and time
     const eventDateTime = new Date(eventData.datetime);
-    eventDateTime.setHours(parseInt(selectedTime.hour), parseInt(selectedTime.minute));
+    const [hours, minutes] = selectedTime.split(':').map(Number);
+    eventDateTime.setHours(hours, minutes);
 
     // Additional validation for combined datetime against project deadline
     if (projectDeadline && eventDateTime > projectDeadline) {
@@ -106,13 +107,6 @@ export function EventForm({
     setEventData((prev: EventFormData) => ({ ...prev, datetime: date }));
   };
 
-  const generateTimeOptions = () => {
-    const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
-    const minutes = ['00', '15', '30', '45'];
-    return { hours, minutes };
-  };
-
-  const { hours, minutes } = generateTimeOptions();
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -212,47 +206,11 @@ export function EventForm({
         <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Event Time *
         </Label>
-        <div className="grid grid-cols-2 gap-3">
-          {/* Hour Selector */}
-          <div>
-            <Label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Hour</Label>
-            <Select
-              value={selectedTime.hour}
-              onValueChange={(hour) => setSelectedTime(prev => ({ ...prev, hour }))}
-            >
-              <SelectTrigger disabled={isLoading} className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
-                <SelectValue placeholder="Hour" />
-              </SelectTrigger>
-              <SelectContent>
-                {hours.map((hour) => (
-                  <SelectItem key={hour} value={hour}>
-                    {hour}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {/* Minute Selector */}
-          <div>
-            <Label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Minute</Label>
-            <Select
-              value={selectedTime.minute}
-              onValueChange={(minute) => setSelectedTime(prev => ({ ...prev, minute }))}
-            >
-              <SelectTrigger disabled={isLoading} className="bg-[#f9f8f0] dark:bg-gray-800 border-[#e5e4dd] dark:border-gray-700 focus:bg-white dark:focus:bg-gray-900 focus:border-[#008080] dark:focus:border-[#00FFFF]">
-                <SelectValue placeholder="Min" />
-              </SelectTrigger>
-              <SelectContent>
-                {minutes.map((minute) => (
-                  <SelectItem key={minute} value={minute}>
-                    :{minute}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        <TimePicker
+          value={selectedTime}
+          onChange={setSelectedTime}
+          className="w-full"
+        />
       </div>
 
       {/* Location */}
