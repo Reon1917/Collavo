@@ -30,7 +30,18 @@ export interface DetailsFormData {
 
 export type EditMode = 'view' | 'status' | 'details';
 
+// Modal modes based on user capabilities
+export type ModalMode = 'view-only' | 'status-update' | 'full-edit' | 'management';
+
 export interface SubTaskPermissions {
   canUpdateStatus: boolean;
   canEditDetails: boolean;
+}
+
+export interface SubTaskCapabilities {
+  modalMode: ModalMode;
+  permissions: SubTaskPermissions;
+  actionText: string;
+  canDelete: boolean;
+  showAdvancedActions: boolean;
 } 
