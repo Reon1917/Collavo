@@ -38,7 +38,9 @@ export function SubTaskDetailsDialog({
     permissions,
     capabilities,
     resetDetailsForm,
-    handleDialogClose
+    handleDialogClose,
+    hasStatusChanges,
+    hasDetailsChanges
   } = useSubTaskDialog(subTask, currentUserId, isProjectLeader, userPermissions, isOpen);
 
   const {
@@ -106,6 +108,8 @@ export function SubTaskDetailsDialog({
       case 'status-update':
         return 'max-w-xl'; // Medium - 36rem (576px)
       case 'full-edit':
+        return 'max-w-xl'; // Compact - 36rem (576px) since they go directly to edit
+      case 'full-access':
         return 'max-w-2xl'; // Large - 42rem (672px)
       case 'management':
         return 'max-w-4xl'; // Extra large - 56rem (896px)
@@ -146,6 +150,7 @@ export function SubTaskDetailsDialog({
             projectDeadline={projectDeadline}
             isLoading={isLoading}
             isManagementMode={capabilities.modalMode === 'management'}
+            isFullEditMode={capabilities.modalMode === 'full-edit'}
           />
           
           <div className="flex gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
@@ -159,6 +164,8 @@ export function SubTaskDetailsDialog({
               onDetailsEdit={() => setEditMode('details')}
               onDelete={() => setShowDeleteDialog(true)}
               onCancel={handleDetailsCancel}
+              hasStatusChanges={hasStatusChanges}
+              hasDetailsChanges={hasDetailsChanges}
             />
           </div>
         </form>
@@ -190,6 +197,8 @@ export function SubTaskDetailsDialog({
               onDetailsEdit={() => setEditMode('details')}
               onDelete={() => setShowDeleteDialog(true)}
               onCancel={() => {}}
+              hasStatusChanges={hasStatusChanges}
+              hasDetailsChanges={hasDetailsChanges}
             />
           </div>
         </form>

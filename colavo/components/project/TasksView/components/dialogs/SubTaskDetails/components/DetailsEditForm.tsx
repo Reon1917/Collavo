@@ -19,6 +19,7 @@ interface DetailsEditFormProps {
   projectDeadline: string | null;
   isLoading: boolean;
   isManagementMode?: boolean;
+  isFullEditMode?: boolean;
 }
 
 export function DetailsEditForm({ 
@@ -28,7 +29,8 @@ export function DetailsEditForm({
   mainTaskDeadline, 
   projectDeadline, 
   isLoading,
-  isManagementMode = false
+  isManagementMode = false,
+  isFullEditMode = false
 }: DetailsEditFormProps) {
 
   // Get maximum allowed date based on task and project deadlines
@@ -66,9 +68,9 @@ export function DetailsEditForm({
   };
 
   return (
-    <div className="space-y-6">
+    <div className={isFullEditMode ? "space-y-4" : "space-y-6"}>
       {(mainTaskDeadline || projectDeadline) && (
-        <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+        <div className={`flex items-start gap-3 ${isFullEditMode ? "p-3" : "p-4"} bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg`}>
           <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
           <div className="text-sm text-blue-800 dark:text-blue-200">
             {mainTaskDeadline && (
@@ -77,12 +79,12 @@ export function DetailsEditForm({
             {projectDeadline && (
               <p>Project deadline: {format(new Date(projectDeadline), "PPP")}</p>
             )}
-            <p className="font-medium">Subtask deadline cannot exceed either deadline.</p>
+            {!isFullEditMode && <p className="font-medium">Subtask deadline cannot exceed either deadline.</p>}
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className={`grid grid-cols-1 ${isFullEditMode ? "gap-4" : "md:grid-cols-2 gap-6"}`}>
         <div className="space-y-2">
           <Label htmlFor="edit-title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Title *
@@ -125,7 +127,7 @@ export function DetailsEditForm({
           id="edit-description"
           value={detailsFormData.description}
           onChange={(e) => setDetailsFormData(prev => ({ ...prev, description: e.target.value }))}
-          className="bg-background border-border min-h-[100px] resize-none"
+          className={`bg-background border-border ${isFullEditMode ? "min-h-[80px]" : "min-h-[100px]"} resize-none`}
           disabled={isLoading}
           placeholder="Describe the subtask requirements and objectives..."
         />

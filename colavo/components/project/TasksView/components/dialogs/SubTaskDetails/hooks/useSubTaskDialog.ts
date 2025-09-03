@@ -45,6 +45,11 @@ export function useSubTaskDialog(
       return 'management';
     }
     
+    // Users with both handleTask and updateTask permissions get full access
+    if (hasHandleTask && (hasUpdateTask || isAssigned)) {
+      return 'full-access';
+    }
+    
     if (hasHandleTask) {
       return 'full-edit';
     }
@@ -66,6 +71,11 @@ export function useSubTaskDialog(
       return 'Manage';
     }
     
+    // Users with both handleTask and updateTask permissions get "Manage"
+    if (hasHandleTask && (hasUpdateTask || isAssigned)) {
+      return 'Manage';
+    }
+    
     if (hasHandleTask) {
       return 'Edit';
     }
@@ -80,6 +90,20 @@ export function useSubTaskDialog(
     
     return 'View';
   };
+
+  // Change detection for status updates
+  const hasStatusChanges = 
+    statusFormData.status !== subTask.status || 
+    statusFormData.note.trim() !== (subTask.note || '').trim();
+
+  // Change detection for details updates
+  const hasDetailsChanges = 
+    detailsFormData.title.trim() !== subTask.title.trim() ||
+    (detailsFormData.description || '').trim() !== (subTask.description || '').trim() ||
+    detailsFormData.assignedId !== (subTask.assignedId || '') ||
+    (detailsFormData.deadline?.toISOString() !== subTask.deadline) ||
+    (detailsFormData.status !== undefined && detailsFormData.status !== subTask.status) ||
+    ((detailsFormData.note || '').trim() !== (subTask.note || '').trim());
 
   const capabilities: SubTaskCapabilities = {
     modalMode: getModalMode(),
@@ -104,7 +128,14 @@ export function useSubTaskDialog(
         status: subTask.status,
         note: subTask.note || ''
       });
-      setEditMode('view');
+      
+      // For full-edit mode (manage task only), go directly to details edit
+      const modalMode = getModalMode();
+      if (modalMode === 'full-edit') {
+        setEditMode('details');
+      } else {
+        setEditMode('view');
+      }
     }
   }, [subTask, isOpen]);
 
@@ -140,6 +171,8 @@ export function useSubTaskDialog(
     permissions,
     capabilities,
     resetDetailsForm,
-    handleDialogClose
+    handleDialogClose,
+    hasStatusChanges,
+    hasDetailsChanges
   };
 } 

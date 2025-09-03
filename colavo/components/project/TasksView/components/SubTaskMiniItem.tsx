@@ -46,7 +46,12 @@ export function SubTaskMiniItem({
       return 'Manage';
     }
     
-    // Non-leaders with handleTask permission can edit details
+    // Users with both handleTask and updateTask permissions get "Manage"
+    if (hasHandleTask && (hasUpdateTask || isAssigned)) {
+      return 'Manage';
+    }
+    
+    // Non-leaders with only handleTask permission can edit details
     if (hasHandleTask) {
       return 'Edit';
     }
