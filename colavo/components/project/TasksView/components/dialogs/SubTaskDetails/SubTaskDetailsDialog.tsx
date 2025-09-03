@@ -145,6 +145,7 @@ export function SubTaskDetailsDialog({
             mainTaskDeadline={mainTaskDeadline}
             projectDeadline={projectDeadline}
             isLoading={isLoading}
+            isManagementMode={capabilities.modalMode === 'management'}
           />
           
           <div className="flex gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">

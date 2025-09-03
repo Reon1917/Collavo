@@ -21,7 +21,9 @@ export function useSubTaskDialog(
     title: subTask.title,
     description: subTask.description || '',
     assignedId: subTask.assignedId || '',
-    deadline: subTask.deadline ? new Date(subTask.deadline) : undefined
+    deadline: subTask.deadline ? new Date(subTask.deadline) : undefined,
+    status: subTask.status,
+    note: subTask.note || ''
   });
 
   // Calculate permissions based on the new permission system
@@ -98,7 +100,9 @@ export function useSubTaskDialog(
         title: subTask.title,
         description: subTask.description || '',
         assignedId: subTask.assignedId || '',
-        deadline: subTask.deadline ? new Date(subTask.deadline) : undefined
+        deadline: subTask.deadline ? new Date(subTask.deadline) : undefined,
+        status: subTask.status,
+        note: subTask.note || ''
       });
       setEditMode('view');
     }
@@ -109,7 +113,9 @@ export function useSubTaskDialog(
       title: subTask.title,
       description: subTask.description || '',
       assignedId: subTask.assignedId || '',
-      deadline: subTask.deadline ? new Date(subTask.deadline) : undefined
+      deadline: subTask.deadline ? new Date(subTask.deadline) : undefined,
+      status: subTask.status,
+      note: subTask.note || ''
     });
   };
 

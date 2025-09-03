@@ -60,6 +60,27 @@ export function ActionButtons({
         </Button>
         {hasAnyPermissions && (
           <div className="flex gap-2 flex-1">
+            {/* Status-update mode - Submit button for status form */}
+            {modalMode === 'status-update' && permissions.canUpdateStatus && (
+              <Button
+                type="submit"
+                className="flex-1 h-9 bg-orange-600 hover:bg-orange-700 text-white"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <User className="h-4 w-4 mr-1.5" />
+                    Save Update
+                  </>
+                )}
+              </Button>
+            )}
+            
             {/* Management mode - Primary blue */}
             {modalMode === 'management' && permissions.canEditDetails && (
               <Button
@@ -73,7 +94,7 @@ export function ActionButtons({
               </Button>
             )}
             
-            {/* Full-edit mode - Secondary green */}
+            {/* Full-edit mode - Secondary emerald */}
             {modalMode === 'full-edit' && permissions.canEditDetails && (
               <Button
                 type="button"
@@ -86,21 +107,9 @@ export function ActionButtons({
               </Button>
             )}
             
-            {/* Status-update mode - Accent orange (no details edit, status handled in form) */}
-            {modalMode === 'status-update' && !permissions.canEditDetails && (
-              <Button
-                type="button"
-                onClick={() => {}} // Status update is handled in the form
-                className="flex-1 h-9 bg-orange-600 hover:bg-orange-700 text-white"
-                disabled={true} // Always disabled as status form is always visible
-              >
-                <User className="h-4 w-4 mr-1.5" />
-                Status Form Active
-              </Button>
-            )}
             
-            {/* Delete button for users with handleTask permission */}
-            {capabilities?.canDelete && (
+            {/* Delete button only in management mode */}
+            {modalMode === 'management' && capabilities?.canDelete && (
               <Button
                 type="button"
                 onClick={onDelete}
@@ -142,9 +151,9 @@ export function ActionButtons({
         className={`flex-1 h-9 text-white ${
           editMode === 'details' 
             ? modalMode === 'management'
-              ? 'bg-blue-600 hover:bg-blue-700'
-              : 'bg-emerald-600 hover:bg-emerald-700'
-            : 'bg-orange-600 hover:bg-orange-700'
+              ? 'bg-blue-600 hover:bg-blue-700'  // Blue for management
+              : 'bg-emerald-600 hover:bg-emerald-700'  // Emerald for full-edit
+            : 'bg-orange-600 hover:bg-orange-700'  // Orange for status updates
         }`}
       >
         {isLoading ? (
@@ -155,17 +164,10 @@ export function ActionButtons({
         ) : (
           <>
             {editMode === 'details' ? (
-              modalMode === 'management' ? (
-                <>
-                  <Settings className="h-4 w-4 mr-1.5" />
-                  Save Management
-                </>
-              ) : (
-                <>
-                  <Edit3 className="h-4 w-4 mr-1.5" />
-                  Save Changes
-                </>
-              )
+              <>
+                <Settings className="h-4 w-4 mr-1.5" />
+                Save Changes
+              </>
             ) : (
               <>
                 <User className="h-4 w-4 mr-1.5" />

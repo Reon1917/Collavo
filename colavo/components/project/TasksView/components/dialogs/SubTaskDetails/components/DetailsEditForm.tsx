@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { MemberSelect } from '../../../shared';
-import { CalendarIcon, AlertCircle } from 'lucide-react';
+import { CalendarIcon, AlertCircle, CheckCircle2, Play, Clock } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format, addDays, addWeeks, addMonths } from 'date-fns';
@@ -18,6 +18,7 @@ interface DetailsEditFormProps {
   mainTaskDeadline: string | null;
   projectDeadline: string | null;
   isLoading: boolean;
+  isManagementMode?: boolean;
 }
 
 export function DetailsEditForm({ 
@@ -26,7 +27,8 @@ export function DetailsEditForm({
   members, 
   mainTaskDeadline, 
   projectDeadline, 
-  isLoading 
+  isLoading,
+  isManagementMode = false
 }: DetailsEditFormProps) {
 
   // Get maximum allowed date based on task and project deadlines
@@ -177,6 +179,71 @@ export function DetailsEditForm({
           </PopoverContent>
         </Popover>
       </div>
+
+      {isManagementMode && (
+        <>
+          <div className="border-t border-gray-200 dark:border-gray-700 my-6"></div>
+          
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Status & Progress</h3>
+              <span className="text-sm text-gray-500 dark:text-gray-400">(Management only)</span>
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Status</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { value: 'pending' as const, label: 'Pending', icon: Clock, className: 'hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600' },
+                  { value: 'in_progress' as const, label: 'In Progress', icon: Play, className: 'hover:bg-blue-50 dark:hover:bg-blue-950/20 border-blue-300 dark:border-blue-600 hover:text-blue-700 dark:hover:text-blue-300' },
+                  { value: 'completed' as const, label: 'Completed', icon: CheckCircle2, className: 'hover:bg-green-50 dark:hover:bg-green-950/20 border-green-300 dark:border-green-600 hover:text-green-700 dark:hover:text-green-300' }
+                ].map((button) => {
+                  const Icon = button.icon;
+                  const isSelected = detailsFormData.status === button.value;
+                  
+                  return (
+                    <Button
+                      key={button.value}
+                      type="button"
+                      variant="outline"
+                      onClick={() => setDetailsFormData(prev => ({ ...prev, status: button.value }))}
+                      disabled={isLoading}
+                      className={`relative h-12 transition-all duration-200 ${
+                        isSelected 
+                          ? button.value === 'pending' 
+                            ? 'bg-gray-100 dark:bg-gray-700 border-gray-400 dark:border-gray-500 text-gray-800 dark:text-gray-200'
+                            : button.value === 'in_progress'
+                            ? 'bg-blue-100 dark:bg-blue-950/30 border-blue-500 dark:border-blue-400 text-blue-800 dark:text-blue-200'
+                            : 'bg-green-100 dark:bg-green-950/30 border-green-500 dark:border-green-400 text-green-800 dark:text-green-200'
+                          : button.className
+                      }`}
+                    >
+                      <Icon className="h-4 w-4 mr-2" />
+                      <span className="text-sm font-medium">{button.label}</span>
+                      {isSelected && (
+                        <div className="absolute inset-0 bg-current opacity-10 rounded-md" />
+                      )}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Progress Notes <span className="text-gray-500">(Optional)</span>
+              </Label>
+              <Textarea
+                placeholder="Add notes about progress, challenges, or updates..."
+                value={detailsFormData.note || ''}
+                onChange={(e) => setDetailsFormData(prev => ({ ...prev, note: e.target.value }))}
+                className="bg-background border-border focus:bg-card focus:border-primary min-h-[100px] resize-none"
+                disabled={isLoading}
+              />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 } 

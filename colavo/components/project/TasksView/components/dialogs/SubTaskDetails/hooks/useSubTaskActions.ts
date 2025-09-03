@@ -90,17 +90,28 @@ export function useSubTaskActions(
     setIsLoading(true);
 
     try {
+      // Build the update object - include status and note if they exist (management mode)
+      const updateData: any = {
+        title: formData.title.trim(),
+        description: formData.description.trim() || null,
+        assignedId: formData.assignedId,
+        deadline: formData.deadline.toISOString()
+      };
+
+      // Include status and note if provided (management mode)
+      if (formData.status !== undefined) {
+        updateData.status = formData.status;
+      }
+      if (formData.note !== undefined) {
+        updateData.note = formData.note.trim() || null;
+      }
+
       const response = await fetch(`/api/projects/${projectId}/tasks/${mainTaskId}/subtasks/${subTaskId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          title: formData.title.trim(),
-          description: formData.description.trim() || null,
-          assignedId: formData.assignedId,
-          deadline: formData.deadline.toISOString()
-        }),
+        body: JSON.stringify(updateData),
       });
 
       if (!response.ok) {
@@ -108,17 +119,29 @@ export function useSubTaskActions(
         throw new Error(error.error || 'Failed to update subtask details');
       }
 
-      toast.success('Subtask details updated successfully!');
-      onSuccess({
+      toast.success('Subtask updated successfully!');
+      
+      // Build the success response object
+      const successData: any = {
         id: subTaskId,
         title: formData.title.trim(),
         description: formData.description.trim() || null,
         assignedId: formData.assignedId,
         deadline: formData.deadline.toISOString()
-      });
+      };
+
+      // Include status and note in success callback if they were updated
+      if (formData.status !== undefined) {
+        successData.status = formData.status;
+      }
+      if (formData.note !== undefined) {
+        successData.note = formData.note.trim() || null;
+      }
+
+      onSuccess(successData);
       return true;
     } catch {
-      toast.error('Failed to update subtask details');
+      toast.error('Failed to update subtask');
       return false;
     } finally {
       setIsLoading(false);

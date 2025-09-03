@@ -26,6 +26,8 @@ export interface DetailsFormData {
   description: string;
   assignedId: string;
   deadline: Date | undefined;
+  status?: 'pending' | 'in_progress' | 'completed';
+  note?: string;
 }
 
 export type EditMode = 'view' | 'status' | 'details';

@@ -41,12 +41,12 @@ export function SubTaskMiniItem({
     const hasUpdateTask = project.userPermissions.includes('updateTask');
     const hasHandleTask = project.userPermissions.includes('handleTask');
     
-    // Leaders have full access
+    // Leaders have full management access
     if (isLeader) {
       return 'Manage';
     }
     
-    // Users with handleTask permission can fully edit any subtask
+    // Non-leaders with handleTask permission can edit details
     if (hasHandleTask) {
       return 'Edit';
     }
