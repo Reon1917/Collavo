@@ -63,14 +63,17 @@ export function useProjectData(projectId: string) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProjectData = useCallback(async () => {
+  const fetchProjectData = useCallback(async (abortSignal?: AbortSignal) => {
     setIsLoading(true);
     
     try {
       const [projectResponse, tasksResponse] = await Promise.all([
-        fetch(`/api/projects/${projectId}`),
-        fetch(`/api/projects/${projectId}/tasks`)
+        fetch(`/api/projects/${projectId}`, { signal: abortSignal || null }),
+        fetch(`/api/projects/${projectId}/tasks`, { signal: abortSignal || null })
       ]);
+      
+      // Check if request was aborted
+      if (abortSignal?.aborted) return;
       
       if (!projectResponse.ok) {
         throw new Error('Failed to fetch project data');
@@ -85,15 +88,24 @@ export function useProjectData(projectId: string) {
       } else {
         setTasks([]);
       }
-    } catch {
+    } catch (error) {
+      // Don't show error if request was aborted
+      if (error instanceof Error && error.name === 'AbortError') return;
       toast.error('Failed to load project data');
     } finally {
-      setIsLoading(false);
+      if (!abortSignal?.aborted) {
+        setIsLoading(false);
+      }
     }
   }, [projectId]);
 
   useEffect(() => {
-    fetchProjectData();
+    const abortController = new AbortController();
+    fetchProjectData(abortController.signal);
+    
+    return () => {
+      abortController.abort();
+    };
   }, [fetchProjectData]);
 
   const refreshData = useCallback(() => {
@@ -101,20 +113,28 @@ export function useProjectData(projectId: string) {
   }, [fetchProjectData]);
 
   // Force refresh permissions only (lighter than full data refresh)
-  const refreshPermissions = useCallback(async () => {
+  const refreshPermissions = useCallback(async (abortSignal?: AbortSignal) => {
     try {
-      const response = await fetch(`/api/projects/${projectId}`);
+      const response = await fetch(`/api/projects/${projectId}`, { signal: abortSignal || null });
+      
+      if (abortSignal?.aborted) return;
+      
       if (response.ok) {
         const projectData = await response.json();
-        setProject(prevProject => prevProject ? {
-          ...prevProject,
-          userPermissions: projectData.userPermissions,
-          isLeader: projectData.isLeader,
-          userRole: projectData.userRole
-        } : projectData);
+        if (!abortSignal?.aborted) {
+          setProject(prevProject => prevProject ? {
+            ...prevProject,
+            userPermissions: projectData.userPermissions,
+            isLeader: projectData.isLeader,
+            userRole: projectData.userRole
+          } : projectData);
+        }
       }
-    } catch {
-      // Silent fail - will be caught by next full refresh
+    } catch (error) {
+      // Silent fail unless it's not an abort error
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.warn('Failed to refresh permissions:', error);
+      }
     }
   }, [projectId]);
 

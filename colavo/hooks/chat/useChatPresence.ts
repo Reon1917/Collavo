@@ -27,17 +27,33 @@ export function useChatPresence({
   // Update presence mutation
   const updatePresenceMutation = useMutation({
     mutationFn: async (isOnline: boolean = true) => {
-      const response = await fetch(`/api/projects/${projectId}/presence`, {
-        method: isOnline ? 'POST' : 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isOnline })
-      });
+      const abortController = new AbortController();
+      
+      // Auto-abort after 5 seconds to prevent hanging requests
+      const timeoutId = setTimeout(() => abortController.abort(), 5000);
+      
+      try {
+        const response = await fetch(`/api/projects/${projectId}/presence`, {
+          method: isOnline ? 'POST' : 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ isOnline }),
+          signal: abortController.signal
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to update presence');
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          throw new Error('Failed to update presence');
+        }
+
+        return response.json();
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error('Presence update timed out');
+        }
+        throw error;
       }
-
-      return response.json();
     },
     onSuccess: (data, isOnline) => {
       if (isOnline && data) {

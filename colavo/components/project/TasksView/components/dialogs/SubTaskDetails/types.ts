@@ -26,11 +26,33 @@ export interface DetailsFormData {
   description: string;
   assignedId: string;
   deadline: Date | undefined;
+  status?: 'pending' | 'in_progress' | 'completed';
+  note?: string;
 }
 
 export type EditMode = 'view' | 'status' | 'details';
 
+// Modal modes based on user capabilities
+export type ModalMode = 'view-only' | 'status-update' | 'full-edit' | 'management' | 'full-access';
+
 export interface SubTaskPermissions {
   canUpdateStatus: boolean;
   canEditDetails: boolean;
+}
+
+export interface SubTaskCapabilities {
+  modalMode: ModalMode;
+  permissions: SubTaskPermissions;
+  actionText: string;
+  canDelete: boolean;
+  showAdvancedActions: boolean;
+}
+
+export interface UpdateSubTaskPayload {
+  title: string;
+  description: string | null;
+  assignedId: string | null;
+  deadline: string;
+  status?: 'pending' | 'in_progress' | 'completed';
+  note?: string | null;
 } 

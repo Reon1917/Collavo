@@ -23,12 +23,6 @@ export function SubTaskMiniItem({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   
-  // Check if user can update this subtask
-  const canUpdateSubtask = subtask.assignedId === project.currentUserId || 
-                          project.isLeader || 
-                          project.userPermissions.includes('updateTask') ||
-                          project.userPermissions.includes('handleTask');
-
   // Members should always be able to view subtask details (read-only if no edit permissions)
   const canViewSubtask = true;
 
@@ -39,6 +33,44 @@ export function SubTaskMiniItem({
   const handleOpenDialog = () => {
     setIsDialogOpen(true);
   };
+
+  // Get contextual action text based on actual permissions and capabilities
+  const getContextualActionText = () => {
+    const isAssigned = subtask.assignedId === project.currentUserId;
+    const isLeader = project.isLeader;
+    const hasUpdateTask = project.userPermissions.includes('updateTask');
+    const hasHandleTask = project.userPermissions.includes('handleTask');
+    
+    // Leaders have full management access
+    if (isLeader) {
+      return 'Manage';
+    }
+    
+    // Users with both handleTask and updateTask permissions get "Manage"
+    if (hasHandleTask && (hasUpdateTask || isAssigned)) {
+      return 'Manage';
+    }
+    
+    // Non-leaders with only handleTask permission can edit details
+    if (hasHandleTask) {
+      return 'Edit';
+    }
+    
+    // Users with updateTask permission can update status/notes of any subtask
+    if (hasUpdateTask) {
+      return isAssigned ? 'Update' : 'Update Status';
+    }
+    
+    // Assignees can update status/notes of their own subtasks
+    if (isAssigned) {
+      return 'Update';
+    }
+    
+    // Everyone else can only view
+    return 'View';
+  };
+
+  const actionText = getContextualActionText();
 
   return (
     <>
@@ -62,57 +94,67 @@ export function SubTaskMiniItem({
             </span>
           )}
         </div>
+        
+        <span className={`text-xs font-medium transition-colors duration-200 cursor-pointer ml-2 ${
+          actionText === 'Manage' 
+            ? 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200'
+            : actionText === 'Edit'
+            ? 'text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-200'
+            : actionText.startsWith('Update')
+            ? 'text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-200'
+            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+        }`}>
+          {actionText}
+        </span>
+
         {subtask.deadline && subtask.assignedId && (
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsNotificationModalOpen(true);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
                 e.stopPropagation();
                 setIsNotificationModalOpen(true);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsNotificationModalOpen(true);
-                }
-              }}
-              aria-label={`Set up email reminder for ${subtask.title}`}
-              className="h-7 w-7 p-0 rounded-md border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm 
-                         hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:border-blue-300 dark:hover:border-blue-600 
-                         hover:shadow-md hover:shadow-blue-200/50 dark:hover:shadow-blue-900/30
-                         transition-all duration-200 ease-out group"
-              title="Set up email reminder"
-            >
-              <Bell className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors" />
-            </Button>
-          </div>
+              }
+            }}
+            aria-label={`Set up email reminder for ${subtask.title}`}
+            className="h-7 w-7 p-0 rounded-md border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm 
+                       hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:border-blue-300 dark:hover:border-blue-600 
+                       hover:shadow-md hover:shadow-blue-200/50 dark:hover:shadow-blue-900/30
+                       transition-all duration-200 ease-out group flex-shrink-0 ml-2"
+            title="Set up email reminder"
+          >
+            <Bell className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors" />
+          </Button>
         )}
-        <span className="text-gray-400 text-xs">
-          {canUpdateSubtask ? 'Click to edit' : 'Click to view'}
-        </span>
       </div>
 
-      {/* Subtask Details Dialog */}
-      <SubTaskDetailsDialog
-        subTask={subtask}
-        currentUserId={project.currentUserId}
-        isProjectLeader={project.isLeader}
-        userPermissions={project.userPermissions}
-        projectId={project.id}
-        mainTaskId={task.id}
-        mainTaskDeadline={task.deadline}
-        projectDeadline={project.deadline}
-        members={project.members}
-        onSubTaskUpdated={handleSubTaskUpdatedCallback}
-        onSubTaskDeleted={onSubTaskDeleted}
-        isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-      />
+      {/* Lazy render Subtask Details Dialog only when opened */}
+      {isDialogOpen && (
+        <SubTaskDetailsDialog
+          subTask={subtask}
+          currentUserId={project.currentUserId}
+          isProjectLeader={project.isLeader}
+          userPermissions={project.userPermissions}
+          projectId={project.id}
+          mainTaskId={task.id}
+          mainTaskDeadline={task.deadline}
+          projectDeadline={project.deadline}
+          members={project.members}
+          onSubTaskUpdated={handleSubTaskUpdatedCallback}
+          onSubTaskDeleted={onSubTaskDeleted}
+          isOpen={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+        />
+      )}
 
-      {/* Notification Modal */}
-      {subtask.deadline && subtask.assignedId && (
+      {/* Lazy render Notification Modal only when opened */}
+      {subtask.deadline && subtask.assignedId && isNotificationModalOpen && (
         <SubTaskNotificationModal
           subTask={subtask}
           projectId={project.id}

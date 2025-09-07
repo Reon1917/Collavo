@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
@@ -31,45 +32,46 @@ interface InvitationModalProps {
 }
 
 export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) {
-  const [invitations, setInvitations] = useState<PendingInvitation[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [processingInvitations, setProcessingInvitations] = useState<Set<string>>(new Set());
   const [isOpen, setIsOpen] = useState(false);
+  const queryClient = useQueryClient();
 
-  const fetchInvitations = async () => {
-    try {
+  // Replace manual state and setInterval with useQuery
+  const { 
+    data: invitations = [], 
+    isLoading 
+  } = useQuery({
+    queryKey: ['pending-invitations'],
+    queryFn: async (): Promise<PendingInvitation[]> => {
       const response = await fetch('/api/invitations/pending');
       if (!response.ok) {
-        if (response.status === 401) return; // User not logged in
+        if (response.status === 401) return []; // User not logged in
         throw new Error('Failed to fetch invitations');
       }
-      
       const data = await response.json();
-      setInvitations(data.invitations || []);
-    } catch {
-      // Silently fail - errors handled by UI state
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return data.invitations || [];
+    },
+    staleTime: 15000, // Consider data fresh for 15 seconds
+    refetchInterval: () => {
+      // Dynamic polling based on modal state and page visibility
+      if (document.hidden) return false; // Stop polling when page is not visible
+      return isOpen ? 30000 : 120000; // 30s when open, 2min when closed
+    },
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    retry: (failureCount, error: any) => {
+      // Don't retry on 401 (unauthorized)
+      if (error?.status === 401) return false;
+      return failureCount < 3;
+    },
+  });
 
-  // Fetch invitations on component mount to show badge count immediately
-  useEffect(() => {
-    fetchInvitations();
-  }, []);
-
-  // Refresh when modal opens
+  // Refresh when modal opens (optimistic update)
   useEffect(() => {
     if (isOpen) {
-      fetchInvitations();
+      queryClient.invalidateQueries({ queryKey: ['pending-invitations'] });
     }
-  }, [isOpen]);
-
-  // Refresh every 30 seconds when modal is open, and every 2 minutes when closed
-  useEffect(() => {
-    const interval = setInterval(fetchInvitations, isOpen ? 30000 : 120000);
-    return () => clearInterval(interval);
-  }, [isOpen]);
+  }, [isOpen, queryClient]);
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
@@ -94,8 +96,10 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
       if (response.ok) {
         toast.success(`Successfully joined "${invitation.projectName}"!`);
         
-        // Remove the accepted invitation from the list
-        setInvitations(prev => prev.filter(inv => inv.id !== invitation.id));
+        // Update the query cache to remove the accepted invitation
+        queryClient.setQueryData(['pending-invitations'], (oldData: PendingInvitation[]) => {
+          return oldData?.filter(inv => inv.id !== invitation.id) || [];
+        });
         
         // Notify parent component
         onInvitationAccepted?.();
@@ -142,8 +146,10 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
       if (response.ok) {
         toast.success(`Declined invitation to "${invitation.projectName}"`);
         
-        // Remove the declined invitation from the list
-        setInvitations(prev => prev.filter(inv => inv.id !== invitation.id));
+        // Update the query cache to remove the declined invitation
+        queryClient.setQueryData(['pending-invitations'], (oldData: PendingInvitation[]) => {
+          return oldData?.filter(inv => inv.id !== invitation.id) || [];
+        });
         
         // Close modal if no more invitations
         if (invitations.length === 1) {

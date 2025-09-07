@@ -36,9 +36,11 @@ export function SubTaskDetailsDialog({
     detailsFormData,
     setDetailsFormData,
     permissions,
-    resetStatusForm,
+    capabilities,
     resetDetailsForm,
-    handleDialogClose
+    handleDialogClose,
+    hasStatusChanges,
+    hasDetailsChanges
   } = useSubTaskDialog(subTask, currentUserId, isProjectLeader, userPermissions, isOpen);
 
   const {
@@ -92,79 +94,128 @@ export function SubTaskDetailsDialog({
     }
   };
 
-  const handleStatusCancel = () => {
-    resetStatusForm();
-    setEditMode('view');
-  };
 
   const handleDetailsCancel = () => {
     resetDetailsForm();
     setEditMode('view');
   };
 
+  // Get modal size based on capabilities
+  const getModalSize = () => {
+    switch (capabilities.modalMode) {
+      case 'view-only':
+        return 'max-w-lg'; // Small - 32rem (512px)
+      case 'status-update':
+        return 'max-w-xl'; // Medium - 36rem (576px)
+      case 'full-edit':
+        return 'max-w-xl'; // Compact - 36rem (576px) since they go directly to edit
+      case 'full-access':
+        return 'max-w-2xl'; // Large - 42rem (672px)
+      case 'management':
+        return 'max-w-4xl'; // Extra large - 56rem (896px)
+      default:
+        return 'max-w-2xl';
+    }
+  };
+
+  // Render content based on modal mode
+  const renderModalContent = () => {
+    // For view-only mode, show only SubTaskInfoCard
+    if (capabilities.modalMode === 'view-only') {
+      return (
+        <>
+          <SubTaskInfoCard subTask={subTask} currentUserId={currentUserId} />
+          <div className="flex justify-end pt-3 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => handleDialogOpenChange(false)}
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </>
+      );
+    }
+
+    // For other modes, show the current full dialog structure
+    if (editMode === 'details' && capabilities.permissions.canEditDetails) {
+      return (
+        <form onSubmit={handleDetailsSubmit} className="space-y-4">
+          {/* Lazy load DetailsEditForm only when in details edit mode */}
+          <DetailsEditForm
+            detailsFormData={detailsFormData}
+            setDetailsFormData={setDetailsFormData}
+            members={members}
+            mainTaskDeadline={mainTaskDeadline}
+            projectDeadline={projectDeadline}
+            isLoading={isLoading}
+            isManagementMode={capabilities.modalMode === 'management'}
+            isFullEditMode={capabilities.modalMode === 'full-edit'}
+          />
+          
+          <div className="flex gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <ActionButtons
+              editMode={editMode}
+              permissions={permissions}
+              capabilities={capabilities}
+              isLoading={isLoading}
+              isDeleting={isDeleting}
+              onClose={() => handleDialogOpenChange(false)}
+              onDetailsEdit={() => setEditMode('details')}
+              onDelete={() => setShowDeleteDialog(true)}
+              onCancel={handleDetailsCancel}
+              hasStatusChanges={hasStatusChanges}
+              hasDetailsChanges={hasDetailsChanges}
+            />
+          </div>
+        </form>
+      );
+    }
+
+    // Default view with status form
+    return (
+      <>
+        <SubTaskInfoCard subTask={subTask} currentUserId={currentUserId} />
+        
+        <form onSubmit={handleStatusSubmit} className="space-y-4">
+          <StatusUpdateForm
+            subTask={subTask}
+            statusFormData={statusFormData}
+            setStatusFormData={setStatusFormData}
+            editMode="status"
+            isLoading={isLoading}
+          />
+
+          <div className="flex gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <ActionButtons
+              editMode="view"
+              permissions={permissions}
+              capabilities={capabilities}
+              isLoading={isLoading}
+              isDeleting={isDeleting}
+              onClose={() => handleDialogOpenChange(false)}
+              onDetailsEdit={() => setEditMode('details')}
+              onDelete={() => setShowDeleteDialog(true)}
+              onCancel={() => {}}
+              hasStatusChanges={hasStatusChanges}
+              hasDetailsChanges={hasDetailsChanges}
+            />
+          </div>
+        </form>
+      </>
+    );
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
-        <DialogContent className="max-w-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
+        <DialogContent className={`${getModalSize()} bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 max-h-[85vh] overflow-y-auto`}>
+          <DialogHeader className="pb-3 border-b border-gray-200 dark:border-gray-700">
             <CustomDialogHeader editMode={editMode} subTask={subTask} />
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
-            {editMode === 'details' ? (
-              <form onSubmit={handleDetailsSubmit} className="space-y-6">
-                <DetailsEditForm
-                  detailsFormData={detailsFormData}
-                  setDetailsFormData={setDetailsFormData}
-                  members={members}
-                  mainTaskDeadline={mainTaskDeadline}
-                  projectDeadline={projectDeadline}
-                  isLoading={isLoading}
-                />
-                
-                <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <ActionButtons
-                    editMode={editMode}
-                    permissions={permissions}
-                    isLoading={isLoading}
-                    isDeleting={isDeleting}
-                    onClose={() => handleDialogOpenChange(false)}
-                    onStatusEdit={() => setEditMode('status')}
-                    onDetailsEdit={() => setEditMode('details')}
-                    onDelete={() => setShowDeleteDialog(true)}
-                    onCancel={handleDetailsCancel}
-                  />
-                </div>
-              </form>
-            ) : (
-              <>
-                <SubTaskInfoCard subTask={subTask} currentUserId={currentUserId} />
-                
-                <form onSubmit={handleStatusSubmit} className="space-y-6">
-                  <StatusUpdateForm
-                    subTask={subTask}
-                    statusFormData={statusFormData}
-                    setStatusFormData={setStatusFormData}
-                    editMode={editMode}
-                    isLoading={isLoading}
-                  />
-
-                  <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <ActionButtons
-                      editMode={editMode}
-                      permissions={permissions}
-                      isLoading={isLoading}
-                      isDeleting={isDeleting}
-                      onClose={() => handleDialogOpenChange(false)}
-                      onStatusEdit={() => setEditMode('status')}
-                      onDetailsEdit={() => setEditMode('details')}
-                      onDelete={() => setShowDeleteDialog(true)}
-                      onCancel={handleStatusCancel}
-                    />
-                  </div>
-                </form>
-              </>
-            )}
+          <div className="space-y-4 py-3">
+            {renderModalContent()}
           </div>
         </DialogContent>
       </Dialog>

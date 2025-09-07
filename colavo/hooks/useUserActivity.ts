@@ -22,15 +22,11 @@ export function useUserActivity({
   debounceMs = 2000,
   events = [
     'mousedown',
-    'mousemove', 
-    'keydown',
-    'scroll',
+    'keydown', 
     'touchstart',
-    'touchmove',
-    'click',
-    'focus',
-    'blur'
-  ]
+    'focusin',
+    'click'
+  ] // Removed high-frequency events: mousemove, scroll, touchmove, blur
 }: UseUserActivityOptions): UseUserActivityReturn {
   const lastActivityRef = useRef<Date | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -51,11 +47,18 @@ export function useUserActivity({
   }, [onActivity, debounceMs]);
 
   const handleActivity = useCallback((event: Event) => {
-    // Ignore programmatic events or events from specific elements
+    // Ignore programmatic events
     if (event.isTrusted === false) return;
     
+    // Throttle high-frequency events
+    const now = Date.now();
+    const lastActivity = lastActivityRef.current?.getTime() || 0;
+    
+    // Skip if activity was recorded less than 500ms ago (throttling)
+    if (now - lastActivity < 500) return;
+    
     // Update activity immediately (for UI state)
-    lastActivityRef.current = new Date();
+    lastActivityRef.current = new Date(now);
     isActiveRef.current = true;
     
     // Debounce the callback to prevent server spam
@@ -63,22 +66,31 @@ export function useUserActivity({
   }, [debouncedOnActivity]);
 
   useEffect(() => {
+    // Store event listeners for proper cleanup
+    const registeredEvents = new Map();
+    
     // Add event listeners for all activity types
     events.forEach(eventType => {
-      document.addEventListener(eventType, handleActivity, { 
+      const listener = (event: Event) => handleActivity(event);
+      registeredEvents.set(eventType, listener);
+      
+      document.addEventListener(eventType, listener, { 
         passive: true,
-        capture: true 
+        capture: false // Changed to false for better performance
       });
     });
 
     // Cleanup function
     return () => {
-      events.forEach(eventType => {
-        document.removeEventListener(eventType, handleActivity, { capture: true });
+      // Remove each registered event listener
+      registeredEvents.forEach((listener, eventType) => {
+        document.removeEventListener(eventType, listener);
       });
+      registeredEvents.clear();
       
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
       }
     };
   }, [events, handleActivity]);

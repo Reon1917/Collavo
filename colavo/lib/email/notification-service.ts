@@ -49,7 +49,7 @@ export class NotificationService {
    * Create subtask notification
    */
   static async createSubtaskNotification(params: CreateSubtaskNotificationParams): Promise<string> {
-    const { subtaskId, userId, daysBefore, time, projectId, createdBy } = params;
+    const { subtaskId, daysBefore, time, projectId, createdBy } = params;
 
     // Get subtask details with related data
     const subtaskData = await db
@@ -118,7 +118,7 @@ export class NotificationService {
       id: notificationId,
       type: 'subtask',
       entityId: subtaskId,
-      recipientUserId: userId,
+      recipientUserId: subtaskRecord.assignedUser.id,
       scheduledFor: finalScheduledTime,
       daysBefore,
       status: 'pending',
