@@ -37,13 +37,15 @@ export function useProjectChat(
   const [isTyping, setIsTyping] = useState<string[]>([]);
   const [isConnected, setIsConnected] = useState(false);
 
-  // Refs for managing subscriptions
+  // Refs for managing subscriptions with cleanup tracking
   const messageChannelRef = useRef<any>(null);
   const presenceChannelRef = useRef<any>(null);
+  const cleanupExecutedRef = useRef<boolean>(false);
+  const isUnmountedRef = useRef<boolean>(false);
 
   // Use modular hooks
   const { sendMessage, updateMessage, deleteMessage } = useChatMutations({ projectId });
-  const { updatePresence, lastPresenceUpdateRef, presenceIntervalRef } = useChatPresence({
+  const { updatePresence } = useChatPresence({
     projectId,
     currentUserId,
     enabled,
@@ -93,25 +95,34 @@ export function useProjectChat(
       return data.onlineMembers || [];
     },
     enabled: enabled && !!projectId && !!currentUserId,
-    staleTime: 10000,
-    refetchInterval: 20000,
+    staleTime: 15000,
+    refetchInterval: (data) => {
+      // Stop polling if page is not visible or no data
+      return document.hidden ? false : 30000;
+    },
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
   });
 
-  // Polling fallback for real-time updates
+  // Consolidated heartbeat for all polling needs
   useEffect(() => {
     if (!enabled || !projectId || !currentUserId) return;
 
-    const interval = setInterval(() => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['chat-messages', projectId],
-        refetchType: 'active'
-      });
-    }, 5000);
+    // Single interval for both message polling and presence heartbeat
+    const heartbeatInterval = setInterval(() => {
+      // Only poll if page is visible to save resources
+      if (!document.hidden) {
+        queryClient.invalidateQueries({ 
+          queryKey: ['chat-messages', projectId],
+          refetchType: 'active'
+        });
+      }
+    }, 10000); // Reduced frequency to 10 seconds
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(heartbeatInterval);
+    };
   }, [projectId, currentUserId, enabled, queryClient]);
 
   const messages = messagesData?.messages || [];
@@ -288,36 +299,86 @@ export function useProjectChat(
 
     presenceChannelRef.current = presenceChannel;
 
-    // Set up heartbeat interval for active users
-    presenceIntervalRef.current = setInterval(() => {
-      if (mounted) {
-        const now = new Date();
-        const lastUpdate = lastPresenceUpdateRef.current;
-        
-        if (lastUpdate && now.getTime() - lastUpdate.getTime() < 2 * 60 * 1000) {
-          updatePresence(true);
-        }
-      }
-    }, 15000);
-
-    // Cleanup function
+    // Cleanup function with verification
     return () => {
       mounted = false;
       
-      if (presenceIntervalRef.current) {
-        clearInterval(presenceIntervalRef.current);
+      // Prevent multiple cleanup executions
+      if (cleanupExecutedRef.current) return;
+      cleanupExecutedRef.current = true;
+      
+      // Clean up presence before removing channels (with error handling)
+      try {
+        updatePresence(false);
+      } catch (error) {
+        console.warn('Error updating presence during cleanup:', error);
       }
       
-      updatePresence(false);
+      // Properly unsubscribe from channels with verification
+      const channelsToRemove = [];
       
       if (messageChannelRef.current) {
-        supabase.removeChannel(messageChannelRef.current);
+        channelsToRemove.push({
+          channel: messageChannelRef.current,
+          name: 'message',
+          ref: messageChannelRef
+        });
       }
+      
       if (presenceChannelRef.current) {
-        supabase.removeChannel(presenceChannelRef.current);
+        channelsToRemove.push({
+          channel: presenceChannelRef.current,
+          name: 'presence',
+          ref: presenceChannelRef
+        });
       }
+      
+      // Remove all channels with retry logic
+      channelsToRemove.forEach(({ channel, name, ref }) => {
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        const attemptRemoval = () => {
+          try {
+            const result = supabase.removeChannel(channel);
+            ref.current = null;
+            
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`Successfully removed ${name} channel`);
+            }
+            
+            return result;
+          } catch (error) {
+            retryCount++;
+            console.warn(`Error removing ${name} channel (attempt ${retryCount}):`, error);
+            
+            if (retryCount < maxRetries) {
+              // Retry after a short delay
+              setTimeout(attemptRemoval, 100 * retryCount);
+            } else {
+              // Force cleanup after max retries
+              ref.current = null;
+              console.error(`Failed to remove ${name} channel after ${maxRetries} attempts`);
+            }
+          }
+        };
+        
+        attemptRemoval();
+      });
+      
+      // Reset cleanup flag after a delay for potential re-initialization
+      setTimeout(() => {
+        cleanupExecutedRef.current = false;
+      }, 1000);
     };
-  }, [projectId, currentUserId, enabled, updatePresence, queryClient, lastPresenceUpdateRef, presenceIntervalRef]);
+  }, [projectId, currentUserId, enabled, updatePresence, queryClient]);
+
+  // Final cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      isUnmountedRef.current = true;
+    };
+  }, []);
 
   return {
     messages,
