@@ -96,7 +96,7 @@ export function useProjectChat(
     },
     enabled: enabled && !!projectId && !!currentUserId,
     staleTime: 15000,
-    refetchInterval: (data) => {
+    refetchInterval: () => {
       // Stop polling if page is not visible or no data
       return document.hidden ? false : 30000;
     },
@@ -338,7 +338,7 @@ export function useProjectChat(
         let retryCount = 0;
         const maxRetries = 3;
         
-        const attemptRemoval = () => {
+        const attemptRemoval = (): any => {
           try {
             const result = supabase.removeChannel(channel);
             ref.current = null;
@@ -355,10 +355,12 @@ export function useProjectChat(
             if (retryCount < maxRetries) {
               // Retry after a short delay
               setTimeout(attemptRemoval, 100 * retryCount);
+              return null;
             } else {
               // Force cleanup after max retries
               ref.current = null;
               console.error(`Failed to remove ${name} channel after ${maxRetries} attempts`);
+              return null;
             }
           }
         };

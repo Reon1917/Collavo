@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { EditMode, StatusFormData, DetailsFormData, SubTaskPermissions, ModalMode, SubTaskCapabilities } from '../types';
 import { SubTask } from '../../../../types';
 
@@ -36,7 +36,7 @@ export function useSubTaskDialog(
   };
 
   // Determine modal mode based on capabilities
-  const getModalMode = (): ModalMode => {
+  const getModalMode = useCallback((): ModalMode => {
     const isAssigned = currentUserId === subTask.assignedId;
     const hasUpdateTask = userPermissions.includes('updateTask');
     const hasHandleTask = userPermissions.includes('handleTask');
@@ -59,7 +59,7 @@ export function useSubTaskDialog(
     }
     
     return 'view-only';
-  };
+  }, [currentUserId, subTask.assignedId, userPermissions, isProjectLeader]);
 
   // Get contextual action text (same logic as SubTaskMiniItem)
   const getActionText = (): string => {
@@ -137,7 +137,7 @@ export function useSubTaskDialog(
         setEditMode('view');
       }
     }
-  }, [subTask, isOpen]);
+  }, [subTask, isOpen, getModalMode]);
 
   const resetDetailsForm = () => {
     setDetailsFormData({

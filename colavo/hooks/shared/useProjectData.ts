@@ -68,8 +68,8 @@ export function useProjectData(projectId: string) {
     
     try {
       const [projectResponse, tasksResponse] = await Promise.all([
-        fetch(`/api/projects/${projectId}`, { signal: abortSignal }),
-        fetch(`/api/projects/${projectId}/tasks`, { signal: abortSignal })
+        fetch(`/api/projects/${projectId}`, { signal: abortSignal || null }),
+        fetch(`/api/projects/${projectId}/tasks`, { signal: abortSignal || null })
       ]);
       
       // Check if request was aborted
@@ -115,7 +115,7 @@ export function useProjectData(projectId: string) {
   // Force refresh permissions only (lighter than full data refresh)
   const refreshPermissions = useCallback(async (abortSignal?: AbortSignal) => {
     try {
-      const response = await fetch(`/api/projects/${projectId}`, { signal: abortSignal });
+      const response = await fetch(`/api/projects/${projectId}`, { signal: abortSignal || null });
       
       if (abortSignal?.aborted) return;
       

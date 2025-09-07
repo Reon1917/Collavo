@@ -52,7 +52,7 @@ export function InvitationModal({ onInvitationAccepted }: InvitationModalProps) 
       return data.invitations || [];
     },
     staleTime: 15000, // Consider data fresh for 15 seconds
-    refetchInterval: (data, query) => {
+    refetchInterval: () => {
       // Dynamic polling based on modal state and page visibility
       if (document.hidden) return false; // Stop polling when page is not visible
       return isOpen ? 30000 : 120000; // 30s when open, 2min when closed

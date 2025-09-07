@@ -63,7 +63,9 @@ export function EventForm({
 
     // Combine date and time
     const eventDateTime = new Date(eventData.datetime);
-    const [hours, minutes] = selectedTime.split(':').map(Number);
+    const [hoursStr, minutesStr] = selectedTime.split(':');
+    const hours = parseInt(hoursStr || '0', 10);
+    const minutes = parseInt(minutesStr || '0', 10);
     eventDateTime.setHours(hours, minutes);
 
     // Additional validation for combined datetime against project deadline
