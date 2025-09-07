@@ -46,4 +46,13 @@ export interface SubTaskCapabilities {
   actionText: string;
   canDelete: boolean;
   showAdvancedActions: boolean;
+}
+
+export interface UpdateSubTaskPayload {
+  title: string;
+  description: string | null;
+  assignedId: string | null;
+  deadline: string;
+  status?: 'pending' | 'in_progress' | 'completed';
+  note?: string | null;
 } 

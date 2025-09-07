@@ -98,7 +98,11 @@ export function useProjectChat(
     staleTime: 15000,
     refetchInterval: () => {
       // Stop polling if page is not visible or no data
-      return document.hidden ? false : 30000;
+      // Guard against SSR by checking if document exists
+      if (typeof document === 'undefined' || document.hidden) {
+        return false;
+      }
+      return 30000;
     },
     refetchOnWindowFocus: true,
     refetchOnMount: true,

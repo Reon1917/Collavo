@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { StatusFormData, DetailsFormData } from '../types';
+import { StatusFormData, DetailsFormData, UpdateSubTaskPayload } from '../types';
 import { SubTask } from '../../../../types';
 import { validateDeadline } from '../utils';
 
@@ -91,7 +91,7 @@ export function useSubTaskActions(
 
     try {
       // Build the update object - include status and note if they exist (management mode)
-      const updateData: any = {
+      const updateData: UpdateSubTaskPayload = {
         title: formData.title.trim(),
         description: formData.description.trim() || null,
         assignedId: formData.assignedId,

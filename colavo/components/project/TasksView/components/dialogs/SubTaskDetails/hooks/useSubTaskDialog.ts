@@ -101,7 +101,13 @@ export function useSubTaskDialog(
     detailsFormData.title.trim() !== subTask.title.trim() ||
     (detailsFormData.description || '').trim() !== (subTask.description || '').trim() ||
     detailsFormData.assignedId !== (subTask.assignedId || '') ||
-    (detailsFormData.deadline?.toISOString() !== subTask.deadline) ||
+    (() => {
+      // Compare deadlines using epoch milliseconds to avoid timezone/precision issues
+      const formDeadlineMs = detailsFormData.deadline?.getTime();
+      const subTaskDeadlineMs = subTask.deadline ? new Date(subTask.deadline).getTime() : undefined;
+      // Both undefined/null are considered equal
+      return formDeadlineMs !== subTaskDeadlineMs;
+    })() ||
     (detailsFormData.status !== undefined && detailsFormData.status !== subTask.status) ||
     ((detailsFormData.note || '').trim() !== (subTask.note || '').trim());
 

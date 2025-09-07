@@ -24,7 +24,7 @@ export function useUserActivity({
     'mousedown',
     'keydown', 
     'touchstart',
-    'focus',
+    'focusin',
     'click'
   ] // Removed high-frequency events: mousemove, scroll, touchmove, blur
 }: UseUserActivityOptions): UseUserActivityReturn {
