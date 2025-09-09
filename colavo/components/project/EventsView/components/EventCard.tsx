@@ -86,9 +86,9 @@ export function EventCard({
     if (isEventToday) {
       return { 
         text: 'Today', 
-        color: 'text-[#008080] dark:text-[#00FFFF]', 
-        bgColor: 'bg-[#008080]/10 dark:bg-[#00FFFF]/10', 
-        borderColor: 'border-[#008080]/20 dark:border-[#00FFFF]/20' 
+        color: 'text-primary', 
+        bgColor: 'bg-primary/10', 
+        borderColor: 'border-primary/20' 
       };
     } else if (isUpcoming) {
       return { 
@@ -111,7 +111,7 @@ export function EventCard({
 
   return (
     <>
-      <Card className="group relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden h-full flex flex-col transition-all duration-300 ease-in-out hover:shadow-2xl hover:shadow-[#008080]/10 hover:border-[#008080]/50 dark:hover:border-[#00FFFF]/50 hover:-translate-y-1 cursor-pointer">
+      <Card className="group relative bg-card border-border rounded-xl overflow-hidden h-full flex flex-col transition-all duration-300 ease-in-out hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-1 cursor-pointer">
         <CardHeader className="pb-4 flex-shrink-0 relative z-10">
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
@@ -125,7 +125,7 @@ export function EventCard({
               </div>
               
               {/* Event Title */}
-              <CardTitle className="text-lg font-bold text-gray-900 dark:text-white line-clamp-2 mb-2 group-hover:text-[#008080] dark:group-hover:text-[#00FFFF] transition-colors duration-200">
+              <CardTitle className="text-lg font-bold text-gray-900 dark:text-white line-clamp-2 mb-2 group-hover:text-primary transition-colors duration-200">
                 {event.title}
               </CardTitle>
               
@@ -140,8 +140,8 @@ export function EventCard({
             {/* Action Menu */}
             {canModifyEvent && (
               <DropdownMenu>
-                <DropdownMenuTrigger className="h-8 w-8 p-0 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 flex items-center justify-center flex-shrink-0 ml-3 transition-all duration-200 group-hover:shadow-md">
-                  <MoreVertical className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                <DropdownMenuTrigger className="h-8 w-8 p-0 rounded-lg border-border bg-background hover:bg-muted hover:border-muted-foreground flex items-center justify-center flex-shrink-0 ml-3 transition-all duration-200 group-hover:shadow-md">
+                  <MoreVertical className="h-4 w-4 text-muted-foreground" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem onClick={handleEditEvent} className="flex items-center gap-2 py-2">
@@ -163,47 +163,47 @@ export function EventCard({
 
         <CardContent className="pt-0 flex-1 flex flex-col relative z-10">
           {/* Event DateTime */}
-          <div className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300 mb-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg group-hover:bg-white dark:group-hover:bg-gray-800 transition-colors duration-200">
+          <div className="flex items-center gap-3 text-sm text-foreground mb-4 p-3 bg-muted rounded-lg group-hover:bg-background transition-colors duration-200">
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-[#008080] dark:text-[#00FFFF]" />
+              <Calendar className="h-4 w-4 text-primary" />
               <span className="font-semibold">{date}</span>
             </div>
-            <div className="w-px h-4 bg-gray-300 dark:bg-gray-600" />
+            <div className="w-px h-4 bg-border" />
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-[#008080] dark:text-[#00FFFF]" />
+              <Clock className="h-4 w-4 text-primary" />
               <span className="font-medium">{time}</span>
             </div>
           </div>
 
           {/* Location */}
           {event.location && (
-            <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 mb-4 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors duration-200">
-              <MapPin className="h-4 w-4 text-[#00FFFF] dark:text-[#008080] flex-shrink-0" />
+            <div className="flex items-center gap-3 text-sm text-muted-foreground mb-4 p-2 rounded-lg hover:bg-muted transition-colors duration-200">
+              <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
               <span className="font-medium truncate">{event.location}</span>
             </div>
           )}
 
           {/* Creator */}
-          <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-500 mb-4">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground mb-4">
             <User className="h-4 w-4 flex-shrink-0" />
-            <span className="truncate">Created by <span className="font-medium text-gray-700 dark:text-gray-300">{event.creatorName}</span></span>
+            <span className="truncate">Created by <span className="font-medium text-foreground">{event.creatorName}</span></span>
           </div>
 
           {/* Notification Setup - Only for users with event management permissions */}
           {isUpcoming && canModifyEvent && (
             <div className={`flex items-center justify-between p-2 rounded-lg mb-4 border ${
               hasActiveNotification 
-                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' 
-                : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                ? 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800' 
+                : 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800'
             }`}>
               <div className="flex items-center gap-2">
                 <Bell className={`h-4 w-4 ${
-                  hasActiveNotification ? 'text-blue-600' : 'text-green-600'
+                  hasActiveNotification ? 'text-blue-600' : 'text-emerald-600'
                 }`} />
                 <span className={`text-sm font-medium ${
                   hasActiveNotification 
                     ? 'text-blue-800 dark:text-blue-200' 
-                    : 'text-green-800 dark:text-green-200'
+                    : 'text-emerald-800 dark:text-emerald-200'
                 }`}>
                   {hasActiveNotification ? 'Email Reminder Active' : 'Email Reminder'}
                 </span>
@@ -223,7 +223,7 @@ export function EventCard({
                 className={`h-7 px-2 text-xs ${
                   hasActiveNotification 
                     ? 'hover:bg-blue-100 dark:hover:bg-blue-800/30 text-blue-700 dark:text-blue-300' 
-                    : 'hover:bg-green-100 dark:hover:bg-green-800/30 text-green-700 dark:text-green-300'
+                    : 'hover:bg-emerald-100 dark:hover:bg-emerald-800/30 text-emerald-700 dark:text-emerald-300'
                 }`}
               >
                 {hasActiveNotification ? 'Manage' : 'Setup'}
@@ -246,7 +246,7 @@ export function EventCard({
             <Button
               variant="outline"
               onClick={handleViewDetails}
-              className="w-full justify-between text-sm font-medium border-gray-200 dark:border-gray-700 hover:border-[#008080] dark:hover:border-[#00FFFF] hover:bg-[#008080]/5 dark:hover:bg-[#00FFFF]/5 hover:text-[#008080] dark:hover:text-[#00FFFF] transition-all duration-200 group-hover:shadow-md group-hover:scale-[1.02]"
+              className="w-full justify-between text-sm font-medium border-border hover:border-primary hover:bg-primary/5 hover:text-primary transition-all duration-200 group-hover:shadow-md group-hover:scale-[1.02]"
             >
               View Details
               <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
