@@ -43,8 +43,47 @@ export function FileCard({ file, onClick, onEdit, onDelete }: FileCardProps) {
     }
   };
 
-  const getFileExtension = (filename: string) => {
-    return filename.split('.').pop()?.toUpperCase() || '';
+  const getFileExtension = (filename: string, mimeType?: string | null) => {
+    if (!filename) return '';
+    
+    // First try to extract extension from filename
+    const parts = filename.split('.');
+    if (parts.length > 1) {
+      const extension = parts[parts.length - 1];
+      if (extension && extension.length > 0) {
+        return extension.toUpperCase();
+      }
+    }
+    
+    // Fallback to mimeType for files without extensions (e.g., from Teams/macOS)
+    if (mimeType) {
+      switch (mimeType) {
+        case 'application/pdf':
+          return 'PDF';
+        case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+          return 'DOCX';
+        case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+          return 'XLSX';
+        case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+          return 'PPTX';
+        case 'text/plain':
+          return 'TXT';
+        case 'text/csv':
+          return 'CSV';
+        case 'image/jpeg':
+          return 'JPG';
+        case 'image/png':
+          return 'PNG';
+        case 'image/gif':
+          return 'GIF';
+        case 'image/webp':
+          return 'WEBP';
+        default:
+          return 'FILE';
+      }
+    }
+    
+    return 'FILE';
   };
 
   const formatFileSize = (bytes?: number | null) => {
@@ -109,7 +148,7 @@ export function FileCard({ file, onClick, onEdit, onDelete }: FileCardProps) {
               <div className="flex items-center gap-2">
                 {/* File Type Badge */}
                 <Badge variant="outline" className="text-xs">
-                  {getFileExtension(file.name)}
+                  {getFileExtension(file.name, file.mimeType)}
                 </Badge>
                 
                 {/* Actions Menu */}
