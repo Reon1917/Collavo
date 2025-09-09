@@ -189,8 +189,8 @@ export function EventCard({
             <span className="truncate">Created by <span className="font-medium text-gray-700 dark:text-gray-300">{event.creatorName}</span></span>
           </div>
 
-          {/* Notification Setup */}
-          {isUpcoming && (
+          {/* Notification Setup - Only for users with event management permissions */}
+          {isUpcoming && canModifyEvent && (
             <div className={`flex items-center justify-between p-2 rounded-lg mb-4 border ${
               hasActiveNotification 
                 ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' 
@@ -287,7 +287,7 @@ export function EventCard({
         />
       )}
 
-      {showNotificationModal && (
+      {showNotificationModal && canModifyEvent && (
         <EventNotificationModal
           event={event}
           members={project.members}
