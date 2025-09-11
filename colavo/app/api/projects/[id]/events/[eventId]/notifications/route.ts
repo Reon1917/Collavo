@@ -53,6 +53,19 @@ export async function POST(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
+    // Check permission to manage event notifications
+    // Only project leader or members with handleEvent permission can set event notifications
+    const { checkPermissionDetailed } = await import('@/lib/auth-helpers');
+    
+    const permissionCheck = await checkPermissionDetailed(session.user.id, projectId, 'handleEvent');
+    
+    if (!permissionCheck.hasPermission) {
+      return NextResponse.json(
+        { error: 'You need event management permissions to set up event notifications' },
+        { status: 403 }
+      );
+    }
+
     // Validate input
     if (!recipientUserIds || !Array.isArray(recipientUserIds) || !recipientUserIds.length) {
       return NextResponse.json(

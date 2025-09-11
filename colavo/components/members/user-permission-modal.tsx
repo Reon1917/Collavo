@@ -24,7 +24,7 @@ interface ProjectPermissions {
   handleTask: boolean       // Manage Tasks - Edit/Deleting task details
   updateTask: boolean       // Updating sub-task's status and add/edit notes
   createEvent: boolean      // Creating new event
-  handleEvent: boolean      // Manage Events - Edit/delete event details
+  handleEvent: boolean      // Manage Events & Notifications - Edit/delete event details, set up email notifications
   handleFile: boolean       // Manage Files - Add/delete files and links
   viewFiles: boolean        // View files/links
 }
@@ -192,7 +192,7 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
                 checked={permissions.addMember}
                 onCheckedChange={(checked) => handlePermissionChange("addMember", checked)}
                 aria-label="Toggle manage members permission"
-                className="focus-visible:ring-2 transition-all duration-200"
+                className="focus-visible:ring-2 transition-all duration-200 data-[state=checked]:bg-green-600 dark:data-[state=checked]:bg-green-400"
               />
             </div>
             <Separator className="my-2" />
@@ -208,7 +208,7 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
                 checked={permissions.createTask}
                 onCheckedChange={(checked) => handlePermissionChange("createTask", checked)}
                 aria-label="Toggle create tasks permission"
-                className="focus-visible:ring-2 transition-all duration-200"
+                className="focus-visible:ring-2 transition-all duration-200 data-[state=checked]:bg-green-600 dark:data-[state=checked]:bg-green-400"
               />
             </div>
             <div className="flex items-center justify-between py-2">
@@ -221,7 +221,7 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
                 checked={permissions.handleTask}
                 onCheckedChange={(checked) => handlePermissionChange("handleTask", checked)}
                 aria-label="Toggle manage tasks permission"
-                className="focus-visible:ring-2 transition-all duration-200"
+                className="focus-visible:ring-2 transition-all duration-200 data-[state=checked]:bg-green-600 dark:data-[state=checked]:bg-green-400"
               />
             </div>
             <div className="flex items-center justify-between py-2">
@@ -234,7 +234,7 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
                 checked={permissions.updateTask}
                 onCheckedChange={(checked) => handlePermissionChange("updateTask", checked)}
                 aria-label="Toggle update sub-tasks permission"
-                className="focus-visible:ring-2 transition-all duration-200"
+                className="focus-visible:ring-2 transition-all duration-200 data-[state=checked]:bg-green-600 dark:data-[state=checked]:bg-green-400"
               />
             </div>
             <Separator className="my-2" />
@@ -250,20 +250,20 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
                 checked={permissions.createEvent}
                 onCheckedChange={(checked) => handlePermissionChange("createEvent", checked)}
                 aria-label="Toggle create events permission"
-                className="focus-visible:ring-2 transition-all duration-200"
+                className="focus-visible:ring-2 transition-all duration-200 data-[state=checked]:bg-green-600 dark:data-[state=checked]:bg-green-400"
               />
             </div>
             <div className="flex items-center justify-between py-2">
               <div>
-                <Label htmlFor="handleEvent" className="font-medium text-foreground">Manage Events</Label>
-                <p className="text-sm text-muted-foreground">Edit and delete event details</p>
+                <Label htmlFor="handleEvent" className="font-medium text-foreground">Manage Events & Notifications</Label>
+                <p className="text-sm text-muted-foreground">Edit and delete event details, set up email notifications for team members</p>
               </div>
               <Switch
                 id="handleEvent"
                 checked={permissions.handleEvent}
                 onCheckedChange={(checked) => handlePermissionChange("handleEvent", checked)}
                 aria-label="Toggle manage events permission"
-                className="focus-visible:ring-2 transition-all duration-200"
+                className="focus-visible:ring-2 transition-all duration-200 data-[state=checked]:bg-green-600 dark:data-[state=checked]:bg-green-400"
               />
             </div>
             <Separator className="my-2" />
@@ -279,7 +279,7 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
                 checked={permissions.handleFile}
                 onCheckedChange={(checked) => handlePermissionChange("handleFile", checked)}
                 aria-label="Toggle manage files permission"
-                className="focus-visible:ring-2 transition-all duration-200"
+                className="focus-visible:ring-2 transition-all duration-200 data-[state=checked]:bg-green-600 dark:data-[state=checked]:bg-green-400"
               />
             </div>
             <div className="flex items-center justify-between py-2">
@@ -292,7 +292,7 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
                 checked={permissions.viewFiles}
                 onCheckedChange={(checked) => handlePermissionChange("viewFiles", checked)}
                 aria-label="Toggle view files permission"
-                className="focus-visible:ring-2 transition-all duration-200"
+                className="focus-visible:ring-2 transition-all duration-200 data-[state=checked]:bg-green-600 dark:data-[state=checked]:bg-green-400"
               />
             </div>
           </div>

@@ -53,6 +53,43 @@ export async function POST(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
+    // Check permission to manage subtask notifications
+    // Only project leader or assigned member can set notifications
+    const { db } = await import('@/db');
+    const { subTasks, projects } = await import('@/db/schema');
+    const { eq } = await import('drizzle-orm');
+
+    // Get subtask details
+    const subtask = await db
+      .select({
+        assignedId: subTasks.assignedId,
+        projectId: subTasks.mainTaskId // we'll need to get project through main task
+      })
+      .from(subTasks)
+      .where(eq(subTasks.id, subtaskId))
+      .limit(1);
+
+    if (!subtask.length) {
+      return NextResponse.json({ error: 'Subtask not found' }, { status: 404 });
+    }
+
+    // Check if user is project leader
+    const project = await db
+      .select({ leaderId: projects.leaderId })
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
+
+    const isLeader = project[0]?.leaderId === session.user.id;
+    const isAssigned = subtask[0]?.assignedId === session.user.id;
+
+    if (!isLeader && !isAssigned) {
+      return NextResponse.json(
+        { error: 'Only the assigned member or project leader can manage subtask notifications' },
+        { status: 403 }
+      );
+    }
+
     // Validate input
     if (!daysBefore || !time) {
       return NextResponse.json(

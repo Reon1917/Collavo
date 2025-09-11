@@ -6,7 +6,7 @@ interface AccessLevelInfoProps {
   canHandleEvents: boolean;
 }
 
-const BADGE_STYLES = "text-sm font-medium px-4 py-2 border-[#008080] dark:border-[#00FFFF] text-[#008080] dark:text-[#00FFFF] bg-transparent hover:bg-[#008080]/5 dark:hover:bg-[#00FFFF]/5 transition-colors duration-200";
+const BADGE_STYLES = "text-sm font-medium px-4 py-2 border-primary text-primary bg-transparent hover:bg-primary/5 transition-colors duration-200";
 
 export function AccessLevelInfo({ canCreateEvents, canHandleEvents }: AccessLevelInfoProps) {
   if (canCreateEvents && canHandleEvents) return null;
