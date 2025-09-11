@@ -4,6 +4,7 @@ import { db } from '@/db';
 import { mainTasks, subTasks, user } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
+import { ResendEmailService } from '@/lib/email/resend-service';
 
 // PATCH /api/projects/[id]/tasks/[taskId]/subtasks/[subtaskId] - Update subtask
 export async function PATCH(
@@ -163,6 +164,25 @@ export async function PATCH(
         { error: 'Failed to update subtask' },
         { status: 500 }
       );
+    }
+
+    // Handle assignment notifications
+    const wasAssignmentChanged = assignedId !== undefined && assignedId !== subtask.assignedId;
+    if (wasAssignmentChanged && assignedId) {
+      try {
+        await ResendEmailService.sendAssignmentNotificationByIds(
+          assignedId,
+          session.user.id,
+          subtaskId,
+          projectId
+        );
+      } catch (notificationError) {
+        // Log error but don't fail the assignment update
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('Failed to send assignment notification:', notificationError);
+        }
+      }
     }
 
     // Get assigned user details for response

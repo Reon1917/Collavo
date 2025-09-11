@@ -4,6 +4,7 @@ import { db } from '@/db';
 import { projects, members, permissions, mainTasks, subTasks, user } from '@/db/schema';
 import { createId } from '@paralleldrive/cuid2';
 import { eq, and } from 'drizzle-orm';
+import { ResendEmailService } from '@/lib/email/resend-service';
 
 // Define the permission type to match the schema enum
 type PermissionType = "createTask" | "handleTask" | "updateTask" | "handleEvent" | "handleFile" | "addMember" | "createEvent" | "viewFiles";
@@ -223,6 +224,24 @@ export async function POST(
       createdAt: new Date(),
       updatedAt: new Date()
     }).returning();
+
+    // Handle assignment notifications for newly created subtask
+    if (assignedId && newSubTask[0]) {
+      try {
+        await ResendEmailService.sendAssignmentNotificationByIds(
+          assignedId,
+          session.user.id,
+          newSubTask[0].id,
+          projectId
+        );
+      } catch (notificationError) {
+        // Log error but don't fail the subtask creation
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('Failed to send assignment notification during creation:', notificationError);
+        }
+      }
+    }
 
     // Get assigned user details if assigned
     let assignedUser = null;

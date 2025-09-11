@@ -1,4 +1,8 @@
 import { Resend } from 'resend';
+import { generateSubtaskAssignmentTemplate, SubtaskAssignmentParams } from './templates/subtask-assignment';
+import { db } from '@/db';
+import { user, subTasks, mainTasks, projects } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 if (!process.env.RESEND_API_KEY) {
   throw new Error('RESEND_API_KEY environment variable is required');
@@ -84,6 +88,102 @@ export class ResendEmailService {
       });
     } catch (error) {
       throw new Error(`Failed to update email schedule: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Send subtask assignment notification
+   */
+  static async sendSubtaskAssignmentNotification(params: SubtaskAssignmentParams): Promise<EmailResponse> {
+    try {
+      const { subtaskTitle } = params;
+      
+      const html = generateSubtaskAssignmentTemplate(params);
+      const subject = `New Task Assignment: ${subtaskTitle}`;
+      
+      // Send email to the assignee
+      
+      return await this.sendEmail({
+        to: [params.assigneeEmail],
+        subject,
+        html
+      });
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('Failed to send subtask assignment notification:', error);
+      }
+      throw new Error(`Failed to send assignment notification: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Helper function to send assignment notification by IDs
+   * Reusable for both creation and update scenarios
+   */
+  static async sendAssignmentNotificationByIds(
+    assigneeId: string,
+    assignerId: string, 
+    subtaskId: string,
+    projectId: string
+  ): Promise<void> {
+    try {
+      // Skip self-assignment
+      if (assigneeId === assignerId) {
+        return;
+      }
+
+      // Get assignee data
+      const assigneeData = await db
+        .select({
+          name: user.name,
+          email: user.email,
+        })
+        .from(user)
+        .where(eq(user.id, assigneeId))
+        .limit(1);
+
+      // Get assigner data  
+      const assignerData = await db
+        .select({ name: user.name })
+        .from(user)
+        .where(eq(user.id, assignerId))
+        .limit(1);
+
+      // Get subtask and project data
+      const taskData = await db
+        .select({
+          subtaskTitle: subTasks.title,
+          subtaskDescription: subTasks.description,
+          projectName: projects.name,
+          deadline: subTasks.deadline,
+        })
+        .from(subTasks)
+        .innerJoin(mainTasks, eq(mainTasks.id, subTasks.mainTaskId))
+        .innerJoin(projects, eq(projects.id, mainTasks.projectId))
+        .where(eq(subTasks.id, subtaskId))
+        .limit(1);
+
+      if (assigneeData.length > 0 && assignerData.length > 0 && taskData.length > 0) {
+        // Send assignment notification
+        await this.sendSubtaskAssignmentNotification({
+          assigneeName: assigneeData[0].name,
+          assigneeEmail: assigneeData[0].email,
+          assignerName: assignerData[0].name,
+          subtaskTitle: taskData[0].subtaskTitle,
+          subtaskDescription: taskData[0].subtaskDescription || undefined,
+          projectName: taskData[0].projectName,
+          deadline: taskData[0].deadline || undefined,
+          projectId,
+          subtaskId,
+        });
+      }
+    } catch (error) {
+      // Log error but don't throw - notification failure shouldn't break assignment
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('Failed to send assignment notification:', error);
+      }
     }
   }
 } 
