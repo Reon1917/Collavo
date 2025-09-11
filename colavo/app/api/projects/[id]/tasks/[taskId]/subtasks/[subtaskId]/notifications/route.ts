@@ -81,7 +81,7 @@ export async function POST(
       .limit(1);
 
     const isLeader = project[0]?.leaderId === session.user.id;
-    const isAssigned = subtask[0].assignedId === session.user.id;
+    const isAssigned = subtask[0]?.assignedId === session.user.id;
 
     if (!isLeader && !isAssigned) {
       return NextResponse.json(
