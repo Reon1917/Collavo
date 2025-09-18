@@ -165,18 +165,34 @@ export class ResendEmailService {
         .limit(1);
 
       if (assigneeData.length > 0 && assignerData.length > 0 && taskData.length > 0) {
-        // Send assignment notification
-        await this.sendSubtaskAssignmentNotification({
-          assigneeName: assigneeData[0].name,
-          assigneeEmail: assigneeData[0].email,
-          assignerName: assignerData[0].name,
-          subtaskTitle: taskData[0].subtaskTitle,
-          subtaskDescription: taskData[0].subtaskDescription || undefined,
-          projectName: taskData[0].projectName,
-          deadline: taskData[0].deadline || undefined,
-          projectId,
-          subtaskId,
-        });
+        const assignee = assigneeData[0];
+        const assigner = assignerData[0];
+        const task = taskData[0];
+
+        if (assignee && assigner && task) {
+          // Send assignment notification
+          const notificationParams: any = {
+            assigneeName: assignee.name,
+            assigneeEmail: assignee.email,
+            assignerName: assigner.name,
+            subtaskTitle: task.subtaskTitle,
+            projectName: task.projectName,
+            projectId,
+            subtaskId,
+          };
+
+          // Only include subtaskDescription if it has a value
+          if (task.subtaskDescription) {
+            notificationParams.subtaskDescription = task.subtaskDescription;
+          }
+
+          // Only include deadline if it has a value
+          if (task.deadline) {
+            notificationParams.deadline = task.deadline;
+          }
+
+          await this.sendSubtaskAssignmentNotification(notificationParams);
+        }
       }
     } catch (error) {
       // Log error but don't throw - notification failure shouldn't break assignment
