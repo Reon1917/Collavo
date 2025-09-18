@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { mainTasks, subTasks, user } from '@/db/schema';
+import { mainTasks, subTasks, user, members } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
 import { ResendEmailService } from '@/lib/email/resend-service';
@@ -152,6 +152,21 @@ export async function PATCH(
       }
     }
 
+    // If assignedId is being changed, ensure the new user is a member of the project
+    if (canEditDetails && assignedId !== undefined && assignedId !== null) {
+      const member = await db
+        .select()
+        .from(members)
+        .where(and(eq(members.userId, assignedId), eq(members.projectId, projectId)))
+        .limit(1);
+      if (!member.length) {
+        return NextResponse.json(
+          { error: 'Assigned user is not a member of this project' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Update subtask
     const updatedSubTask = await db
       .update(subTasks)
@@ -169,20 +184,21 @@ export async function PATCH(
     // Handle assignment notifications
     const wasAssignmentChanged = assignedId !== undefined && assignedId !== subtask.assignedId;
     if (wasAssignmentChanged && assignedId) {
-      try {
-        await ResendEmailService.sendAssignmentNotificationByIds(
+      // Fire off email asynchronously to avoid blocking the response
+      setTimeout(() => {
+        ResendEmailService.sendAssignmentNotificationByIds(
           assignedId,
           session.user.id,
           subtaskId,
           projectId
-        );
-      } catch (notificationError) {
-        // Log error but don't fail the assignment update
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('Failed to send assignment notification:', notificationError);
-        }
-      }
+        ).catch((notificationError) => {
+          // Log error but don't fail the assignment update
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.error('Failed to send assignment notification:', notificationError);
+          }
+        });
+      }, 0);
     }
 
     // Get assigned user details for response

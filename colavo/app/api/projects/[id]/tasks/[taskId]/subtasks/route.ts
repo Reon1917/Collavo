@@ -227,20 +227,22 @@ export async function POST(
 
     // Handle assignment notifications for newly created subtask
     if (assignedId && newSubTask[0]) {
-      try {
-        await ResendEmailService.sendAssignmentNotificationByIds(
+      const subtaskId = newSubTask[0].id;
+      // Fire off email asynchronously to avoid blocking the response
+      setTimeout(() => {
+        ResendEmailService.sendAssignmentNotificationByIds(
           assignedId,
           session.user.id,
-          newSubTask[0].id,
+          subtaskId,
           projectId
-        );
-      } catch (notificationError) {
-        // Log error but don't fail the subtask creation
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('Failed to send assignment notification during creation:', notificationError);
-        }
-      }
+        ).catch((notificationError) => {
+          // Log error but don't fail the subtask creation
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.error('Failed to send assignment notification during creation:', notificationError);
+          }
+        });
+      }, 0);
     }
 
     // Get assigned user details if assigned

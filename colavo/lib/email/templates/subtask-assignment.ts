@@ -10,6 +10,15 @@ export interface SubtaskAssignmentParams {
   subtaskId: string;
 }
 
+function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export function generateSubtaskAssignmentTemplate(params: SubtaskAssignmentParams): string {
   const {
     assigneeName,
@@ -36,7 +45,7 @@ export function generateSubtaskAssignmentTemplate(params: SubtaskAssignmentParam
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>New Task Assignment - ${subtaskTitle}</title>
+      <title>New Task Assignment - ${escapeHtml(subtaskTitle)}</title>
     </head>
     <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc;">
       <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
@@ -56,34 +65,34 @@ export function generateSubtaskAssignmentTemplate(params: SubtaskAssignmentParam
         <!-- Main Content -->
         <div style="padding: 40px 30px;">
           <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 24px; font-weight: 600;">
-            Hi ${assigneeName}! 👋
+            Hi ${escapeHtml(assigneeName)}! 👋
           </h2>
           
           <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-            <strong>${assignerName}</strong> has assigned you to a new subtask in <strong>${projectName}</strong>.
+            <strong>${escapeHtml(assignerName)}</strong> has assigned you to a new subtask in <strong>${escapeHtml(projectName)}</strong>.
           </p>
 
           <!-- Subtask Card -->
           <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin: 24px 0;">
             <h3 style="color: #1f2937; margin: 0 0 12px 0; font-size: 18px; font-weight: 600;">
-              📋 ${subtaskTitle}
+              📋 ${escapeHtml(subtaskTitle)}
             </h3>
             
             ${subtaskDescription ? `
               <p style="color: #4b5563; font-size: 14px; line-height: 1.5; margin: 0 0 16px 0;">
-                ${subtaskDescription}
+                ${escapeHtml(subtaskDescription)}
               </p>
             ` : ''}
             
             <div style="margin: 16px 0;">
               <div style="display: flex; align-items: center; margin: 8px 0;">
                 <span style="color: #6b7280; font-weight: 500; margin-right: 8px;">📁 Project:</span>
-                <span style="color: #1f2937;">${projectName}</span>
+                <span style="color: #1f2937;">${escapeHtml(projectName)}</span>
               </div>
               
               <div style="display: flex; align-items: center; margin: 8px 0;">
                 <span style="color: #6b7280; font-weight: 500; margin-right: 8px;">👤 Assigned by:</span>
-                <span style="color: #1f2937;">${assignerName}</span>
+                <span style="color: #1f2937;">${escapeHtml(assignerName)}</span>
               </div>
               
               ${deadlineFormatted ? `

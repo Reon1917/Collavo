@@ -171,7 +171,7 @@ export class ResendEmailService {
 
         if (assignee && assigner && task) {
           // Send assignment notification
-          const notificationParams: any = {
+          const notificationParams: SubtaskAssignmentParams = {
             assigneeName: assignee.name,
             assigneeEmail: assignee.email,
             assignerName: assigner.name,
