@@ -40,7 +40,9 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     const handleTabChangeEvent = (event: CustomEvent) => {
       const newSearchParams = new URLSearchParams(searchParams);
       newSearchParams.set('tab', event.detail.tab);
-      router.push(`${pathname}?${newSearchParams.toString()}`);
+      
+      // Use router.replace to avoid POST requests and prevent browser history pollution
+      router.replace(`${pathname}?${newSearchParams.toString()}`, { scroll: false });
     };
 
     window.addEventListener('tabchange', handleTabChangeEvent as EventListener);

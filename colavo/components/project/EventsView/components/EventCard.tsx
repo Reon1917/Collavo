@@ -129,12 +129,14 @@ export function EventCard({
                 {event.title}
               </CardTitle>
               
-              {/* Event Description */}
-              {event.description && (
-                <CardDescription className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
-                  {event.description}
-                </CardDescription>
-              )}
+              {/* Event Description - Reserved space */}
+              <div className="h-10 mb-1">
+                {event.description && (
+                  <CardDescription className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                    {event.description}
+                  </CardDescription>
+                )}
+              </div>
             </div>
             
             {/* Action Menu */}
@@ -175,13 +177,15 @@ export function EventCard({
             </div>
           </div>
 
-          {/* Location */}
-          {event.location && (
-            <div className="flex items-center gap-3 text-sm text-muted-foreground mb-4 p-2 rounded-lg hover:bg-muted transition-colors duration-200">
-              <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
-              <span className="font-medium truncate">{event.location}</span>
-            </div>
-          )}
+          {/* Location - Reserved space */}
+          <div className="h-8 mb-4">
+            {event.location && (
+              <div className="flex items-center gap-3 text-sm text-muted-foreground p-2 rounded-lg hover:bg-muted transition-colors duration-200">
+                <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+                <span className="font-medium truncate">{event.location}</span>
+              </div>
+            )}
+          </div>
 
           {/* Creator */}
           <div className="flex items-center gap-3 text-sm text-muted-foreground mb-4">
@@ -189,47 +193,49 @@ export function EventCard({
             <span className="truncate">Created by <span className="font-medium text-foreground">{event.creatorName}</span></span>
           </div>
 
-          {/* Notification Setup - Only for users with event management permissions */}
-          {isUpcoming && canModifyEvent && (
-            <div className={`flex items-center justify-between p-2 rounded-lg mb-4 border ${
-              hasActiveNotification 
-                ? 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800' 
-                : 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800'
-            }`}>
-              <div className="flex items-center gap-2">
-                <Bell className={`h-4 w-4 ${
-                  hasActiveNotification ? 'text-blue-600' : 'text-emerald-600'
-                }`} />
-                <span className={`text-sm font-medium ${
-                  hasActiveNotification 
-                    ? 'text-blue-800 dark:text-blue-200' 
-                    : 'text-emerald-800 dark:text-emerald-200'
-                }`}>
-                  {hasActiveNotification ? 'Email Reminder Active' : 'Email Reminder'}
-                </span>
-                {hasActiveNotification && notificationCount > 1 && (
-                  <span className="text-xs bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200 px-1.5 py-0.5 rounded-full">
-                    {notificationCount}
+          {/* Notification Setup - Reserved space for consistent layout */}
+          <div className="h-12 mb-4">
+            {isUpcoming && canModifyEvent && (
+              <div className={`flex items-center justify-between p-2 rounded-lg border ${
+                hasActiveNotification 
+                  ? 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800' 
+                  : 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <Bell className={`h-4 w-4 ${
+                    hasActiveNotification ? 'text-blue-600' : 'text-emerald-600'
+                  }`} />
+                  <span className={`text-sm font-medium ${
+                    hasActiveNotification 
+                      ? 'text-blue-800 dark:text-blue-200' 
+                      : 'text-emerald-800 dark:text-emerald-200'
+                  }`}>
+                    {hasActiveNotification ? 'Email Reminder Active' : 'Email Reminder'}
                   </span>
-                )}
+                  {hasActiveNotification && notificationCount > 1 && (
+                    <span className="text-xs bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200 px-1.5 py-0.5 rounded-full">
+                      {notificationCount}
+                    </span>
+                  )}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowNotificationModal(true);
+                  }}
+                  className={`h-7 px-2 text-xs ${
+                    hasActiveNotification 
+                      ? 'hover:bg-blue-100 dark:hover:bg-blue-800/30 text-blue-700 dark:text-blue-300' 
+                      : 'hover:bg-emerald-100 dark:hover:bg-emerald-800/30 text-emerald-700 dark:text-emerald-300'
+                  }`}
+                >
+                  {hasActiveNotification ? 'Manage' : 'Setup'}
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowNotificationModal(true);
-                }}
-                className={`h-7 px-2 text-xs ${
-                  hasActiveNotification 
-                    ? 'hover:bg-blue-100 dark:hover:bg-blue-800/30 text-blue-700 dark:text-blue-300' 
-                    : 'hover:bg-emerald-100 dark:hover:bg-emerald-800/30 text-emerald-700 dark:text-emerald-300'
-                }`}
-              >
-                {hasActiveNotification ? 'Manage' : 'Setup'}
-              </Button>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Bottom Section */}
           <div className="mt-auto">

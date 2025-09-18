@@ -80,10 +80,13 @@ export function SubTaskMiniItem({
         }`}
         onClick={canViewSubtask ? handleOpenDialog : undefined}
       >
+        {/* Status dot */}
         <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
           subtask.status === 'completed' ? 'bg-green-500' :
           subtask.status === 'in_progress' ? 'bg-blue-500' : 'bg-gray-300'
         }`} />
+        
+        {/* Content area */}
         <div className="flex-1 min-w-0">
           <span className="truncate text-gray-700 dark:text-gray-300 block">
             {subtask.title}
@@ -95,46 +98,51 @@ export function SubTaskMiniItem({
           )}
         </div>
         
-        <span className={`text-xs font-medium transition-colors duration-200 cursor-pointer ml-2 ${
-          actionText === 'Manage' 
-            ? 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200'
-            : actionText === 'Edit'
-            ? 'text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-200'
-            : actionText.startsWith('Update')
-            ? 'text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-200'
-            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-        }`}>
-          {actionText}
-        </span>
-
-        {subtask.deadline && subtask.assignedId && (
-          // Only show notification button if user is project leader or assigned to this subtask
-          (project.isLeader || subtask.assignedId === project.currentUserId) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsNotificationModalOpen(true);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
+        {/* Right side container with bell and action text */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Notification bell - positioned just before action text */}
+          {subtask.deadline && subtask.assignedId && (
+            // Only show notification button if user is project leader or assigned to this subtask
+            (project.isLeader || subtask.assignedId === project.currentUserId) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
                   e.stopPropagation();
                   setIsNotificationModalOpen(true);
-                }
-              }}
-              aria-label={`Set up email reminder for ${subtask.title}`}
-              className="h-7 w-7 p-0 rounded-md border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm 
-                         hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:border-blue-300 dark:hover:border-blue-600 
-                         hover:shadow-md hover:shadow-blue-200/50 dark:hover:shadow-blue-900/30
-                         transition-all duration-200 ease-out group flex-shrink-0 ml-2"
-              title="Set up email reminder"
-            >
-              <Bell className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors" />
-            </Button>
-          )
-        )}
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsNotificationModalOpen(true);
+                  }
+                }}
+                aria-label={`Set up email reminder for ${subtask.title}`}
+                className="h-7 w-7 p-0 rounded-md border border-gray-200 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm 
+                           hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:border-blue-300 dark:hover:border-blue-600 
+                           hover:shadow-md hover:shadow-blue-200/50 dark:hover:shadow-blue-900/30
+                           transition-all duration-200 ease-out group"
+                title="Set up email reminder"
+              >
+                <Bell className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors" />
+              </Button>
+            )
+          )}
+          
+          {/* Action text - consistent positioning */}
+          <span className={`text-xs font-medium transition-colors duration-200 cursor-pointer ${
+            actionText === 'Manage' 
+              ? 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200'
+              : actionText === 'Edit'
+              ? 'text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-200'
+              : actionText.startsWith('Update')
+              ? 'text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-200'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+          }`}>
+            {actionText}
+          </span>
+        </div>
       </div>
 
       {/* Lazy render Subtask Details Dialog only when opened */}
