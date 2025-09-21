@@ -52,9 +52,7 @@ export function ActionButtons({
     }
     
     // Determine if we need multiple action buttons (affects close button size)
-    const hasMultipleActions = modalMode === 'full-access' || 
-                               (modalMode === 'management' && capabilities?.canDelete) ||
-                               (modalMode === 'full-edit');
+    const hasMultipleActions = modalMode === 'full-access' || modalMode === 'full-edit';
 
     return (
       <>
@@ -130,19 +128,6 @@ export function ActionButtons({
               </>
             )}
             
-            {/* Management mode - Primary blue */}
-            {modalMode === 'management' && permissions.canEditDetails && (
-              <Button
-                type="button"
-                onClick={onDetailsEdit}
-                className="flex-1 h-9 bg-blue-600 hover:bg-blue-700 text-white"
-                disabled={isDeleting}
-              >
-                <Settings className="h-4 w-4 mr-1.5" />
-                Manage Task
-              </Button>
-            )}
-            
             {/* Full-edit mode - Secondary emerald */}
             {modalMode === 'full-edit' && permissions.canEditDetails && (
               <Button
@@ -162,7 +147,7 @@ export function ActionButtons({
   }
 
   // Edit mode buttons with capability-based colors
-  const modalMode = capabilities?.modalMode || 'view-only';
+
   
   return (
     <>
@@ -180,11 +165,9 @@ export function ActionButtons({
         onClick={onSubmit}
         disabled={isLoading || (editMode === 'details' ? !hasDetailsChanges : !hasStatusChanges)}
         className={`flex-1 h-9 text-white transition-all duration-200 ${
-          editMode === 'details' 
+          editMode === 'details'
             ? hasDetailsChanges
-              ? modalMode === 'management'
-                ? 'bg-blue-600 hover:bg-blue-700 shadow-sm'  // Blue for management
-                : 'bg-emerald-600 hover:bg-emerald-700 shadow-sm'  // Emerald for full-edit/full-access
+              ? 'bg-emerald-600 hover:bg-emerald-700 shadow-sm'  // Emerald for full-edit/full-access
               : 'bg-gray-400 hover:bg-gray-500 cursor-not-allowed opacity-60'
             : hasStatusChanges
               ? 'bg-orange-600 hover:bg-orange-700 shadow-sm'  // Orange for status updates
@@ -212,8 +195,7 @@ export function ActionButtons({
           </>
         )}
       </Button>
-      
-      {/* Delete button in details edit mode for management and full-access users */}
+      {/* Delete button in details edit mode for full-access users */}
       {capabilities?.canDelete && editMode === 'details' && (
         <Button
           type="button"

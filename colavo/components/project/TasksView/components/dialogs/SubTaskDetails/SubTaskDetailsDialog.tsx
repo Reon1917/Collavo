@@ -97,7 +97,12 @@ export function SubTaskDetailsDialog({
 
   const handleDetailsCancel = () => {
     resetDetailsForm();
-    setEditMode('view');
+    // For full-edit mode users (edit permission only), close the modal directly
+    if (capabilities.modalMode === 'full-edit') {
+      handleDialogOpenChange(false);
+    } else {
+      setEditMode('view');
+    }
   };
 
   // Get modal size based on capabilities
@@ -111,8 +116,6 @@ export function SubTaskDetailsDialog({
         return 'max-w-xl'; // Compact - 36rem (576px) since they go directly to edit
       case 'full-access':
         return 'max-w-2xl'; // Large - 42rem (672px)
-      case 'management':
-        return 'max-w-4xl'; // Extra large - 56rem (896px)
       default:
         return 'max-w-2xl';
     }
@@ -149,7 +152,7 @@ export function SubTaskDetailsDialog({
             mainTaskDeadline={mainTaskDeadline}
             projectDeadline={projectDeadline}
             isLoading={isLoading}
-            isManagementMode={capabilities.modalMode === 'management'}
+            isManagementMode={false}
             isFullEditMode={capabilities.modalMode === 'full-edit'}
           />
           
@@ -176,7 +179,7 @@ export function SubTaskDetailsDialog({
     return (
       <>
         <SubTaskInfoCard subTask={subTask} currentUserId={currentUserId} />
-        
+
         <form onSubmit={handleStatusSubmit} className="space-y-4">
           <StatusUpdateForm
             subTask={subTask}

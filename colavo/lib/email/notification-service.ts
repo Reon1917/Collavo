@@ -58,6 +58,7 @@ export class NotificationService {
         mainTask: mainTasks,
         project: projects,
         assignedUser: user,
+        assignedUserEmail: user.email,
       })
       .from(subTasks)
       .innerJoin(mainTasks, eq(subTasks.mainTaskId, mainTasks.id))
@@ -78,6 +79,10 @@ export class NotificationService {
 
     if (!subtaskRecord.assignedUser) {
       throw new Error('Subtask must be assigned to a user');
+    }
+
+    if (!subtaskRecord.assignedUserEmail) {
+      throw new Error('Assigned user must have a valid email address');
     }
 
     // Check if deadline allows for notification scheduling
@@ -106,11 +111,17 @@ export class NotificationService {
 
     // Send email with Resend
     const { emailId } = await ResendEmailService.sendEmail({
-      to: [subtaskRecord.assignedUser.email],
+      to: [subtaskRecord.assignedUserEmail],
       subject,
       html: emailHtml,
       scheduledAt: finalScheduledTime,
     });
+
+    // Log successful email scheduling in development
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log(`Scheduled subtask notification for ${subtaskRecord.assignedUserEmail} at ${finalScheduledTime.toISOString()}`);
+    }
 
     // Save notification record
     const notificationId = createId();

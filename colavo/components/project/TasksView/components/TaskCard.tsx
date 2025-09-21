@@ -175,22 +175,17 @@ export function TaskCard({
                   Subtasks ({visibleSubTasks.length})
                 </h4>
               </div>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {visibleSubTasks.slice(0, 3).map((subtask) => (
-                  <SubTaskMiniItem 
-                    key={subtask.id} 
-                    subtask={subtask} 
+              <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+                {visibleSubTasks.map((subtask) => (
+                  <SubTaskMiniItem
+                    key={subtask.id}
+                    subtask={subtask}
                     task={task}
                     project={project}
                     onSubTaskUpdated={(updatedSubTask) => onSubTaskUpdated(task.id, updatedSubTask)}
                     onSubTaskDeleted={(subtaskId) => onSubTaskDeleted(task.id, subtaskId)}
                   />
                 ))}
-                {visibleSubTasks.length > 3 && (
-                  <p className="text-xs text-gray-500 dark:text-gray-500">
-                    +{visibleSubTasks.length - 3} more
-                  </p>
-                )}
               </div>
             </div>
           ) : (
