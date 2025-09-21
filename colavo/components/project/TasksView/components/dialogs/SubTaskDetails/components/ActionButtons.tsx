@@ -147,7 +147,7 @@ export function ActionButtons({
   }
 
   // Edit mode buttons with capability-based colors
-  const modalMode = capabilities?.modalMode || 'view-only';
+
   
   return (
     <>

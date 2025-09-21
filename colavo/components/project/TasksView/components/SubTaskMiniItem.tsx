@@ -86,6 +86,12 @@ export function SubTaskMiniItem({
     setEditingStatus(subtask.status);
   };
 
+  const handleStatusChange = (value: string) => {
+    if (value === 'pending' || value === 'in_progress' || value === 'completed') {
+      setEditingStatus(value);
+    }
+  };
+
   // Get contextual action text based on actual permissions and capabilities
   const getContextualActionText = () => {
     const isAssigned = subtask.assignedId === project.currentUserId;
@@ -135,7 +141,7 @@ export function SubTaskMiniItem({
         {/* Status dot or status selector */}
         {isEditingStatus ? (
           <div className="flex items-center gap-2 flex-shrink-0">
-            <Select value={editingStatus} onValueChange={setEditingStatus}>
+            <Select value={editingStatus} onValueChange={handleStatusChange}>
               <SelectTrigger className="w-24 h-6 text-xs">
                 <SelectValue />
               </SelectTrigger>
