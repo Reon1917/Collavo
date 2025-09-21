@@ -169,7 +169,7 @@ export class ResendEmailService {
         const assigner = assignerData[0];
         const task = taskData[0];
 
-        if (assignee && assigner && task) {
+        if (assignee && assigner && task && assignee.email) {
           // Send assignment notification
           const notificationParams: SubtaskAssignmentParams = {
             assigneeName: assignee.name,
@@ -192,6 +192,12 @@ export class ResendEmailService {
           }
 
           await this.sendSubtaskAssignmentNotification(notificationParams);
+
+          // Log successful assignment notification in development
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.log(`Sent assignment notification to ${assignee.email} for subtask: ${task.subtaskTitle}`);
+          }
         }
       }
     } catch (error) {
