@@ -40,24 +40,20 @@ export function useSubTaskDialog(
     const isAssigned = currentUserId === subTask.assignedId;
     const hasUpdateTask = userPermissions.includes('updateTask');
     const hasHandleTask = userPermissions.includes('handleTask');
-    
-    if (isProjectLeader) {
-      return 'management';
-    }
-    
-    // Users with both handleTask and updateTask permissions get full access
-    if (hasHandleTask && (hasUpdateTask || isAssigned)) {
+
+    // Project leaders have full access, same as users with both permissions
+    if (isProjectLeader || (hasHandleTask && (hasUpdateTask || isAssigned))) {
       return 'full-access';
     }
-    
+
     if (hasHandleTask) {
       return 'full-edit';
     }
-    
+
     if (hasUpdateTask || isAssigned) {
       return 'status-update';
     }
-    
+
     return 'view-only';
   }, [currentUserId, subTask.assignedId, userPermissions, isProjectLeader]);
 
