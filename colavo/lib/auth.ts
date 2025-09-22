@@ -106,19 +106,19 @@ export const auth = betterAuth({
         // Log success in development
         if (envConfig.NODE_ENV === "development") {
           // eslint-disable-next-line no-console
-          console.log(`Password reset email sent to ${user.email}`);
+          // Password reset email sent successfully
         }
 
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.error('Failed to send password reset email:', error);
+        // Failed to send password reset email
         
         // In development, still log the URL as fallback
         if (envConfig.NODE_ENV === "development") {
           const fallbackBaseUrl = process.env.NEXT_PUBLIC_APP_URL || envConfig.BETTER_AUTH_URL || "http://localhost:3000";
           const fallbackResetUrl = `${fallbackBaseUrl}/reset-password?token=${token}`;
           // eslint-disable-next-line no-console
-          console.log(`Fallback - Password reset link for ${user.email}: ${fallbackResetUrl}`);
+          // Fallback reset URL generated
         }
         
         // Re-throw the error to be handled by better-auth
