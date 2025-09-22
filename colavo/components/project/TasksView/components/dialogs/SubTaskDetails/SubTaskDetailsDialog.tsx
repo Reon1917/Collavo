@@ -128,10 +128,10 @@ export function SubTaskDetailsDialog({
       return (
         <>
           <SubTaskInfoCard subTask={subTask} currentUserId={currentUserId} />
-          <div className="flex justify-end pt-3 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex justify-end pt-3 border-t border-border dark:border-border">
             <button
               onClick={() => handleDialogOpenChange(false)}
-              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="px-4 py-2 text-foreground dark:text-foreground bg-muted dark:bg-muted rounded-md hover:bg-muted/80 dark:hover:bg-muted/80 transition-colors"
             >
               Close
             </button>
@@ -156,7 +156,7 @@ export function SubTaskDetailsDialog({
             isFullEditMode={capabilities.modalMode === 'full-edit'}
           />
           
-          <div className="flex gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex gap-3 pt-3 border-t border-border dark:border-border">
             <ActionButtons
               editMode={editMode}
               permissions={permissions}
@@ -189,7 +189,7 @@ export function SubTaskDetailsDialog({
             isLoading={isLoading}
           />
 
-          <div className="flex gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex gap-3 pt-3 border-t border-border dark:border-border">
             <ActionButtons
               editMode="view"
               permissions={permissions}
@@ -212,8 +212,8 @@ export function SubTaskDetailsDialog({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
-        <DialogContent className={`${getModalSize()} bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 max-h-[85vh] overflow-y-auto`}>
-          <DialogHeader className="pb-3 border-b border-gray-200 dark:border-gray-700">
+        <DialogContent className={`${getModalSize()} bg-background dark:bg-background border border-border dark:border-border max-h-[85vh] overflow-y-auto`}>
+          <DialogHeader className="pb-3 border-b border-border dark:border-border">
             <CustomDialogHeader editMode={editMode} subTask={subTask} />
           </DialogHeader>
 

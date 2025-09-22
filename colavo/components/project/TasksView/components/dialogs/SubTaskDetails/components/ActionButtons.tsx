@@ -71,10 +71,10 @@ export function ActionButtons({
             {modalMode === 'status-update' && permissions.canUpdateStatus && (
               <Button
                 type="submit"
-                className={`flex-1 h-9 text-white transition-all duration-200 ${
-                  hasStatusChanges 
-                    ? 'bg-orange-600 hover:bg-orange-700 shadow-sm' 
-                    : 'bg-gray-400 hover:bg-gray-500 cursor-not-allowed opacity-60'
+                className={`flex-1 h-9 text-primary-foreground transition-all duration-200 ${
+                  hasStatusChanges
+                    ? 'bg-primary hover:bg-primary/90 shadow-sm'
+                    : 'bg-muted-foreground hover:bg-muted-foreground/90 cursor-not-allowed opacity-60'
                 }`}
                 disabled={isLoading || !hasStatusChanges}
               >
@@ -97,10 +97,10 @@ export function ActionButtons({
               <>
                 <Button
                   type="submit"
-                  className={`flex-1 h-9 text-white transition-all duration-200 ${
-                    hasStatusChanges 
-                      ? 'bg-orange-600 hover:bg-orange-700 shadow-sm' 
-                      : 'bg-gray-400 hover:bg-gray-500 cursor-not-allowed opacity-60'
+                  className={`flex-1 h-9 text-primary-foreground transition-all duration-200 ${
+                    hasStatusChanges
+                      ? 'bg-primary hover:bg-primary/90 shadow-sm'
+                      : 'bg-muted-foreground hover:bg-muted-foreground/90 cursor-not-allowed opacity-60'
                   }`}
                   disabled={isLoading || !hasStatusChanges}
                 >
@@ -119,7 +119,7 @@ export function ActionButtons({
                 <Button
                   type="button"
                   onClick={onDetailsEdit}
-                  className="flex-1 h-9 bg-emerald-600 hover:bg-emerald-700 text-white"
+                  className="flex-1 h-9 bg-primary hover:bg-primary/90 hover:shadow-md text-primary-foreground transition-all duration-200"
                   disabled={isDeleting}
                 >
                   <Edit3 className="h-4 w-4 mr-1.5" />
@@ -133,7 +133,7 @@ export function ActionButtons({
               <Button
                 type="button"
                 onClick={onDetailsEdit}
-                className="flex-1 h-9 bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="flex-1 h-9 bg-primary hover:bg-primary/90 hover:shadow-md text-primary-foreground transition-all duration-200"
                 disabled={isDeleting}
               >
                 <Edit3 className="h-4 w-4 mr-1.5" />
@@ -164,14 +164,14 @@ export function ActionButtons({
         type="submit"
         onClick={onSubmit}
         disabled={isLoading || (editMode === 'details' ? !hasDetailsChanges : !hasStatusChanges)}
-        className={`flex-1 h-9 text-white transition-all duration-200 ${
+        className={`flex-1 h-9 transition-all duration-200 ${
           editMode === 'details'
             ? hasDetailsChanges
-              ? 'bg-emerald-600 hover:bg-emerald-700 shadow-sm'  // Emerald for full-edit/full-access
-              : 'bg-gray-400 hover:bg-gray-500 cursor-not-allowed opacity-60'
+              ? 'bg-primary hover:bg-primary/90 hover:shadow-md text-primary-foreground shadow-sm transition-all duration-200'
+              : 'bg-muted-foreground hover:bg-muted-foreground/90 text-muted cursor-not-allowed opacity-60'
             : hasStatusChanges
-              ? 'bg-orange-600 hover:bg-orange-700 shadow-sm'  // Orange for status updates
-              : 'bg-gray-400 hover:bg-gray-500 cursor-not-allowed opacity-60'
+              ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm'
+              : 'bg-muted-foreground hover:bg-muted-foreground/90 text-muted cursor-not-allowed opacity-60'
         }`}
       >
         {isLoading ? (
@@ -201,7 +201,7 @@ export function ActionButtons({
           type="button"
           onClick={onDelete}
           variant="outline"
-          className="h-9 px-3 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950 dark:hover:text-red-300"
+          className="h-9 px-3 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 dark:border-destructive/30 dark:text-destructive dark:hover:bg-destructive/10 dark:hover:text-destructive"
           disabled={isDeleting || isLoading}
         >
           {isDeleting ? (

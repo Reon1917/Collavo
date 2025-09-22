@@ -71,39 +71,39 @@ export function SubTaskNotificationModal({ subTask, projectId, taskId, isOpen, o
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border border-gray-200 dark:border-gray-700 shadow-xl">
+      <DialogContent className="max-w-md bg-background/95 dark:bg-background/95 backdrop-blur-sm border border-border dark:border-border shadow-xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
-            <Bell className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <DialogTitle className="flex items-center gap-2 text-foreground dark:text-foreground">
+            <Bell className="h-5 w-5 text-primary dark:text-primary" />
             Email Reminder
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
-          <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <h4 className="font-medium text-sm">{subTask.title}</h4>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+          <div className="p-3 bg-muted dark:bg-muted rounded-lg">
+            <h4 className="font-medium text-sm text-foreground">{subTask.title}</h4>
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
               Assigned to: {subTask.assignedUserName}
             </p>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground">
               Deadline: {subTask.deadline ? new Date(subTask.deadline).toLocaleDateString() : 'No deadline set'}
             </p>
           </div>
 
           {isLoading ? (
             <div className="text-center py-4">
-              <p className="text-sm text-gray-500">Loading...</p>
+              <p className="text-sm text-muted-foreground">Loading...</p>
             </div>
           ) : hasActiveNotification ? (
             // Show cancellation UI if notifications exist
             <>
-              <div className="flex items-start gap-2 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
-                <Bell className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+              <div className="flex items-start gap-2 p-3 bg-primary/10 dark:bg-primary/10 rounded-lg">
+                <Bell className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
-                  <p className="text-xs text-green-800 dark:text-green-200 font-medium mb-1">
+                  <p className="text-xs text-primary dark:text-primary font-medium mb-1">
                     Email reminder is active
                   </p>
-                  <p className="text-xs text-green-700 dark:text-green-300">
+                  <p className="text-xs text-primary/80 dark:text-primary/80">
                     {activeNotification?.daysBefore} day(s) before deadline
                   </p>
                 </div>
@@ -120,21 +120,20 @@ export function SubTaskNotificationModal({ subTask, projectId, taskId, isOpen, o
                   </Button>
                   <Button
                     onClick={() => setShowCancelConfirm(true)}
-                    variant="destructive"
-                    className="flex-1"
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
                     Cancel Reminder
                   </Button>
                 </div>
               ) : (
                 <>
-                  <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg">
-                    <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex items-start gap-2 p-3 bg-destructive/10 dark:bg-destructive/10 rounded-lg">
+                    <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
-                      <p className="text-xs text-red-800 dark:text-red-200 font-medium mb-1">
+                      <p className="text-xs text-destructive dark:text-destructive font-medium mb-1">
                         Are you sure?
                       </p>
-                      <p className="text-xs text-red-700 dark:text-red-300">
+                      <p className="text-xs text-destructive/80 dark:text-destructive/80">
                         Your email reminder will be permanently cancelled. This action cannot be undone.
                         Email notifications are a premium feature.
                       </p>
@@ -152,8 +151,7 @@ export function SubTaskNotificationModal({ subTask, projectId, taskId, isOpen, o
                                       <Button
                     onClick={handleCancelNotification}
                     disabled={cancelMutation.isPending}
-                    variant="destructive"
-                    className="flex-1 disabled:opacity-50"
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
                   >
                     {cancelMutation.isPending ? 'Cancelling...' : 'Yes, Cancel'}
                   </Button>
@@ -167,7 +165,7 @@ export function SubTaskNotificationModal({ subTask, projectId, taskId, isOpen, o
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <Label className="text-xs text-gray-600 dark:text-gray-400">
+                    <Label className="text-xs text-muted-foreground dark:text-muted-foreground">
                       Days Before
                     </Label>
                     <Select
@@ -191,7 +189,7 @@ export function SubTaskNotificationModal({ subTask, projectId, taskId, isOpen, o
                   </div>
                   
                   <div className="space-y-1">
-                    <Label className="text-xs text-gray-600 dark:text-gray-400">
+                    <Label className="text-xs text-muted-foreground dark:text-muted-foreground">
                       Time (Bangkok)
                     </Label>
                     <TimePicker
@@ -204,9 +202,9 @@ export function SubTaskNotificationModal({ subTask, projectId, taskId, isOpen, o
                   </div>
                 </div>
                 
-                <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
-                  <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <p className="text-xs text-blue-800 dark:text-blue-200">
+                <div className="flex items-start gap-2 p-3 bg-primary/5 dark:bg-primary/5 rounded-lg">
+                  <AlertCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-primary/90 dark:text-primary/90">
                     Email will be sent to {subTask.assignedUserName} {notificationSettings.daysBefore} day(s) before the deadline at {notificationSettings.time} Bangkok time.
                   </p>
                 </div>
@@ -223,7 +221,7 @@ export function SubTaskNotificationModal({ subTask, projectId, taskId, isOpen, o
                 <Button
                   onClick={handleSave}
                   disabled={createMutation.isPending}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
                 >
                   {createMutation.isPending ? 'Scheduling...' : 'Schedule Reminder'}
                 </Button>
