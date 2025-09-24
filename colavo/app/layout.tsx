@@ -25,8 +25,8 @@ export const metadata: Metadata = {
       { url: "/webicon-collavo.png", sizes: "32x32", type: "image/png" },
       { url: "/webicon-collavo.png", sizes: "16x16", type: "image/png" }
     ],
-    shortcut: "/webicon-collavo.png",
-    apple: "/webicon-collavo.png",
+    shortcut: "/icon/webicon-collavo.png",
+    apple: "/icon/webicon-collavo.png",
   },
 };
 
@@ -38,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/webicon-collavo.png" type="image/png" />
+        <link rel="icon" href="/icon/webicon-collavo.png" type="image/png" />
         <link rel="shortcut icon" href="/favicon.ico" />
       </head>
       <body
