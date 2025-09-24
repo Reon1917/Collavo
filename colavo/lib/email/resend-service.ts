@@ -109,10 +109,7 @@ export class ResendEmailService {
         html
       });
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('Failed to send subtask assignment notification:', error);
-      }
+      // Failed to send subtask assignment notification
       throw new Error(`Failed to send assignment notification: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -196,7 +193,7 @@ export class ResendEmailService {
           // Log successful assignment notification in development
           if (process.env.NODE_ENV === 'development') {
             // eslint-disable-next-line no-console
-            console.log(`Sent assignment notification to ${assignee.email} for subtask: ${task.subtaskTitle}`);
+            // Assignment notification sent successfully
           }
         }
       }
@@ -204,7 +201,7 @@ export class ResendEmailService {
       // Log error but don't throw - notification failure shouldn't break assignment
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
-        console.error('Failed to send assignment notification:', error);
+        // Failed to send assignment notification
       }
     }
   }

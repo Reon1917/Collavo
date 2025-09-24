@@ -135,7 +135,7 @@ export function useProjectChat(
 
   // Load more messages (pagination)
   const loadMoreMessages = useCallback(async () => {
-    // TODO: Implement pagination with React Query
+    // Pagination will be implemented when needed
   }, []);
 
   // Set up real-time subscriptions
@@ -239,7 +239,7 @@ export function useProjectChat(
                 queryClient.setQueryData(['chat-presence', projectId], data.onlineMembers || []);
               }
             } catch (error) {
-              console.error('Failed to refresh presence data:', error);
+              // Silently handle presence refresh errors
             }
           }
         }
@@ -262,7 +262,7 @@ export function useProjectChat(
               queryClient.setQueryData(['chat-presence', projectId], data.onlineMembers || []);
             }
           } catch (error) {
-            console.error('Failed to refresh presence data:', error);
+            // Silently handle presence refresh errors
           }
         }
       )
@@ -315,7 +315,7 @@ export function useProjectChat(
       try {
         updatePresence(false);
       } catch (error) {
-        console.warn('Error updating presence during cleanup:', error);
+        // Silently handle presence cleanup errors
       }
       
       // Properly unsubscribe from channels with verification
@@ -338,7 +338,7 @@ export function useProjectChat(
       }
       
       // Remove all channels with retry logic
-      channelsToRemove.forEach(({ channel, name, ref }) => {
+      channelsToRemove.forEach(({ channel, ref }) => {
         let retryCount = 0;
         const maxRetries = 3;
         
@@ -347,14 +347,12 @@ export function useProjectChat(
             const result = supabase.removeChannel(channel);
             ref.current = null;
             
-            if (process.env.NODE_ENV === 'development') {
-              console.log(`Successfully removed ${name} channel`);
-            }
+            // Channel removed successfully
             
             return result;
           } catch (error) {
             retryCount++;
-            console.warn(`Error removing ${name} channel (attempt ${retryCount}):`, error);
+            // Error removing channel, will retry
             
             if (retryCount < maxRetries) {
               // Retry after a short delay
@@ -363,7 +361,7 @@ export function useProjectChat(
             } else {
               // Force cleanup after max retries
               ref.current = null;
-              console.error(`Failed to remove ${name} channel after ${maxRetries} attempts`);
+              // Failed to remove channel after max retries
               return null;
             }
           }

@@ -117,11 +117,7 @@ export class NotificationService {
       scheduledAt: finalScheduledTime,
     });
 
-    // Log successful email scheduling in development
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.log(`Scheduled subtask notification for ${subtaskRecord.assignedUserEmail} at ${finalScheduledTime.toISOString()}`);
-    }
+    // Subtask notification scheduled successfully
 
     // Save notification record
     const notificationId = createId();
@@ -165,41 +161,23 @@ export class NotificationService {
     const eventRecord = eventData[0]!;
 
     // Check if event allows for notification scheduling
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.log(`Checking notification scheduling for event ${eventId}:`, {
-        eventDatetime: eventRecord.event.datetime,
-        daysBefore,
-        time,
-        currentTime: new Date().toISOString()
-      });
-    }
     
     if (!canScheduleNotification(eventRecord.event.datetime, daysBefore, time)) {
       const errorMsg = 'The notification time has already passed. Please choose a different time or fewer days before the event.';
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
-        console.error(`Notification scheduling failed:`, errorMsg);
+        // Notification scheduling failed
       }
       throw new Error(errorMsg);
     }
 
     // Calculate scheduled time
     const scheduledFor = calculateScheduleTime(eventRecord.event.datetime, daysBefore, time);
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.log(`Calculated scheduled time:`, {
-        originalScheduledFor: scheduledFor.toISOString(),
-        isPast: isPastTime(scheduledFor)
-      });
-    }
+    // Calculated scheduled time for event notification
 
     // If the computed time is in the past, schedule for immediate delivery
     const finalScheduledTime = isPastTime(scheduledFor) ? new Date() : scheduledFor;
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.log(`Final scheduled time:`, finalScheduledTime.toISOString());
-    }
+    // Final scheduled time calculated
 
     // Get recipient user details
     const recipients = await db
@@ -219,14 +197,14 @@ export class NotificationService {
     try {
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
-        console.log(`Creating event notifications for ${recipients.length} recipients. Event: ${eventId}, Scheduled time: ${finalScheduledTime.toISOString()}`);
+        // Creating event notifications for recipients
       }
       
       for (let i = 0; i < recipients.length; i++) {
         const recipient = recipients[i]!;
         if (process.env.NODE_ENV === 'development') {
           // eslint-disable-next-line no-console
-          console.log(`Processing recipient ${i + 1}/${recipients.length}: ${recipient.email}`);
+          // Processing recipient notification
         }
         
         // Generate email content with sanitization
@@ -280,12 +258,12 @@ export class NotificationService {
           
           if (process.env.NODE_ENV === 'development') {
             // eslint-disable-next-line no-console
-            console.log(`Successfully created notification for ${recipient.email}: ${notificationId}`);
+            // Successfully created notification
           }
         } catch (recipientError) {
           if (process.env.NODE_ENV === 'development') {
             // eslint-disable-next-line no-console
-            console.error(`Failed to create notification for recipient ${recipient.email}:`, recipientError);
+            // Failed to create notification for recipient
           }
           throw new Error(`Failed to create notification for ${recipient.email}: ${recipientError instanceof Error ? recipientError.message : 'Unknown error'}`);
         }
@@ -293,19 +271,19 @@ export class NotificationService {
       
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
-        console.log(`Successfully created ${notificationIds.length} event notifications`);
+        // Successfully created event notifications
       }
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
-        console.error('Error during batch notification creation:', error);
+        // Error during batch notification creation
       }
       
       // Attempt to cleanup any partially created notifications
       if (createdNotifications.length > 0) {
         if (process.env.NODE_ENV === 'development') {
           // eslint-disable-next-line no-console
-          console.log(`Attempting to cleanup ${createdNotifications.length} partially created notifications`);
+          // Attempting to cleanup partially created notifications
         }
         try {
           for (const { notificationId, emailId } of createdNotifications) {
@@ -315,14 +293,14 @@ export class NotificationService {
             } catch (cleanupError) {
               if (process.env.NODE_ENV === 'development') {
                 // eslint-disable-next-line no-console
-                console.error(`Failed to cleanup notification ${notificationId}:`, cleanupError);
+                // Failed to cleanup notification
               }
             }
           }
         } catch (cleanupError) {
           if (process.env.NODE_ENV === 'development') {
             // eslint-disable-next-line no-console
-            console.error('Error during cleanup:', cleanupError);
+            // Error during cleanup
           }
         }
       }

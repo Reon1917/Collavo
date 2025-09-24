@@ -139,6 +139,23 @@ export function getThemeAccent(theme: ColorTheme): string {
   return themeDefinition.preview.primary;
 }
 
+export interface ThemeSurfaceColors {
+  background: string;
+  card: string;
+  accent: string;
+}
+
+export function getThemeSurfaceColors(theme: ColorTheme, isDark: boolean): ThemeSurfaceColors {
+  const themeDefinition = getThemeDefinition(theme);
+  const palette = isDark ? themeDefinition.dark : themeDefinition.light;
+
+  return {
+    background: palette.background,
+    card: palette.card,
+    accent: palette.accent,
+  };
+}
+
 /**
  * Generate CSS for theme transitions
  */

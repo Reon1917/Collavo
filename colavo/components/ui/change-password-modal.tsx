@@ -104,10 +104,10 @@ export function ChangePasswordModal({
       toast.success('Password changed successfully');
       resetForm();
       onOpenChange(false);
-    } catch (error: any) {
-      // eslint-disable-next-line no-console
-      console.error('Password change error:', error);
-      toast.error('Failed to change password. Please try again.');
+    } catch (error: unknown) {
+      // Handle password change error silently
+      const errorMessage = error instanceof Error ? error.message : 'Failed to change password. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

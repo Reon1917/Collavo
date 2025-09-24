@@ -117,36 +117,36 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border border-gray-200 dark:border-gray-700 shadow-xl">
+      <DialogContent className="max-w-md bg-background/95 dark:bg-background/95 backdrop-blur-sm border border-border dark:border-border shadow-xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
-            <Bell className="h-5 w-5 text-green-600 dark:text-green-400" />
+          <DialogTitle className="flex items-center gap-2 text-foreground dark:text-foreground">
+            <Bell className="h-5 w-5 text-primary dark:text-primary" />
             Event Reminder
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
-          <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <h4 className="font-medium text-sm">{event.title}</h4>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+          <div className="p-3 bg-muted dark:bg-muted rounded-lg">
+            <h4 className="font-medium text-sm text-foreground">{event.title}</h4>
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground">
               Event Date: {new Date(event.datetime).toLocaleDateString()}
             </p>
           </div>
 
           {isLoading ? (
             <div className="text-center py-4">
-              <p className="text-sm text-gray-500">Loading...</p>
+              <p className="text-sm text-muted-foreground">Loading...</p>
             </div>
           ) : hasActiveNotification ? (
             // Show cancellation UI if notifications exist
             <>
-              <div className="flex items-start gap-2 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
-                <Bell className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+              <div className="flex items-start gap-2 p-3 bg-primary/10 dark:bg-primary/10 rounded-lg">
+                <Bell className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
-                  <p className="text-xs text-green-800 dark:text-green-200 font-medium mb-1">
+                  <p className="text-xs text-primary dark:text-primary font-medium mb-1">
                     Email reminders are active
                   </p>
-                  <p className="text-xs text-green-700 dark:text-green-300">
+                  <p className="text-xs text-primary/80 dark:text-primary/80">
                     {notificationCount} reminder(s) scheduled for {activeNotifications?.[0]?.daysBefore} day(s) before the event
                   </p>
                 </div>
@@ -163,21 +163,20 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
                   </Button>
                   <Button
                     onClick={() => setShowCancelConfirm(true)}
-                    variant="destructive"
-                    className="flex-1"
+                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
                     Cancel Reminders
                   </Button>
                 </div>
               ) : (
                 <>
-                  <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg">
-                    <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex items-start gap-2 p-3 bg-destructive/10 dark:bg-destructive/10 rounded-lg">
+                    <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
-                      <p className="text-xs text-red-800 dark:text-red-200 font-medium mb-1">
+                      <p className="text-xs text-destructive dark:text-destructive font-medium mb-1">
                         Are you sure?
                       </p>
-                      <p className="text-xs text-red-700 dark:text-red-300">
+                      <p className="text-xs text-destructive/80 dark:text-destructive/80">
                         All {notificationCount} email reminder(s) will be permanently cancelled. This action cannot be undone.
                       </p>
                     </div>
@@ -194,8 +193,7 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
                     <Button
                       onClick={handleCancelAllNotifications}
                       disabled={cancelMutation.isPending}
-                      variant="destructive"
-                      className="flex-1 disabled:opacity-50"
+                      className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
                     >
                       {cancelMutation.isPending ? 'Cancelling...' : 'Yes, Cancel All'}
                     </Button>
@@ -209,7 +207,7 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <Label className="text-xs text-gray-600 dark:text-gray-400">
+                    <Label className="text-xs text-muted-foreground dark:text-muted-foreground">
                       Days Before
                     </Label>
                     <Select
@@ -233,7 +231,7 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
                   </div>
                   
                   <div className="space-y-1">
-                    <Label className="text-xs text-gray-600 dark:text-gray-400">
+                    <Label className="text-xs text-muted-foreground dark:text-muted-foreground">
                       Time (Bangkok)
                     </Label>
                     <TimePicker
@@ -248,7 +246,7 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
 
                 {/* Recipients */}
                 <div className="space-y-2">
-                  <Label className="text-xs text-gray-600 dark:text-gray-400">
+                  <Label className="text-xs text-muted-foreground dark:text-muted-foreground">
                     Recipients
                   </Label>
                   <div className="space-y-2">
@@ -262,10 +260,10 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
                           recipientType: 'all',
                           selectedMembers: []
                         }))}
-                        className="rounded border-gray-300"
+                        className="rounded border-border"
                       />
                       <div className="flex items-center gap-2 text-sm">
-                        <Users className="h-4 w-4 text-green-600" />
+                        <Users className="h-4 w-4 text-primary" />
                         All project members ({members.length})
                       </div>
                     </label>
@@ -279,27 +277,27 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
                           ...prev, 
                           recipientType: 'select'
                         }))}
-                        className="rounded border-gray-300"
+                        className="rounded border-border"
                       />
                       <div className="flex items-center gap-2 text-sm">
-                        <UserCheck className="h-4 w-4 text-green-600" />
+                        <UserCheck className="h-4 w-4 text-primary" />
                         Select specific members
                       </div>
                     </label>
                   </div>
 
                   {notificationSettings.recipientType === 'select' && (
-                    <div className="space-y-1 mt-2 max-h-32 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <div className="space-y-1 mt-2 max-h-32 overflow-y-auto border border-border dark:border-border rounded-lg">
                       {members.map(member => (
                         <label
                           key={member.userId}
-                          className="flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                          className="flex items-center gap-2 p-2 hover:bg-muted/50 dark:hover:bg-muted/50 cursor-pointer border-b border-border/50 dark:border-border/50 last:border-b-0"
                         >
                           <input
                             type="checkbox"
                             checked={notificationSettings.selectedMembers.includes(member.userId)}
                             onChange={() => toggleMemberSelection(member.userId)}
-                            className="rounded border-gray-300"
+                            className="rounded border-border"
                           />
                           <div className="flex items-center gap-2 flex-1">
                             <Avatar className="w-6 h-6">
@@ -307,16 +305,16 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
                                 src={member.userImage || undefined} 
                                 alt={member.userName}
                               />
-                              <AvatarFallback className="text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                              <AvatarFallback className="text-xs font-medium bg-muted dark:bg-muted text-muted-foreground dark:text-muted-foreground">
                                 {member.userName.charAt(0).toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
                               <div className="text-xs font-medium">{member.userName}</div>
-                              <div className="text-xs text-gray-500">{member.userEmail}</div>
+                              <div className="text-xs text-muted-foreground">{member.userEmail}</div>
                             </div>
                             {member.role === 'leader' && (
-                              <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">Leader</span>
+                              <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">Leader</span>
                             )}
                           </div>
                         </label>
@@ -325,9 +323,9 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
                   )}
                 </div>
                 
-                <div className="flex items-start gap-2 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
-                  <AlertCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                  <p className="text-xs text-green-800 dark:text-green-200">
+                <div className="flex items-start gap-2 p-3 bg-primary/5 dark:bg-primary/5 rounded-lg">
+                  <AlertCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-primary/90 dark:text-primary/90">
                     Email will be sent to {
                       notificationSettings.recipientType === 'all' 
                         ? `all ${members.length} project members` 
@@ -349,7 +347,7 @@ export function EventNotificationModal({ event, members, projectId, isOpen, onOp
                 </Button>
                 <Button
                   onClick={handleSave}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   Save Reminder
                 </Button>

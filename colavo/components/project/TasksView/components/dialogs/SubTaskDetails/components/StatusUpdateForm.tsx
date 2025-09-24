@@ -26,19 +26,19 @@ export function StatusUpdateForm({
       value: 'pending' as const,
       label: 'Pending',
       icon: Clock,
-      className: 'hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600'
+      className: 'hover:bg-muted dark:hover:bg-muted border-border dark:border-border'
     },
     {
       value: 'in_progress' as const,
       label: 'In Progress',
       icon: Play,
-      className: 'hover:bg-blue-50 dark:hover:bg-blue-950/20 border-blue-300 dark:border-blue-600 hover:text-blue-700 dark:hover:text-blue-300'
+      className: 'hover:bg-primary/10 dark:hover:bg-primary/10 border-primary/30 dark:border-primary/30 hover:text-primary dark:hover:text-primary'
     },
     {
       value: 'completed' as const,
       label: 'Completed',
       icon: CheckCircle2,
-      className: 'hover:bg-green-50 dark:hover:bg-green-950/20 border-green-300 dark:border-green-600 hover:text-green-700 dark:hover:text-green-300'
+      className: 'hover:bg-primary/5 dark:hover:bg-primary/5 border-primary/20 dark:border-primary/20 hover:text-primary/80 dark:hover:text-primary/80'
     }
   ];
 
@@ -49,7 +49,7 @@ export function StatusUpdateForm({
   return (
     <div className="space-y-3">
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Status</Label>
+        <Label className="text-sm font-medium text-foreground dark:text-foreground">Status</Label>
         {editMode === 'status' ? (
           <div className="grid grid-cols-3 gap-2">
             {statusButtons.map((button) => {
@@ -64,12 +64,12 @@ export function StatusUpdateForm({
                   onClick={() => handleStatusChange(button.value)}
                   disabled={isLoading}
                   className={`relative h-12 transition-all duration-200 ${
-                    isSelected 
-                      ? button.value === 'pending' 
-                        ? 'bg-gray-100 dark:bg-gray-700 border-gray-400 dark:border-gray-500 text-gray-800 dark:text-gray-200'
+                    isSelected
+                      ? button.value === 'pending'
+                        ? 'bg-muted dark:bg-muted border-border dark:border-border text-foreground dark:text-foreground'
                         : button.value === 'in_progress'
-                        ? 'bg-blue-100 dark:bg-blue-950/30 border-blue-500 dark:border-blue-400 text-blue-800 dark:text-blue-200'
-                        : 'bg-green-100 dark:bg-green-950/30 border-green-500 dark:border-green-400 text-green-800 dark:text-green-200'
+                        ? 'bg-primary/15 dark:bg-primary/15 border-primary dark:border-primary text-primary dark:text-primary'
+                        : 'bg-primary/10 dark:bg-primary/10 border-primary/70 dark:border-primary/70 text-primary/90 dark:text-primary/90'
                       : button.className
                   }`}
                 >
@@ -90,8 +90,8 @@ export function StatusUpdateForm({
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Progress Notes {editMode === 'status' && <span className="text-gray-500">(Optional)</span>}
+        <Label className="text-sm font-medium text-foreground dark:text-foreground">
+          Progress Notes {editMode === 'status' && <span className="text-muted-foreground">(Optional)</span>}
         </Label>
         {editMode === 'status' ? (
           <Textarea
@@ -102,11 +102,11 @@ export function StatusUpdateForm({
             disabled={isLoading}
           />
         ) : (
-          <div className="min-h-[100px] p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md">
+          <div className="min-h-[100px] p-3 bg-muted dark:bg-muted border border-border dark:border-border rounded-md">
             {subTask.note ? (
-              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed text-sm">{subTask.note}</p>
+              <p className="text-foreground dark:text-foreground whitespace-pre-wrap leading-relaxed text-sm">{subTask.note}</p>
             ) : (
-              <p className="text-gray-500 dark:text-gray-500 italic text-sm">No progress notes added yet.</p>
+              <p className="text-muted-foreground dark:text-muted-foreground italic text-sm">No progress notes added yet.</p>
             )}
           </div>
         )}

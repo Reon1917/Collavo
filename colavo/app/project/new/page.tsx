@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { DashboardNavbar } from '@/components/ui/dashboard-navbar';
 import { CreateProjectForm } from '@/components/project/CreateProjectForm';
+import { CreateProjectThemeWrapper } from '@/components/project/CreateProjectThemeWrapper';
 
 export default async function NewProjectPage() {
   // Check authentication
@@ -15,9 +16,9 @@ export default async function NewProjectPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f8f0] dark:bg-gray-950">
+    <CreateProjectThemeWrapper>
       <DashboardNavbar />
-      
+
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -34,6 +35,6 @@ export default async function NewProjectPage() {
           <CreateProjectForm />
         </div>
       </div>
-    </div>
+    </CreateProjectThemeWrapper>
   );
 } 

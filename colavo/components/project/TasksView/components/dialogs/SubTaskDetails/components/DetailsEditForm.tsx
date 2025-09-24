@@ -70,9 +70,9 @@ export function DetailsEditForm({
   return (
     <div className={isFullEditMode ? "space-y-4" : "space-y-6"}>
       {(mainTaskDeadline || projectDeadline) && (
-        <div className={`flex items-start gap-3 ${isFullEditMode ? "p-3" : "p-4"} bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg`}>
-          <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-          <div className="text-sm text-blue-800 dark:text-blue-200">
+        <div className={`flex items-start gap-3 ${isFullEditMode ? "p-3" : "p-4"} bg-primary/5 dark:bg-primary/5 border border-primary/20 dark:border-primary/20 rounded-lg`}>
+          <AlertCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+          <div className="text-sm text-primary/90 dark:text-primary/90">
             {mainTaskDeadline && (
               <p>Main task deadline: {format(new Date(mainTaskDeadline), "PPP")}</p>
             )}
@@ -86,7 +86,7 @@ export function DetailsEditForm({
 
       <div className={`grid grid-cols-1 ${isFullEditMode ? "gap-4" : "md:grid-cols-2 gap-6"}`}>
         <div className="space-y-2">
-          <Label htmlFor="edit-title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <Label htmlFor="edit-title" className="text-sm font-medium text-foreground dark:text-foreground">
             Title *
           </Label>
           <Input
@@ -100,7 +100,7 @@ export function DetailsEditForm({
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <Label className="text-sm font-medium text-foreground dark:text-foreground">
             Assign to *
           </Label>
           <MemberSelect
@@ -120,7 +120,7 @@ export function DetailsEditForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="edit-description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Label htmlFor="edit-description" className="text-sm font-medium text-foreground dark:text-foreground">
           Description
         </Label>
         <Textarea
@@ -134,7 +134,7 @@ export function DetailsEditForm({
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <Label className="text-sm font-medium text-foreground dark:text-foreground">
           Deadline *
         </Label>
         <Popover>
@@ -143,7 +143,7 @@ export function DetailsEditForm({
               variant="outline"
               className={cn(
                 "w-full justify-start text-left font-normal bg-background border-border",
-                !detailsFormData.deadline && "text-gray-500 dark:text-gray-400",
+                !detailsFormData.deadline && "text-muted-foreground dark:text-muted-foreground",
                 isLoading && "opacity-50 cursor-not-allowed"
               )}
               disabled={isLoading}
@@ -161,8 +161,8 @@ export function DetailsEditForm({
               initialFocus
             />
             {deadlineOptions.length > 0 && (
-              <div className="p-3 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Quick Select:</p>
+              <div className="p-3 border-t border-border dark:border-border">
+                <p className="text-xs text-muted-foreground dark:text-muted-foreground mb-2">Quick Select:</p>
                 <div className="space-y-1">
                   {deadlineOptions.map((option, index) => (
                     <Button
@@ -184,21 +184,21 @@ export function DetailsEditForm({
 
       {isManagementMode && (
         <>
-          <div className="border-t border-gray-200 dark:border-gray-700 my-6"></div>
+          <div className="border-t border-border dark:border-border my-6"></div>
           
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Status & Progress</h3>
-              <span className="text-sm text-gray-500 dark:text-gray-400">(Management only)</span>
+              <h3 className="text-lg font-semibold text-foreground dark:text-foreground">Status & Progress</h3>
+              <span className="text-sm text-muted-foreground dark:text-muted-foreground">(Management only)</span>
             </div>
 
             <div className="space-y-3">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Status</Label>
+              <Label className="text-sm font-medium text-foreground dark:text-foreground">Status</Label>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { value: 'pending' as const, label: 'Pending', icon: Clock, className: 'hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600' },
-                  { value: 'in_progress' as const, label: 'In Progress', icon: Play, className: 'hover:bg-blue-50 dark:hover:bg-blue-950/20 border-blue-300 dark:border-blue-600 hover:text-blue-700 dark:hover:text-blue-300' },
-                  { value: 'completed' as const, label: 'Completed', icon: CheckCircle2, className: 'hover:bg-green-50 dark:hover:bg-green-950/20 border-green-300 dark:border-green-600 hover:text-green-700 dark:hover:text-green-300' }
+                  { value: 'pending' as const, label: 'Pending', icon: Clock, className: 'hover:bg-muted dark:hover:bg-muted border-border dark:border-border' },
+                  { value: 'in_progress' as const, label: 'In Progress', icon: Play, className: 'hover:bg-primary/10 dark:hover:bg-primary/10 border-primary/30 dark:border-primary/30 hover:text-primary dark:hover:text-primary' },
+                  { value: 'completed' as const, label: 'Completed', icon: CheckCircle2, className: 'hover:bg-primary/5 dark:hover:bg-primary/5 border-primary/20 dark:border-primary/20 hover:text-primary/80 dark:hover:text-primary/80' }
                 ].map((button) => {
                   const Icon = button.icon;
                   const isSelected = detailsFormData.status === button.value;
@@ -211,12 +211,12 @@ export function DetailsEditForm({
                       onClick={() => setDetailsFormData(prev => ({ ...prev, status: button.value }))}
                       disabled={isLoading}
                       className={`relative h-12 transition-all duration-200 ${
-                        isSelected 
-                          ? button.value === 'pending' 
-                            ? 'bg-gray-100 dark:bg-gray-700 border-gray-400 dark:border-gray-500 text-gray-800 dark:text-gray-200'
+                        isSelected
+                          ? button.value === 'pending'
+                            ? 'bg-muted dark:bg-muted border-border dark:border-border text-foreground dark:text-foreground'
                             : button.value === 'in_progress'
-                            ? 'bg-blue-100 dark:bg-blue-950/30 border-blue-500 dark:border-blue-400 text-blue-800 dark:text-blue-200'
-                            : 'bg-green-100 dark:bg-green-950/30 border-green-500 dark:border-green-400 text-green-800 dark:text-green-200'
+                            ? 'bg-primary/15 dark:bg-primary/15 border-primary dark:border-primary text-primary dark:text-primary'
+                            : 'bg-primary/10 dark:bg-primary/10 border-primary/70 dark:border-primary/70 text-primary/90 dark:text-primary/90'
                           : button.className
                       }`}
                     >
@@ -232,8 +232,8 @@ export function DetailsEditForm({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Progress Notes <span className="text-gray-500">(Optional)</span>
+              <Label className="text-sm font-medium text-foreground dark:text-foreground">
+                Progress Notes <span className="text-muted-foreground">(Optional)</span>
               </Label>
               <Textarea
                 placeholder="Add notes about progress, challenges, or updates..."

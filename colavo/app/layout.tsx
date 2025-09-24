@@ -19,6 +19,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Collavo - Student Project Management",
   description: "Transform chaos into academic excellence with Collavo's student project management platform",
+  icons: {
+    icon: [
+      { url: "/icon/webicon-collavo.png", sizes: "1024x1024", type: "image/png" },
+      { url: "/icon/webicon-collavo.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon/webicon-collavo.png", sizes: "16x16", type: "image/png" }
+    ],
+    shortcut: "/icon/webicon-collavo.png",
+    apple: "/icon/webicon-collavo.png",
+  },
 };
 
 export default function RootLayout({
