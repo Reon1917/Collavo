@@ -21,9 +21,9 @@ export const metadata: Metadata = {
   description: "Transform chaos into academic excellence with Collavo's student project management platform",
   icons: {
     icon: [
-      { url: "/webicon-collavo.png", sizes: "1024x1024", type: "image/png" },
-      { url: "/webicon-collavo.png", sizes: "32x32", type: "image/png" },
-      { url: "/webicon-collavo.png", sizes: "16x16", type: "image/png" }
+      { url: "/icon/webicon-collavo.png", sizes: "1024x1024", type: "image/png" },
+      { url: "/icon/webicon-collavo.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon/webicon-collavo.png", sizes: "16x16", type: "image/png" }
     ],
     shortcut: "/icon/webicon-collavo.png",
     apple: "/icon/webicon-collavo.png",
@@ -37,10 +37,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/icon/webicon-collavo.png" type="image/png" />
-        <link rel="shortcut icon" href="/favicon.ico" />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

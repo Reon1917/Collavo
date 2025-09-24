@@ -71,10 +71,10 @@ export function ActionButtons({
             {modalMode === 'status-update' && permissions.canUpdateStatus && (
               <Button
                 type="submit"
-                className={`flex-1 h-9 text-primary-foreground transition-all duration-200 ${
+                className={`flex-1 h-9 transition-all duration-200 ${
                   hasStatusChanges
-                    ? 'bg-primary hover:bg-primary/90 shadow-sm'
-                    : 'bg-muted-foreground hover:bg-muted-foreground/90 cursor-not-allowed opacity-60'
+                    ? 'bg-primary hover:bg-primary/90 shadow-sm text-primary-foreground'
+                    : 'bg-muted hover:bg-muted/90 text-muted-foreground cursor-not-allowed opacity-60'
                 }`}
                 disabled={isLoading || !hasStatusChanges}
               >
@@ -97,10 +97,10 @@ export function ActionButtons({
               <>
                 <Button
                   type="submit"
-                  className={`flex-1 h-9 text-primary-foreground transition-all duration-200 ${
+                  className={`flex-1 h-9 transition-all duration-200 ${
                     hasStatusChanges
-                      ? 'bg-primary hover:bg-primary/90 shadow-sm'
-                      : 'bg-muted-foreground hover:bg-muted-foreground/90 cursor-not-allowed opacity-60'
+                      ? 'bg-primary hover:bg-primary/90 shadow-sm text-primary-foreground'
+                      : 'bg-muted hover:bg-muted/90 text-muted-foreground cursor-not-allowed opacity-60'
                   }`}
                   disabled={isLoading || !hasStatusChanges}
                 >
@@ -168,10 +168,10 @@ export function ActionButtons({
           editMode === 'details'
             ? hasDetailsChanges
               ? 'bg-primary hover:bg-primary/90 hover:shadow-md text-primary-foreground shadow-sm transition-all duration-200'
-              : 'bg-muted-foreground hover:bg-muted-foreground/90 text-muted cursor-not-allowed opacity-60'
+              : 'bg-muted hover:bg-muted/90 text-muted-foreground cursor-not-allowed opacity-60'
             : hasStatusChanges
               ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm'
-              : 'bg-muted-foreground hover:bg-muted-foreground/90 text-muted cursor-not-allowed opacity-60'
+              : 'bg-muted hover:bg-muted/90 text-muted-foreground cursor-not-allowed opacity-60'
         }`}
       >
         {isLoading ? (
