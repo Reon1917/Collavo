@@ -392,7 +392,7 @@ export function FilesView({ projectId }: FilesViewProps) {
                   : "Try adjusting your search or filter criteria to find what you&apos;re looking for."
                 }
               </p>
-              {allItems.length === 0 && (
+              {allItems.length === 0 && canManageFiles && (
                 <div className="flex gap-2 justify-center">
                   <Button 
                     variant="outline" 
