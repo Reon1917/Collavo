@@ -20,7 +20,13 @@ export const metadata: Metadata = {
   title: "Collavo - Student Project Management",
   description: "Transform chaos into academic excellence with Collavo's student project management platform",
   icons: {
-    icon: "/collavo-icon.png",
+    icon: [
+      { url: "/webicon-collavo.png", sizes: "1024x1024", type: "image/png" },
+      { url: "/webicon-collavo.png", sizes: "32x32", type: "image/png" },
+      { url: "/webicon-collavo.png", sizes: "16x16", type: "image/png" }
+    ],
+    shortcut: "/webicon-collavo.png",
+    apple: "/webicon-collavo.png",
   },
 };
 
@@ -31,6 +37,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/webicon-collavo.png" type="image/png" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
