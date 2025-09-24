@@ -115,10 +115,7 @@ export const auth = betterAuth({
         
         // In development, still log the URL as fallback
         if (envConfig.NODE_ENV === "development") {
-          const fallbackBaseUrl = process.env.NEXT_PUBLIC_APP_URL || envConfig.BETTER_AUTH_URL || "http://localhost:3000";
-          const fallbackResetUrl = `${fallbackBaseUrl}/reset-password?token=${token}`;
-          // eslint-disable-next-line no-console
-          // Fallback reset URL generated
+          // Fallback reset URL can be generated if needed for debugging
         }
         
         // Re-throw the error to be handled by better-auth

@@ -338,7 +338,7 @@ export function useProjectChat(
       }
       
       // Remove all channels with retry logic
-      channelsToRemove.forEach(({ channel, name, ref }) => {
+      channelsToRemove.forEach(({ channel, ref }) => {
         let retryCount = 0;
         const maxRetries = 3;
         
