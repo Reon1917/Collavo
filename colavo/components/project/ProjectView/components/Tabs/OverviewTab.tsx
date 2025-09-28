@@ -95,7 +95,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
   const upcomingEventsCount = events.filter(event => new Date(event.datetime) > now).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 p-2">
       {/* View Tabs at the top */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
@@ -175,31 +175,31 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
           >
         <>
           {/* Updated Overview Content */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+            <div className="text-center p-6 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg shadow-sm">
               <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{project.members.length}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Team Members</div>
             </div>
-            <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
+            <div className="text-center p-6 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg shadow-sm">
               <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{totalSubTasks}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Total Sub-tasks</div>
             </div>
-            <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
+            <div className="text-center p-6 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg shadow-sm">
               <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">{subTasksInProgress}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Sub-tasks in Progress</div>
             </div>
-            <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
+            <div className="text-center p-6 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg shadow-sm">
               <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-1">{subTasksCompleted}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Sub-tasks Completed</div>
             </div>
-            <div className="text-center p-4 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg">
+            <div className="text-center p-6 bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg shadow-sm">
               <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{upcomingEventsCount}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Upcoming Events</div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
-            <div className="xl:col-span-2 space-y-6">
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-8 mb-8">
+            <div className="xl:col-span-2 space-y-6 pr-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Recent Tasks</h2>
                 {tasks.length > 0 && (
@@ -212,7 +212,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
                 )}
               </div>
               
-              <div className="min-h-[400px]">
+              <div className="min-h-[400px] mt-4">
                 {tasks.length > 0 ? (
                   <div className="space-y-4">
                     {tasks.slice(0, 2).map((task) => (
@@ -234,7 +234,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
               </div>
             </div>
 
-            <div className="xl:col-span-2 space-y-6">
+            <div className="xl:col-span-2 space-y-6 px-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Recent Files</h2>
                 {files.length > 0 && (
@@ -247,7 +247,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
                 )}
               </div>
               
-              <div className="min-h-[400px]">
+              <div className="min-h-[400px] mt-4">
                 {files.length > 0 ? (
                   <div className="space-y-4">
                     {files.slice(0, 3).map((file) => (
@@ -266,9 +266,9 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div 
-                className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-4 hover:shadow-sm hover:border-gray-200 dark:hover:border-gray-700 transition-all cursor-pointer"
+            <div className="space-y-6 pl-4">
+              <div
+                className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-6 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all cursor-pointer"
                 onClick={() => setIsPermissionsDialogOpen(true)}
               >
                 <div className="flex items-center justify-between mb-3">
@@ -298,7 +298,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-4">
+              <div className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-6 shadow-sm">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Team</h3>
                 <div className="space-y-2">
                   {project.members && project.members.length > 0 ? (
@@ -342,13 +342,13 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
           </div>
 
           {permissions.isLeader && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-10 mt-10">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Project Management</h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Leader actions</p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {permissions.canCreateTasks && (
                   <CreateTaskForm 
                     projectId={project.id} 
@@ -441,7 +441,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
 
 function TaskPreviewCard({ task, project }: { task: Task; project: Project }) {
   return (
-    <div className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-4 hover:shadow-sm hover:border-gray-200 dark:hover:border-gray-700 transition-all">
+    <div className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-6 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all">
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
           <h3 className="font-medium text-gray-900 dark:text-white truncate mb-1">{task.title}</h3>
@@ -529,8 +529,8 @@ function FilePreviewCard({ file, projectId }: { file: any; projectId: string }) 
   }, [file.url, projectId, isLink]);
   
   return (
-    <div 
-      className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-4 hover:shadow-sm hover:border-gray-200 dark:hover:border-gray-700 transition-all cursor-pointer group"
+    <div
+      className="bg-white dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 rounded-lg p-6 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all cursor-pointer group"
       onClick={handleClick}
     >
       <div className="flex items-start justify-between mb-3">
