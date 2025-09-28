@@ -156,7 +156,7 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md sm:max-w-lg max-h-[80vh] bg-card border border-border flex flex-col p-0">
+      <DialogContent className="max-w-md sm:max-w-lg max-h-[80vh] bg-card border border-border flex flex-col p-0 overflow-hidden">
         <DialogHeader className="px-6 pt-6">
           <DialogTitle className="flex items-center gap-3">
             <Settings className="h-6 w-6 text-primary" aria-hidden="true" />
@@ -178,7 +178,7 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
           </DialogDescription>
         </DialogHeader>
         
-        <div className="flex-1 overflow-y-auto px-6 pb-2">
+        <div className="flex-1 overflow-y-auto px-6 py-4">
           <div className="bg-muted/50 p-4 rounded-xl shadow-sm transition-all duration-200">
             {/* Members Section */}
             <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-2 tracking-wider">Members</h4>
@@ -298,8 +298,8 @@ export function PermissionModal({ isOpen, onClose, onSave, member, projectId }: 
           </div>
         </div>
         {/* Sticky footer for actions */}
-        <div className="bg-card border-t border-border px-6 pb-4 pt-3 shadow-lg">
-          <DialogFooter className="flex gap-3 sm:justify-between">
+        <div className="bg-card border-t border-border px-6 pb-6 pt-4 mt-auto">
+          <DialogFooter className="flex flex-row gap-3 w-full">
             <Button variant="outline" onClick={onClose} disabled={isSaving} className="flex-1 focus-visible:ring-2 transition-all duration-200" aria-label="Cancel">
               <X className="mr-2 h-4 w-4" />
               Cancel

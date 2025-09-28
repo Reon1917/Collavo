@@ -58,6 +58,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **TanStack Query** for server state and caching
 - Custom hooks for data fetching
 
+### Theme System
+- **Custom Theme Engine** with 8 predefined themes (Ocean Breeze, Vercel Black, Creative Cosmos, Solar Flare, Forest Haven, Graphite, High Contrast, Rose Garden)
+- **Dynamic Theme Switching** with real-time color updates
+- **Dark/Light Mode Support** for all themes
+- **Accessibility Compliance** with WCAG AAA theme option
+- **Theme Persistence** via localStorage
+- **CSS Custom Properties** for seamless theme transitions
+
 ## Architecture Overview
 
 ### Database Schema
@@ -73,11 +81,14 @@ The PostgreSQL schema includes:
 - **messages/user_presence** - Real-time chat (Supabase)
 
 ### Permission System
-Role-based access with granular permissions:
+Enhanced role-based access with granular permissions:
 - **createTask**, **handleTask**, **updateTask**
 - **handleEvent**, **createEvent**
 - **handleFile**, **viewFiles**
 - **addMember**
+- **Dynamic Permission Management** with toggle-based UI
+- **Permission-aware request handling** with automatic refresh
+- **Leader-only permission management** for enhanced security
 
 ### Component Architecture
 - **Server Components** by default (async, direct data fetching)
@@ -122,10 +133,14 @@ RESTful API with nested routes:
 - Use transactions for complex operations
 
 ### Email Notifications
-- Resend service for email delivery
-- Scheduled notifications for deadlines
-- Template-based HTML emails in `lib/email/templates/`
-- Timezone handling with Luxon (Asia/Bangkok)
+- **Resend** service for email delivery with scheduling capabilities
+- **Advanced Notification System** for subtasks and events
+- **Flexible Scheduling** with customizable days-before and time settings
+- **Template-based HTML emails** in `lib/email/templates/`
+- **Timezone handling** with Luxon (Asia/Bangkok)
+- **Email cancellation and updating** support
+- **Batch notification creation** for events with multiple recipients
+- **Sanitized email content** to prevent injection attacks
 
 ## Environment Variables
 
@@ -159,6 +174,7 @@ hooks/                 # Custom React hooks
 lib/                   # Utility libraries
 ├── auth.ts           # Authentication config
 ├── email/            # Email service and templates
+├── themes/           # Theme system (definitions and utilities)
 └── stores/           # State management
 
 db/                    # Database schema and config
@@ -230,14 +246,31 @@ types/                # TypeScript type definitions
 - Email templates must be properly formatted
 - Handle timezone calculations correctly with Luxon
 
-## Current Development Focus
+## Recent Updates & Features
 
-### Project Invitation Flow Redesign
-Currently working on improving the project invitation system:
-- Transitioning from dashboard-based invitations to project-specific invite flows
-- Implementing invitation management within individual project contexts
-- Enhancing user experience for team collaboration features
-- Updating invitation UI/UX patterns and components
+### Theme System Implementation
+- Added comprehensive theming system with 8 unique themes
+- Implemented dynamic theme switching with real-time updates
+- Created accessibility-compliant high contrast theme
+- Added theme persistence and smooth transitions
+
+### Enhanced Email Notifications
+- Upgraded notification system with flexible scheduling
+- Added support for email cancellation and rescheduling
+- Implemented batch notifications for events
+- Enhanced security with email content sanitization
+
+### Permission Management Improvements
+- Added dynamic permission toggle interface
+- Implemented permission-aware request handling
+- Enhanced security with leader-only permission management
+- Improved user experience with automatic permission refresh
+
+### UI/UX Enhancements
+- Updated switch component for better accessibility
+- Improved file management interface
+- Enhanced member management with permission controls
+- Added themed components throughout the application
 
 ## Deployment
 
