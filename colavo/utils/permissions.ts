@@ -2,10 +2,12 @@ import { toast } from 'sonner';
 
 export interface PermissionErrorResponse {
   error: string;
-  errorType: 'NO_ACCESS' | 'PERMISSION_REVOKED' | 'INVALID_PROJECT';
-  requiredPermission: string;
-  currentPermissions: string[];
-  shouldRefreshPermissions: boolean;
+  errorType: 'NO_ACCESS' | 'PERMISSION_REVOKED' | 'INVALID_PROJECT' | 'PROJECT_DELETED';
+  requiredPermission?: string;
+  currentPermissions?: string[];
+  shouldRefreshPermissions?: boolean;
+  shouldRedirect?: boolean;
+  redirectTo?: string;
 }
 
 /**
@@ -16,6 +18,8 @@ export function handlePermissionError(
   error: PermissionErrorResponse,
   onPermissionRefresh?: () => void
 ) {
+  let deletionEventDetail: { redirectTo: string; handled: boolean } | null = null;
+
   // Show user-friendly toast notification
   switch (error.errorType) {
     case 'PERMISSION_REVOKED':
@@ -24,21 +28,37 @@ export function handlePermissionError(
         duration: 5000,
       });
       break;
-      
+
     case 'NO_ACCESS':
       toast.error('Access Denied', {
         description: 'You no longer have access to this project.',
         duration: 5000,
       });
       break;
-      
+
     case 'INVALID_PROJECT':
       toast.error('Project Not Found', {
         description: 'This project may have been deleted.',
         duration: 5000,
       });
       break;
-      
+
+    case 'PROJECT_DELETED':
+      toast.error('Project Deleted', {
+        description: 'This project has been deleted and is no longer available.',
+        duration: 4000,
+      });
+
+      deletionEventDetail = {
+        redirectTo: error.redirectTo || '/dashboard',
+        handled: false,
+      };
+
+      window.dispatchEvent(
+        new CustomEvent('project:deleted', { detail: deletionEventDetail })
+      );
+      break;
+
     default:
       toast.error('Access Denied', {
         description: error.error,
@@ -49,6 +69,15 @@ export function handlePermissionError(
   // Trigger permission refresh if needed
   if (error.shouldRefreshPermissions && onPermissionRefresh) {
     onPermissionRefresh();
+  }
+
+  // Handle redirect if needed
+  if (error.shouldRedirect && error.redirectTo) {
+    setTimeout(() => {
+      if (!deletionEventDetail || !deletionEventDetail.handled) {
+        window.location.href = error.redirectTo!;
+      }
+    }, 1500); // Small delay to let user see the toast
   }
 }
 
@@ -64,8 +93,8 @@ export async function makePermissionAwareRequest<T>(
   if (!response.ok) {
     const errorData = await response.json();
     
-    // Check if this is a permission error with detailed info
-    if (errorData.errorType && errorData.shouldRefreshPermissions !== undefined) {
+    // Check if this is a permission error or project deletion error with detailed info
+    if (errorData.errorType && (errorData.shouldRefreshPermissions !== undefined || errorData.shouldRedirect !== undefined)) {
       handlePermissionError(errorData as PermissionErrorResponse, onPermissionRefresh);
       throw new Error(errorData.error);
     }
@@ -81,7 +110,32 @@ export async function makePermissionAwareRequest<T>(
  * Check if an error response indicates a permission issue
  */
 export function isPermissionError(error: any): error is PermissionErrorResponse {
-  return error && 
-         error.errorType && 
-         ['NO_ACCESS', 'PERMISSION_REVOKED', 'INVALID_PROJECT'].includes(error.errorType);
+  return error &&
+         error.errorType &&
+         ['NO_ACCESS', 'PERMISSION_REVOKED', 'INVALID_PROJECT', 'PROJECT_DELETED'].includes(error.errorType);
+}
+
+/**
+ * Parse API error response and handle special error types
+ * Returns whether the error was handled (toast shown, redirect triggered)
+ */
+export async function handleApiError(
+  response: Response,
+  onPermissionRefresh?: () => void
+): Promise<{ handled: boolean; errorMessage: string }> {
+  try {
+    const errorData = await response.json();
+
+    // Check if this is a structured error response with special handling
+    if (errorData.errorType && (errorData.shouldRefreshPermissions !== undefined || errorData.shouldRedirect !== undefined)) {
+      handlePermissionError(errorData as PermissionErrorResponse, onPermissionRefresh);
+      return { handled: true, errorMessage: errorData.error };
+    }
+
+    // Return unhandled error
+    return { handled: false, errorMessage: errorData.error || 'An error occurred' };
+  } catch {
+    // Fallback if response is not JSON
+    return { handled: false, errorMessage: response.statusText || 'An error occurred' };
+  }
 } 

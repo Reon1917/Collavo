@@ -13,6 +13,7 @@ export interface ProjectAccess {
     name: string;
     leaderId: string;
   } | null;
+  errorType?: 'PROJECT_NOT_FOUND' | 'ACCESS_DENIED';
 }
 
 /**
@@ -39,7 +40,8 @@ export async function checkProjectAccess(projectId: string, userId: string): Pro
         isMember: false,
         role: null,
         permissions: [],
-        project: null
+        project: null,
+        errorType: 'PROJECT_NOT_FOUND'
       };
     }
 
@@ -51,7 +53,8 @@ export async function checkProjectAccess(projectId: string, userId: string): Pro
         isMember: false,
         role: null,
         permissions: [],
-        project: null
+        project: null,
+        errorType: 'PROJECT_NOT_FOUND'
       };
     }
 
@@ -92,7 +95,8 @@ export async function checkProjectAccess(projectId: string, userId: string): Pro
         isMember: false,
         role: null,
         permissions: [],
-        project: projectData
+        project: projectData,
+        errorType: 'ACCESS_DENIED'
       };
     }
 
@@ -104,7 +108,8 @@ export async function checkProjectAccess(projectId: string, userId: string): Pro
         isMember: false,
         role: null,
         permissions: [],
-        project: projectData
+        project: projectData,
+        errorType: 'ACCESS_DENIED'
       };
     }
 
@@ -208,11 +213,15 @@ export async function hasPermission(userId: string, projectId: string, permissio
  */
 export async function requireProjectAccess(userId: string, projectId: string): Promise<ProjectAccess> {
   const access = await checkProjectAccess(projectId, userId);
-  
+
   if (!access.hasAccess) {
-    throw new Error('Project not found or access denied');
+    if (access.errorType === 'PROJECT_NOT_FOUND') {
+      throw new Error('Project no longer exists or has been deleted');
+    } else {
+      throw new Error('Access denied - you are not a member of this project');
+    }
   }
-  
+
   return access;
 }
 
@@ -235,11 +244,18 @@ export function createPermissionErrorResponse(result: PermissionCheckResult) {
  */
 export async function requireLeaderRole(userId: string, projectId: string): Promise<ProjectAccess> {
   const access = await checkProjectAccess(projectId, userId);
+
   if (!access.hasAccess) {
-    throw new Error('Project not found or access denied');
+    if (access.errorType === 'PROJECT_NOT_FOUND') {
+      throw new Error('Project no longer exists or has been deleted');
+    } else {
+      throw new Error('Access denied - you are not a member of this project');
+    }
   }
+
   if (!access.isLeader) {
-    throw new Error('Leader role required');
+    throw new Error('Leader role required - only project leaders can perform this action');
   }
+
   return access;
 } 

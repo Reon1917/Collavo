@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
+import { fetchJsonWithProjectGuard } from '@/utils/api';
 import { Task, Project, SubTask, getCachedRequest, setCachedRequest, clearCacheForProject } from '../types';
 
 export function useTasksData(projectId: string) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Track ongoing requests to prevent duplicates
   const ongoingRequests = useRef(new Set<string>());
 
@@ -31,19 +32,20 @@ export function useTasksData(projectId: string) {
     }
 
     ongoingRequests.current.add(cacheKey);
-    
+
     try {
-      const response = await fetch(`/api/projects/${projectId}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('Project not found or access denied');
-        }
-        throw new Error('Failed to fetch project data');
+      const { data, handled, errorMessage } = await fetchJsonWithProjectGuard<Project>(`/api/projects/${projectId}`);
+
+      if (handled) {
+        return null;
       }
-      
-      const projectData = await response.json();
-      setCachedRequest(cacheKey, projectData);
-      return projectData;
+
+      if (!data) {
+        throw new Error(errorMessage || 'Failed to fetch project data');
+      }
+
+      setCachedRequest(cacheKey, data);
+      return data;
     } finally {
       ongoingRequests.current.delete(cacheKey);
     }
@@ -70,19 +72,20 @@ export function useTasksData(projectId: string) {
     }
 
     ongoingRequests.current.add(cacheKey);
-    
+
     try {
-      const response = await fetch(`/api/projects/${projectId}/tasks`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('Project not found or access denied');
-        }
-        throw new Error('Failed to fetch tasks');
+      const { data, handled, errorMessage } = await fetchJsonWithProjectGuard<Task[]>(`/api/projects/${projectId}/tasks`);
+
+      if (handled) {
+        return [];
       }
-      
-      const tasksData = await response.json();
-      setCachedRequest(cacheKey, tasksData);
-      return tasksData;
+
+      if (!data) {
+        throw new Error(errorMessage || 'Failed to fetch tasks');
+      }
+
+      setCachedRequest(cacheKey, data);
+      return data;
     } finally {
       ongoingRequests.current.delete(cacheKey);
     }
@@ -91,16 +94,14 @@ export function useTasksData(projectId: string) {
   const fetchInitialData = useCallback(async () => {
     try {
       setIsLoading(true);
-      
+
       // Fetch project and tasks in parallel, using cache
       const [projectData, tasksData] = await Promise.all([
         fetchProjectData(),
         fetchTasksData()
       ]);
 
-      if (projectData) {
-        setProject(projectData);
-      }
+      setProject(projectData);
       setTasks(tasksData);
     } catch (error) {
       if (error instanceof Error) {
@@ -124,8 +125,8 @@ export function useTasksData(projectId: string) {
   }, [projectId]);
 
   const handleTaskUpdated = useCallback((updatedTask: Partial<Task> & { id: string }) => {
-    setTasks(prev => prev.map(task => 
-      task.id === updatedTask.id 
+    setTasks(prev => prev.map(task =>
+      task.id === updatedTask.id
         ? { ...task, ...updatedTask }
         : task
     ));
@@ -139,8 +140,8 @@ export function useTasksData(projectId: string) {
 
   // Optimistic subtask operations
   const handleSubTaskUpdated = useCallback((taskId: string, updatedSubTask: Partial<SubTask> & { id: string }) => {
-    setTasks(prev => prev.map(task => 
-      task.id === taskId 
+    setTasks(prev => prev.map(task =>
+      task.id === taskId
         ? {
             ...task,
             subTasks: task.subTasks.map(subtask =>
@@ -155,8 +156,8 @@ export function useTasksData(projectId: string) {
   }, [projectId]);
 
   const handleSubTaskCreated = useCallback((taskId: string, newSubTask: SubTask) => {
-    setTasks(prev => prev.map(task => 
-      task.id === taskId 
+    setTasks(prev => prev.map(task =>
+      task.id === taskId
         ? { ...task, subTasks: [...task.subTasks, newSubTask] }
         : task
     ));
@@ -164,8 +165,8 @@ export function useTasksData(projectId: string) {
   }, [projectId]);
 
   const handleSubTaskDeleted = useCallback((taskId: string, subtaskId: string) => {
-    setTasks(prev => prev.map(task => 
-      task.id === taskId 
+    setTasks(prev => prev.map(task =>
+      task.id === taskId
         ? { ...task, subTasks: task.subTasks.filter(subtask => subtask.id !== subtaskId) }
         : task
     ));
@@ -183,4 +184,4 @@ export function useTasksData(projectId: string) {
     handleSubTaskCreated,
     handleSubTaskDeleted,
   };
-} 
+}

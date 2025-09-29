@@ -100,15 +100,29 @@ export async function GET(
 
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes('not found') || error.message.includes('access denied')) {
+      if (error.message.includes('no longer exists') || error.message.includes('has been deleted')) {
         return NextResponse.json(
-          { error: error.message },
+          {
+            error: error.message,
+            errorType: 'PROJECT_DELETED',
+            shouldRedirect: true,
+            redirectTo: '/dashboard'
+          },
           { status: 404 }
         );
       }
+      if (error.message.includes('not found') || error.message.includes('access denied') || error.message.includes('not a member')) {
+        return NextResponse.json(
+          {
+            error: error.message,
+            errorType: 'ACCESS_DENIED'
+          },
+          { status: 403 }
+        );
+      }
     }
-    
-    //console.error('Project GET error:', error);
+
+    console.error('Project GET error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -191,10 +205,24 @@ export async function PUT(
 
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes('not found') || error.message.includes('access denied')) {
+      if (error.message.includes('no longer exists') || error.message.includes('has been deleted')) {
         return NextResponse.json(
-          { error: error.message },
+          {
+            error: error.message,
+            errorType: 'PROJECT_DELETED',
+            shouldRedirect: true,
+            redirectTo: '/dashboard'
+          },
           { status: 404 }
+        );
+      }
+      if (error.message.includes('not found') || error.message.includes('access denied') || error.message.includes('not a member')) {
+        return NextResponse.json(
+          {
+            error: error.message,
+            errorType: 'ACCESS_DENIED'
+          },
+          { status: 403 }
         );
       }
       if (error.message.includes('Leader role required')) {
@@ -204,8 +232,8 @@ export async function PUT(
         );
       }
     }
-    
-    //console.error('Project PUT error:', error);
+
+    console.error('Project PUT error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -288,10 +316,24 @@ export async function PATCH(
 
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes('not found') || error.message.includes('access denied')) {
+      if (error.message.includes('no longer exists') || error.message.includes('has been deleted')) {
         return NextResponse.json(
-          { error: error.message },
+          {
+            error: error.message,
+            errorType: 'PROJECT_DELETED',
+            shouldRedirect: true,
+            redirectTo: '/dashboard'
+          },
           { status: 404 }
+        );
+      }
+      if (error.message.includes('not found') || error.message.includes('access denied') || error.message.includes('not a member')) {
+        return NextResponse.json(
+          {
+            error: error.message,
+            errorType: 'ACCESS_DENIED'
+          },
+          { status: 403 }
         );
       }
       if (error.message.includes('Leader role required')) {
@@ -301,8 +343,8 @@ export async function PATCH(
         );
       }
     }
-    
-    //console.error('Project PATCH error:', error);
+
+    console.error('Project PATCH error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -411,11 +453,26 @@ export async function DELETE(
         name: error.name
       });
 
-      if (error.message.includes('not found') || error.message.includes('access denied')) {
-        console.error('[DELETE PROJECT] Access/Not found error:', error.message);
+      if (error.message.includes('no longer exists') || error.message.includes('has been deleted')) {
+        console.error('[DELETE PROJECT] Project not found/deleted error:', error.message);
         return NextResponse.json(
-          { error: error.message },
+          {
+            error: error.message,
+            errorType: 'PROJECT_DELETED',
+            shouldRedirect: true,
+            redirectTo: '/dashboard'
+          },
           { status: 404 }
+        );
+      }
+      if (error.message.includes('not found') || error.message.includes('access denied') || error.message.includes('not a member')) {
+        console.error('[DELETE PROJECT] Access denied error:', error.message);
+        return NextResponse.json(
+          {
+            error: error.message,
+            errorType: 'ACCESS_DENIED'
+          },
+          { status: 403 }
         );
       }
       if (error.message.includes('Leader role required')) {
