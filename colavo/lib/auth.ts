@@ -4,6 +4,22 @@ import { db } from "@/db";
 import { ResendEmailService } from "@/lib/email/resend-service";
 import { generatePasswordResetTemplate } from "@/lib/email/templates/password-reset";
 
+const isDev = process.env.NODE_ENV === 'development';
+
+// @ts-expect-error - Development utility function, intentionally unused
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const devLog = (...args: unknown[]) => {
+  if (!isDev) return;
+  // eslint-disable-next-line no-console
+  console.log(...args);
+};
+
+const devError = (...args: unknown[]) => {
+  if (!isDev) return;
+  // eslint-disable-next-line no-console
+  console.error(...args);
+};
+
 // Type-safe environment configuration
 interface AuthEnvConfig {
   GOOGLE_CLIENT_ID: string;
@@ -104,23 +120,10 @@ export const auth = betterAuth({
         });
 
         // Log success in development
-        if (envConfig.NODE_ENV === "development") {
-          // eslint-disable-next-line no-console
-          // Password reset email sent successfully
-        }
-
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        // Failed to send password reset email
-        
-        // In development, still log the URL as fallback
-        if (envConfig.NODE_ENV === "development") {
-          // Fallback reset URL can be generated if needed for debugging
-        }
-        
-        // Re-throw the error to be handled by better-auth
-        throw error;
-      }
+      } catch (error) {
+        devError('Failed to send password reset email', error);
+        throw error;
+      }
     },
   },
   socialProviders: {

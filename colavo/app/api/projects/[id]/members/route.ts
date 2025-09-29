@@ -3,6 +3,20 @@ import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { members, permissions, user, mainTasks, subTasks, events, files, projects } from '@/db/schema';
 
+const isDev = process.env.NODE_ENV === 'development';
+
+const logDev = (...args: unknown[]) => {
+  if (!isDev) return;
+  // eslint-disable-next-line no-console
+  console.log(...args);
+};
+
+const logDevError = (...args: unknown[]) => {
+  if (!isDev) return;
+  // eslint-disable-next-line no-console
+  console.error(...args);
+};
+
 import { eq, and, inArray } from 'drizzle-orm';
 import { requireProjectAccess, checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
 import { handleEmailInvitation } from '@/lib/invitation-helpers';
@@ -69,6 +83,8 @@ export async function GET(
     return NextResponse.json(membersWithPermissions);
 
   } catch (error) {
+    logDevError('[DELETE MEMBER] Error occurred while removing member', error);
+
     if (error instanceof Error) {
       if (error.message.includes('not found') || error.message.includes('access denied')) {
         return NextResponse.json(
@@ -76,10 +92,16 @@ export async function GET(
           { status: 404 }
         );
       }
+      if (error.message.includes('Insufficient permissions')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 403 }
+        );
+      }
     }
-    
+
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
@@ -242,13 +264,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    console.log('[DELETE MEMBER] Starting member removal process');
     const session = await auth.api.getSession({
       headers: request.headers
     });
 
     if (!session?.user) {
-      console.log('[DELETE MEMBER] No session/user found');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -256,13 +276,10 @@ export async function DELETE(
     }
 
     const { id: projectId } = await params;
-    console.log('[DELETE MEMBER] Project ID:', projectId, 'Requester:', session.user.id);
 
     // Check if user has addMember permission (same permission for adding/removing)
-    console.log('[DELETE MEMBER] Checking permissions for user:', session.user.id);
     const permissionCheck = await checkPermissionDetailed(session.user.id, projectId, 'addMember');
     if (!permissionCheck.hasPermission) {
-      console.log('[DELETE MEMBER] Permission denied:', permissionCheck);
       return NextResponse.json(
         createPermissionErrorResponse(permissionCheck),
         { status: 403 }
@@ -271,7 +288,6 @@ export async function DELETE(
 
     const body = await request.json();
     const { userId } = body;
-    console.log('[DELETE MEMBER] Target user to remove:', userId);
 
     // Validate input
     if (!userId) {
@@ -290,7 +306,6 @@ export async function DELETE(
     }
 
     // Get project details to check if user is the leader
-    console.log('[DELETE MEMBER] Fetching project details');
     const project = await db.select({
       id: projects.id,
       leaderId: projects.leaderId
@@ -300,7 +315,6 @@ export async function DELETE(
       .limit(1);
 
     if (!project.length) {
-      console.log('[DELETE MEMBER] Project not found:', projectId);
       return NextResponse.json(
         { error: 'Project not found' },
         { status: 404 }
@@ -308,11 +322,9 @@ export async function DELETE(
     }
 
     const projectData = project[0]!;
-    console.log('[DELETE MEMBER] Project leader ID:', projectData.leaderId);
 
     // Prevent removing the project leader
     if (projectData.leaderId === userId) {
-      console.log('[DELETE MEMBER] Attempted to remove project leader');
       return NextResponse.json(
         { error: 'Cannot remove the project leader. Transfer leadership first.' },
         { status: 400 }
@@ -336,14 +348,13 @@ export async function DELETE(
 
     const member = memberToRemove[0]!;
 
+    logDev('[DELETE MEMBER] Removing user from project', { projectId, userId, memberId: member.id });
+
     // Cascade delete all content created/assigned to this member within THIS project only
     // We need to do this in the correct order to handle foreign key constraints
 
-    console.log('[DELETE MEMBER] Starting content cleanup for user:', userId);
-
     // 1. First, reassign subtasks assigned to this member to the project leader
     // We need to join with mainTasks to ensure we only affect subtasks in this project
-    console.log('[DELETE MEMBER] Reassigning subtasks to leader:', projectData.leaderId);
     await db.update(subTasks)
       .set({ assignedId: projectData.leaderId })
       .where(and(
@@ -356,10 +367,8 @@ export async function DELETE(
             .where(eq(mainTasks.projectId, projectId))
         )
       ));
-    console.log('[DELETE MEMBER] Subtask reassignment completed');
 
     // 2. Delete subtasks created by this member (only within this project)
-    console.log('[DELETE MEMBER] Deleting subtasks created by user');
     await db.delete(subTasks)
       .where(and(
         eq(subTasks.createdBy, userId),
@@ -370,46 +379,37 @@ export async function DELETE(
             .where(eq(mainTasks.projectId, projectId))
         )
       ));
-    console.log('[DELETE MEMBER] Subtask deletion completed');
 
     // 3. Delete main tasks created by this member (this will cascade delete remaining subtasks)
-    console.log('[DELETE MEMBER] Deleting main tasks created by user');
     await db.delete(mainTasks)
       .where(and(
         eq(mainTasks.createdBy, userId),
         eq(mainTasks.projectId, projectId)
       ));
-    console.log('[DELETE MEMBER] Main task deletion completed');
 
     // 4. Delete events created by this member
-    console.log('[DELETE MEMBER] Deleting events created by user');
     await db.delete(events)
       .where(and(
         eq(events.createdBy, userId),
         eq(events.projectId, projectId)
       ));
-    console.log('[DELETE MEMBER] Event deletion completed');
 
     // 5. Delete files added by this member
-    console.log('[DELETE MEMBER] Deleting files added by user');
     await db.delete(files)
       .where(and(
         eq(files.addedBy, userId),
         eq(files.projectId, projectId)
       ));
-    console.log('[DELETE MEMBER] File deletion completed');
 
     // 6. Delete member permissions (foreign key constraint)
-    console.log('[DELETE MEMBER] Deleting member permissions');
     await db.delete(permissions)
       .where(eq(permissions.memberId, member.id));
-    console.log('[DELETE MEMBER] Permission deletion completed');
 
     // 7. Finally, delete member record
-    console.log('[DELETE MEMBER] Deleting member record');
     await db.delete(members)
       .where(eq(members.id, member.id));
-    console.log('[DELETE MEMBER] Member deletion completed');
+
+    logDev('[DELETE MEMBER] Cleanup complete', { projectId, removedUserId: userId, reassignedTo: projectData.leaderId });
 
     return NextResponse.json({
       message: 'Member removed successfully. Their assigned tasks have been reassigned to the project leader.',
@@ -417,15 +417,7 @@ export async function DELETE(
       reassignedTo: projectData.leaderId
     });
 
-  } catch (error) {
-    console.error('[DELETE MEMBER] Error occurred:', error);
-
-    if (error instanceof Error) {
-      console.error('[DELETE MEMBER] Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      });
+  } catch (error) {    if (error instanceof Error) {
 
       if (error.message.includes('not found') || error.message.includes('access denied')) {
         return NextResponse.json(

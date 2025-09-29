@@ -1,22 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { projects, members, permissions, user, mainTasks, events, files } from '@/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { projects, members, permissions, user } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 import { requireProjectAccess, requireLeaderRole } from '@/lib/auth-helpers';
 
 const isDev = process.env.NODE_ENV === 'development';
 
 const logDev = (...args: unknown[]) => {
-  if (isDev) {
-    console.log(...args);
-  }
+  if (!isDev) return;
+  // eslint-disable-next-line no-console
+  console.log(...args);
 };
 
 const logDevError = (...args: unknown[]) => {
-  if (isDev) {
-    console.error(...args);
-  }
+  if (!isDev) return;
+  // eslint-disable-next-line no-console
+  console.error(...args);
 };
 
 // GET /api/projects/[id] - Get project details
@@ -401,28 +401,6 @@ export async function DELETE(
       .from(projects)
       .where(eq(projects.id, projectId))
       .limit(1);
-
-    // Get counts of related data that will be cascade deleted
-
-    const memberCount = await db
-      .select({ count: sql`count(*)` })
-      .from(members)
-      .where(eq(members.projectId, projectId));
-
-    const taskCount = await db
-      .select({ count: sql`count(*)` })
-      .from(mainTasks)
-      .where(eq(mainTasks.projectId, projectId));
-
-    const eventCount = await db
-      .select({ count: sql`count(*)` })
-      .from(events)
-      .where(eq(events.projectId, projectId));
-
-    const fileCount = await db
-      .select({ count: sql`count(*)` })
-      .from(files)
-      .where(eq(files.projectId, projectId));
 
     // Delete project (cascade will handle related records)
     await db.delete(projects).where(eq(projects.id, projectId));

@@ -69,7 +69,7 @@ export function useProjectData(projectId: string) {
 
     try {
       const projectResult = await fetchJsonWithProjectGuard<Project>(`/api/projects/${projectId}`, {
-        signal: abortSignal,
+        signal: abortSignal || null,
       });
 
       if (abortSignal?.aborted) {
@@ -84,7 +84,7 @@ export function useProjectData(projectId: string) {
 
       try {
         const tasksResult = await fetchJsonWithProjectGuard<Task[]>(`/api/projects/${projectId}/tasks`, {
-          signal: abortSignal,
+          signal: abortSignal || null,
         });
 
         if (abortSignal?.aborted) {
@@ -142,19 +142,20 @@ export function useProjectData(projectId: string) {
   const refreshPermissions = useCallback(async (abortSignal?: AbortSignal) => {
     try {
       const result = await fetchJsonWithProjectGuard<Project>(`/api/projects/${projectId}`, {
-        signal: abortSignal,
+        signal: abortSignal || null,
       });
 
       if (abortSignal?.aborted || result.handled || !result.data) {
         return;
       }
 
+      const projectData = result.data;
       setProject(prevProject => prevProject ? {
         ...prevProject,
-        userPermissions: result.data.userPermissions,
-        isLeader: result.data.isLeader,
-        userRole: result.data.userRole
-      } : result.data);
+        userPermissions: projectData.userPermissions,
+        isLeader: projectData.isLeader,
+        userRole: projectData.userRole
+      } : projectData);
     } catch (error) {
       if (error instanceof Error && error.name !== 'AbortError') {
         console.warn('Failed to refresh permissions:', error);
