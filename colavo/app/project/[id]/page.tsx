@@ -6,6 +6,7 @@ import { OverviewView } from '@/components/project/OverviewView';
 import { useTabPreloader } from '@/hooks/shared/useTabPreloader';
 import { useProjectData } from '@/hooks/shared/useProjectData';
 import { ContentLoading } from '@/components/ui/content-loading';
+import ProjectDeletionWatcher from '@/components/project/ProjectDeletionWatcher';
 
 // Lazy load heavy components
 const TasksView = lazy(() => import('@/components/project/TasksView/TasksView').then(m => ({ default: m.TasksView })));
@@ -87,6 +88,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 
   return (
     <div className="p-4 md:p-6">
+      <ProjectDeletionWatcher fallbackUrl="/dashboard" />
       {renderContent()}
     </div>
   );

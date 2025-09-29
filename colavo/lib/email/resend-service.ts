@@ -4,6 +4,20 @@ import { db } from '@/db';
 import { user, subTasks, mainTasks, projects } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
+const isDev = process.env.NODE_ENV === 'development';
+
+const devLog = (...args: unknown[]) => {
+  if (!isDev) return;
+  // eslint-disable-next-line no-console
+  console.log(...args);
+};
+
+const devError = (...args: unknown[]) => {
+  if (!isDev) return;
+  // eslint-disable-next-line no-console
+  console.error(...args);
+};
+
 if (!process.env.RESEND_API_KEY) {
   throw new Error('RESEND_API_KEY environment variable is required');
 }
@@ -62,6 +76,7 @@ export class ResendEmailService {
 
       return { emailId: response.data.id };
     } catch (error) {
+      devError('Email sending failed', error);
       throw new Error(`Email sending failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -73,6 +88,7 @@ export class ResendEmailService {
     try {
       await resend.emails.cancel(emailId);
     } catch (error) {
+      devError('Failed to cancel scheduled email', { emailId, error: error instanceof Error ? error.message : error });
       throw new Error(`Failed to cancel email: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -87,6 +103,7 @@ export class ResendEmailService {
         scheduledAt: newScheduledAt.toISOString(),
       });
     } catch (error) {
+      devError('Failed to update email schedule', { emailId, error: error instanceof Error ? error.message : error, scheduledAt: newScheduledAt });
       throw new Error(`Failed to update email schedule: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -188,21 +205,19 @@ export class ResendEmailService {
             notificationParams.deadline = task.deadline;
           }
 
-          await this.sendSubtaskAssignmentNotification(notificationParams);
-
-          // Log successful assignment notification in development
-          if (process.env.NODE_ENV === 'development') {
-            // eslint-disable-next-line no-console
-            // Assignment notification sent successfully
-          }
+          const { emailId } = await this.sendSubtaskAssignmentNotification(notificationParams);
+          devLog('Assignment notification sent', { projectId, subtaskId, assigneeId, emailId });
         }
       }
     } catch (error) {
-      // Log error but don't throw - notification failure shouldn't break assignment
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        // Failed to send assignment notification
-      }
+      devError('Failed to send assignment notification', {
+        projectId,
+        subtaskId,
+        assigneeId,
+        assignerId,
+        error: error instanceof Error ? error.message : error,
+      });
     }
   }
-} 
+}
+ 

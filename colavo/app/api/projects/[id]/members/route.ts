@@ -1,9 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { members, permissions, user, mainTasks, subTasks, events, files } from '@/db/schema';
+import { members, permissions, user, mainTasks, subTasks, events, files, projects } from '@/db/schema';
 
-import { eq, and } from 'drizzle-orm';
+const isDev = process.env.NODE_ENV === 'development';
+
+const logDev = (...args: unknown[]) => {
+  if (!isDev) return;
+  // eslint-disable-next-line no-console
+  console.log(...args);
+};
+
+const logDevError = (...args: unknown[]) => {
+  if (!isDev) return;
+  // eslint-disable-next-line no-console
+  console.error(...args);
+};
+
+import { eq, and, inArray } from 'drizzle-orm';
 import { requireProjectAccess, checkPermissionDetailed, createPermissionErrorResponse } from '@/lib/auth-helpers';
 import { handleEmailInvitation } from '@/lib/invitation-helpers';
 
@@ -69,6 +83,8 @@ export async function GET(
     return NextResponse.json(membersWithPermissions);
 
   } catch (error) {
+    logDevError('[GET MEMBERS] Error occurred while fetching project members', error);
+
     if (error instanceof Error) {
       if (error.message.includes('not found') || error.message.includes('access denied')) {
         return NextResponse.json(
@@ -76,10 +92,16 @@ export async function GET(
           { status: 404 }
         );
       }
+      if (error.message.includes('Insufficient permissions')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 403 }
+        );
+      }
     }
-    
+
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
@@ -283,6 +305,32 @@ export async function DELETE(
       );
     }
 
+    // Get project details to check if user is the leader
+    const project = await db.select({
+      id: projects.id,
+      leaderId: projects.leaderId
+    })
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
+
+    if (!project.length) {
+      return NextResponse.json(
+        { error: 'Project not found' },
+        { status: 404 }
+      );
+    }
+
+    const projectData = project[0]!;
+
+    // Prevent removing the project leader
+    if (projectData.leaderId === userId) {
+      return NextResponse.json(
+        { error: 'Cannot remove the project leader. Transfer leadership first.' },
+        { status: 400 }
+      );
+    }
+
     // Check if user is a member of this project
     const memberToRemove = await db.select()
       .from(members)
@@ -300,17 +348,37 @@ export async function DELETE(
 
     const member = memberToRemove[0]!;
 
-    // Cascade delete all content created/assigned to this member
+    logDev('[DELETE MEMBER] Removing user from project', { projectId, userId, memberId: member.id });
+
+    // Cascade delete all content created/assigned to this member within THIS project only
     // We need to do this in the correct order to handle foreign key constraints
 
-    // 1. First, delete or update subtasks assigned to this member
-    // Option A: Delete subtasks assigned to them
-    await db.delete(subTasks)
-      .where(eq(subTasks.assignedId, userId));
+    // 1. First, reassign subtasks assigned to this member to the project leader
+    // We need to join with mainTasks to ensure we only affect subtasks in this project
+    await db.update(subTasks)
+      .set({ assignedId: projectData.leaderId })
+      .where(and(
+        eq(subTasks.assignedId, userId),
+        // Join condition to ensure subtask belongs to this project
+        // We do this by checking that the mainTask belongs to this project
+        inArray(subTasks.mainTaskId,
+          db.select({ id: mainTasks.id })
+            .from(mainTasks)
+            .where(eq(mainTasks.projectId, projectId))
+        )
+      ));
 
-    // 2. Delete subtasks created by this member (that aren't already deleted)
+    // 2. Delete subtasks created by this member (only within this project)
     await db.delete(subTasks)
-      .where(eq(subTasks.createdBy, userId));
+      .where(and(
+        eq(subTasks.createdBy, userId),
+        // Join condition to ensure subtask belongs to this project
+        inArray(subTasks.mainTaskId,
+          db.select({ id: mainTasks.id })
+            .from(mainTasks)
+            .where(eq(mainTasks.projectId, projectId))
+        )
+      ));
 
     // 3. Delete main tasks created by this member (this will cascade delete remaining subtasks)
     await db.delete(mainTasks)
@@ -341,13 +409,17 @@ export async function DELETE(
     await db.delete(members)
       .where(eq(members.id, member.id));
 
-    return NextResponse.json({ 
-      message: 'Member and all their content removed successfully',
-      removedUserId: userId 
+    logDev('[DELETE MEMBER] Cleanup complete', { projectId, removedUserId: userId, reassignedTo: projectData.leaderId });
+
+    return NextResponse.json({
+      message: 'Member removed successfully. Their assigned tasks have been reassigned to the project leader.',
+      removedUserId: userId,
+      reassignedTo: projectData.leaderId
     });
 
   } catch (error) {
     if (error instanceof Error) {
+
       if (error.message.includes('not found') || error.message.includes('access denied')) {
         return NextResponse.json(
           { error: error.message },
@@ -361,9 +433,9 @@ export async function DELETE(
         );
       }
     }
-    
+
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

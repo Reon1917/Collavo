@@ -7,6 +7,20 @@ import { generateSubtaskReminderTemplate } from './templates/subtask-reminder';
 import { generateEventReminderTemplate } from './templates/event-reminder';
 import { calculateScheduleTime, isPastTime, canScheduleNotification } from '@/utils/timezone';
 
+const isDev = process.env.NODE_ENV === 'development';
+
+const devLog = (...args: unknown[]) => {
+  if (!isDev) return;
+  // eslint-disable-next-line no-console
+  console.log(...args);
+};
+
+const devError = (...args: unknown[]) => {
+  if (!isDev) return;
+  // eslint-disable-next-line no-console
+  console.error(...args);
+};
+
 export interface CreateSubtaskNotificationParams {
   subtaskId: string;
   userId: string;
@@ -87,6 +101,13 @@ export class NotificationService {
 
     // Check if deadline allows for notification scheduling
     if (!canScheduleNotification(subtaskRecord.subtask.deadline, daysBefore, time)) {
+      devError('Subtask notification scheduling rejected', {
+        projectId,
+        subtaskId,
+        daysBefore,
+        time,
+        deadline: subtaskRecord.subtask.deadline,
+      });
       throw new Error('The notification time has already passed. Please choose a different time or fewer days before the deadline.');
     }
 
@@ -164,10 +185,13 @@ export class NotificationService {
     
     if (!canScheduleNotification(eventRecord.event.datetime, daysBefore, time)) {
       const errorMsg = 'The notification time has already passed. Please choose a different time or fewer days before the event.';
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        // Notification scheduling failed
-      }
+      devError('Event notification scheduling rejected', {
+        eventId,
+        projectId,
+        daysBefore,
+        time,
+        deadline: eventRecord.event.datetime,
+      });
       throw new Error(errorMsg);
     }
 
@@ -195,17 +219,9 @@ export class NotificationService {
     const createdNotifications: Array<{notificationId: string, emailId: string}> = [];
     
     try {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        // Creating event notifications for recipients
-      }
       
       for (let i = 0; i < recipients.length; i++) {
         const recipient = recipients[i]!;
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          // Processing recipient notification
-        }
         
         // Generate email content with sanitization
         const templateParams: any = {
@@ -255,53 +271,33 @@ export class NotificationService {
 
           createdNotifications.push({ notificationId, emailId });
           notificationIds.push(notificationId);
-          
-          if (process.env.NODE_ENV === 'development') {
-            // eslint-disable-next-line no-console
-            // Successfully created notification
-          }
         } catch (recipientError) {
-          if (process.env.NODE_ENV === 'development') {
-            // eslint-disable-next-line no-console
-            // Failed to create notification for recipient
-          }
+          devError('Failed to create event notification for recipient', {
+            eventId,
+            projectId,
+            recipientId: recipient.id,
+            email: recipient.email,
+            error: recipientError instanceof Error ? recipientError.message : recipientError,
+          });
           throw new Error(`Failed to create notification for ${recipient.email}: ${recipientError instanceof Error ? recipientError.message : 'Unknown error'}`);
         }
       }
-      
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        // Successfully created event notifications
-      }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        // Error during batch notification creation
-      }
       
       // Attempt to cleanup any partially created notifications
       if (createdNotifications.length > 0) {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          // Attempting to cleanup partially created notifications
-        }
+        devLog('Cleaning up partially created event notifications', { count: createdNotifications.length, eventId, projectId });
         try {
           for (const { notificationId, emailId } of createdNotifications) {
             try {
               await ResendEmailService.cancelEmail(emailId);
               await db.delete(scheduledNotifications).where(eq(scheduledNotifications.id, notificationId));
             } catch (cleanupError) {
-              if (process.env.NODE_ENV === 'development') {
-                // eslint-disable-next-line no-console
-                // Failed to cleanup notification
-              }
+              devError('Failed to cleanup notification record', { notificationId, emailId, error: cleanupError instanceof Error ? cleanupError.message : cleanupError });
             }
           }
         } catch (cleanupError) {
-          if (process.env.NODE_ENV === 'development') {
-            // eslint-disable-next-line no-console
-            // Error during cleanup
-          }
+          devError('Error during notification cleanup', cleanupError);
         }
       }
       

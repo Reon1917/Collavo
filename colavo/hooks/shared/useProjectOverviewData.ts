@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
+import { fetchJsonWithProjectGuard } from '@/utils/api';
 
 interface OverviewData {
   project: any;
@@ -49,7 +50,7 @@ export function useProjectOverviewData(projectId: string): UseProjectOverviewDat
 
   const fetchData = useCallback(async (bypassCache = false) => {
     const cacheKey = `overview-${projectId}`;
-    
+
     // Check cache first
     if (!bypassCache) {
       const cached = cache.get(cacheKey);
@@ -64,23 +65,30 @@ export function useProjectOverviewData(projectId: string): UseProjectOverviewDat
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/projects/${projectId}/overview`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
+      const { data: overviewData, handled, errorMessage } = await fetchJsonWithProjectGuard<OverviewData>(
+        `/api/projects/${projectId}/overview`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        }
+      );
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      if (handled) {
+        setError(errorMessage ?? 'Project no longer available.');
+        return;
       }
 
-      const overviewData: OverviewData = await response.json();
-      
+      if (!overviewData) {
+        setError('Failed to fetch overview data');
+        return;
+      }
+
       // Cache the data
       cache.set(cacheKey, {
         data: overviewData,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
 
       setData(overviewData);
@@ -101,7 +109,7 @@ export function useProjectOverviewData(projectId: string): UseProjectOverviewDat
   const refreshIfStale = useCallback(() => {
     const cacheKey = `overview-${projectId}`;
     const cached = cache.get(cacheKey);
-    
+
     // If no cache or cache is older than 1 minute, refresh
     if (!cached || Date.now() - cached.timestamp > 60 * 1000) {
       fetchData(true);
@@ -124,7 +132,7 @@ export function useProjectOverviewData(projectId: string): UseProjectOverviewDat
 // Helper hook for individual data pieces (maintains backwards compatibility)
 export function useProjectDataFromOverview(projectId: string) {
   const { data, isLoading, error, refreshData } = useProjectOverviewData(projectId);
-  
+
   return {
     project: data?.project || null,
     tasks: data?.tasks || [],
@@ -136,4 +144,4 @@ export function useProjectDataFromOverview(projectId: string) {
     error,
     refreshData,
   };
-} 
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
+import { fetchJsonWithProjectGuard } from '@/utils/api';
 
 interface Project {
   id: string;
@@ -65,33 +66,58 @@ export function useProjectData(projectId: string) {
 
   const fetchProjectData = useCallback(async (abortSignal?: AbortSignal) => {
     setIsLoading(true);
-    
-    try {
-      const [projectResponse, tasksResponse] = await Promise.all([
-        fetch(`/api/projects/${projectId}`, { signal: abortSignal || null }),
-        fetch(`/api/projects/${projectId}/tasks`, { signal: abortSignal || null })
-      ]);
-      
-      // Check if request was aborted
-      if (abortSignal?.aborted) return;
-      
-      if (!projectResponse.ok) {
-        throw new Error('Failed to fetch project data');
-      }
-      
-      const projectData = await projectResponse.json();
-      setProject(projectData);
 
-      if (tasksResponse.ok) {
-        const tasksData = await tasksResponse.json();
-        setTasks(tasksData);
-      } else {
+    try {
+      const projectResult = await fetchJsonWithProjectGuard<Project>(`/api/projects/${projectId}`, {
+        signal: abortSignal || null,
+      });
+
+      if (abortSignal?.aborted) {
+        return;
+      }
+
+      if (projectResult.handled) {
+        return;
+      }
+
+      setProject(projectResult.data ?? null);
+
+      try {
+        const tasksResult = await fetchJsonWithProjectGuard<Task[]>(`/api/projects/${projectId}/tasks`, {
+          signal: abortSignal || null,
+        });
+
+        if (abortSignal?.aborted) {
+          return;
+        }
+
+        if (tasksResult.handled) {
+          return;
+        }
+
+        setTasks(tasksResult.data ?? []);
+      } catch (tasksError) {
+        if (abortSignal?.aborted) {
+          return;
+        }
+
+        if (tasksError instanceof Error && tasksError.name === 'AbortError') {
+          return;
+        }
+
+        // Fallback to empty list when tasks fetch fails; toast already handled if needed.
         setTasks([]);
       }
     } catch (error) {
-      // Don't show error if request was aborted
-      if (error instanceof Error && error.name === 'AbortError') return;
-      toast.error('Failed to load project data');
+      if (abortSignal?.aborted) {
+        return;
+      }
+
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
+
+      toast.error(error instanceof Error ? error.message : 'Failed to load project data');
     } finally {
       if (!abortSignal?.aborted) {
         setIsLoading(false);
@@ -102,7 +128,7 @@ export function useProjectData(projectId: string) {
   useEffect(() => {
     const abortController = new AbortController();
     fetchProjectData(abortController.signal);
-    
+
     return () => {
       abortController.abort();
     };
@@ -115,23 +141,22 @@ export function useProjectData(projectId: string) {
   // Force refresh permissions only (lighter than full data refresh)
   const refreshPermissions = useCallback(async (abortSignal?: AbortSignal) => {
     try {
-      const response = await fetch(`/api/projects/${projectId}`, { signal: abortSignal || null });
-      
-      if (abortSignal?.aborted) return;
-      
-      if (response.ok) {
-        const projectData = await response.json();
-        if (!abortSignal?.aborted) {
-          setProject(prevProject => prevProject ? {
-            ...prevProject,
-            userPermissions: projectData.userPermissions,
-            isLeader: projectData.isLeader,
-            userRole: projectData.userRole
-          } : projectData);
-        }
+      const result = await fetchJsonWithProjectGuard<Project>(`/api/projects/${projectId}`, {
+        signal: abortSignal || null,
+      });
+
+      if (abortSignal?.aborted || result.handled || !result.data) {
+        return;
       }
+
+      const projectData = result.data;
+      setProject(prevProject => prevProject ? {
+        ...prevProject,
+        userPermissions: projectData.userPermissions,
+        isLeader: projectData.isLeader,
+        userRole: projectData.userRole
+      } : projectData);
     } catch (error) {
-      // Silent fail unless it's not an abort error
       if (error instanceof Error && error.name !== 'AbortError') {
         console.warn('Failed to refresh permissions:', error);
       }
@@ -147,4 +172,4 @@ export function useProjectData(projectId: string) {
   };
 }
 
-export type { Project, Member, Task, SubTask }; 
+export type { Project, Member, Task, SubTask };

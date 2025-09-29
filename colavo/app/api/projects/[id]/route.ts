@@ -5,6 +5,20 @@ import { projects, members, permissions, user } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { requireProjectAccess, requireLeaderRole } from '@/lib/auth-helpers';
 
+const isDev = process.env.NODE_ENV === 'development';
+
+const logDev = (...args: unknown[]) => {
+  if (!isDev) return;
+  // eslint-disable-next-line no-console
+  console.log(...args);
+};
+
+const logDevError = (...args: unknown[]) => {
+  if (!isDev) return;
+  // eslint-disable-next-line no-console
+  console.error(...args);
+};
+
 // GET /api/projects/[id] - Get project details
 export async function GET(
   request: NextRequest,
@@ -100,15 +114,30 @@ export async function GET(
 
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes('not found') || error.message.includes('access denied')) {
+      const msg = error.message.toLowerCase();
+      if (msg.includes('no longer exists') || msg.includes('has been deleted')) {
         return NextResponse.json(
-          { error: error.message },
+          {
+            error: error.message,
+            errorType: 'PROJECT_DELETED',
+            shouldRedirect: true,
+            redirectTo: '/dashboard'
+          },
           { status: 404 }
         );
       }
+      if (msg.includes('not found') || msg.includes('access denied') || msg.includes('not a member')) {
+        return NextResponse.json(
+          {
+            error: error.message,
+            errorType: 'ACCESS_DENIED'
+          },
+          { status: 403 }
+        );
+      }
     }
-    
-    //console.error('Project GET error:', error);
+
+    logDevError('Project GET error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -191,21 +220,36 @@ export async function PUT(
 
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes('not found') || error.message.includes('access denied')) {
+      const msg = error.message.toLowerCase();
+      if (msg.includes('no longer exists') || msg.includes('has been deleted')) {
         return NextResponse.json(
-          { error: error.message },
+          {
+            error: error.message,
+            errorType: 'PROJECT_DELETED',
+            shouldRedirect: true,
+            redirectTo: '/dashboard'
+          },
           { status: 404 }
         );
       }
-      if (error.message.includes('Leader role required')) {
+      if (msg.includes('not found') || msg.includes('access denied') || msg.includes('not a member')) {
+        return NextResponse.json(
+          {
+            error: error.message,
+            errorType: 'ACCESS_DENIED'
+          },
+          { status: 403 }
+        );
+      }
+      if (msg.includes('leader role required')) {
         return NextResponse.json(
           { error: 'Only project leader can update project details' },
           { status: 403 }
         );
       }
     }
-    
-    //console.error('Project PUT error:', error);
+
+    logDevError('Project PUT error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -288,21 +332,36 @@ export async function PATCH(
 
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes('not found') || error.message.includes('access denied')) {
+      const msg = error.message.toLowerCase();
+      if (msg.includes('no longer exists') || msg.includes('has been deleted')) {
         return NextResponse.json(
-          { error: error.message },
+          {
+            error: error.message,
+            errorType: 'PROJECT_DELETED',
+            shouldRedirect: true,
+            redirectTo: '/dashboard'
+          },
           { status: 404 }
         );
       }
-      if (error.message.includes('Leader role required')) {
+      if (msg.includes('not found') || msg.includes('access denied') || msg.includes('not a member')) {
+        return NextResponse.json(
+          {
+            error: error.message,
+            errorType: 'ACCESS_DENIED'
+          },
+          { status: 403 }
+        );
+      }
+      if (msg.includes('leader role required')) {
         return NextResponse.json(
           { error: 'Only project leader can update project details' },
           { status: 403 }
         );
       }
     }
-    
-    //console.error('Project PATCH error:', error);
+
+    logDevError('Project PATCH error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -316,6 +375,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    logDev('[DELETE PROJECT] Starting project deletion process');
     const session = await auth.api.getSession({
       headers: request.headers
     });
@@ -328,34 +388,73 @@ export async function DELETE(
     }
 
     const { id: projectId } = await params;
+    logDev('[DELETE PROJECT] Project ID:', projectId, 'Requester:', session.user.id);
     
     // Only project leaders can delete projects
     await requireLeaderRole(session.user.id, projectId);
 
+    // Get project data before deletion for logging
+    const projectData = await db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        leaderId: projects.leaderId,
+        createdAt: projects.createdAt
+      })
+      .from(projects)
+      .where(eq(projects.id, projectId))
+      .limit(1);
+
     // Delete project (cascade will handle related records)
     await db.delete(projects).where(eq(projects.id, projectId));
+    logDev('[DELETE PROJECT] Project deletion completed successfully');
 
-    return NextResponse.json({ message: 'Project deleted successfully' });
+    return NextResponse.json({
+      message: 'Project deleted successfully',
+      deletedProject: {
+        id: projectId,
+        name: projectData[0]?.name || 'Unknown'
+      }
+    });
 
   } catch (error) {
+    logDevError('[DELETE PROJECT] Error occurred:', error);
+
     if (error instanceof Error) {
-      if (error.message.includes('not found') || error.message.includes('access denied')) {
+      const msg = error.message.toLowerCase();
+      if (msg.includes('no longer exists') || msg.includes('has been deleted')) {
         return NextResponse.json(
-          { error: error.message },
+          {
+            error: error.message,
+            errorType: 'PROJECT_DELETED',
+            shouldRedirect: true,
+            redirectTo: '/dashboard'
+          },
           { status: 404 }
         );
       }
-      if (error.message.includes('Leader role required')) {
+      if (msg.includes('not found') || msg.includes('access denied') || msg.includes('not a member')) {
+        return NextResponse.json(
+          {
+            error: error.message,
+            errorType: 'ACCESS_DENIED'
+          },
+          { status: 403 }
+        );
+      }
+      if (msg.includes('leader role required')) {
         return NextResponse.json(
           { error: 'Only project leader can delete project' },
           { status: 403 }
         );
       }
     }
-    
-    //console.error('Project DELETE error:', error);
+
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: 'Internal server error',
+        ...(isDev && { details: error instanceof Error ? error.message : 'Unknown error' })
+      },
       { status: 500 }
     );
   }
