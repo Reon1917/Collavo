@@ -5,6 +5,20 @@ import { projects, members, permissions, user, mainTasks, events, files } from '
 import { eq, sql } from 'drizzle-orm';
 import { requireProjectAccess, requireLeaderRole } from '@/lib/auth-helpers';
 
+const isDev = process.env.NODE_ENV === 'development';
+
+const logDev = (...args: unknown[]) => {
+  if (isDev) {
+    console.log(...args);
+  }
+};
+
+const logDevError = (...args: unknown[]) => {
+  if (isDev) {
+    console.error(...args);
+  }
+};
+
 // GET /api/projects/[id] - Get project details
 export async function GET(
   request: NextRequest,
@@ -122,7 +136,7 @@ export async function GET(
       }
     }
 
-    console.error('Project GET error:', error);
+    logDevError('Project GET error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -233,7 +247,7 @@ export async function PUT(
       }
     }
 
-    console.error('Project PUT error:', error);
+    logDevError('Project PUT error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -344,7 +358,7 @@ export async function PATCH(
       }
     }
 
-    console.error('Project PATCH error:', error);
+    logDevError('Project PATCH error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -358,13 +372,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    console.log('[DELETE PROJECT] Starting project deletion process');
+    logDev('[DELETE PROJECT] Starting project deletion process');
     const session = await auth.api.getSession({
       headers: request.headers
     });
 
     if (!session?.user) {
-      console.log('[DELETE PROJECT] No session/user found');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -372,15 +385,12 @@ export async function DELETE(
     }
 
     const { id: projectId } = await params;
-    console.log('[DELETE PROJECT] Project ID:', projectId, 'Requester:', session.user.id);
+    logDev('[DELETE PROJECT] Project ID:', projectId, 'Requester:', session.user.id);
     
     // Only project leaders can delete projects
-    console.log('[DELETE PROJECT] Verifying leader role for user:', session.user.id);
     await requireLeaderRole(session.user.id, projectId);
-    console.log('[DELETE PROJECT] Leader role verified - user authorized to delete project');
 
     // Get project data before deletion for logging
-    console.log('[DELETE PROJECT] Fetching project data before deletion');
     const projectData = await db
       .select({
         id: projects.id,
@@ -392,16 +402,7 @@ export async function DELETE(
       .where(eq(projects.id, projectId))
       .limit(1);
 
-    if (projectData.length) {
-      console.log('[DELETE PROJECT] Project details:', {
-        name: projectData[0].name,
-        leaderId: projectData[0].leaderId,
-        createdAt: projectData[0].createdAt
-      });
-    }
-
     // Get counts of related data that will be cascade deleted
-    console.log('[DELETE PROJECT] Analyzing related data before deletion...');
 
     const memberCount = await db
       .select({ count: sql`count(*)` })
@@ -423,17 +424,9 @@ export async function DELETE(
       .from(files)
       .where(eq(files.projectId, projectId));
 
-    console.log('[DELETE PROJECT] Related data counts:', {
-      members: memberCount[0]?.count || 0,
-      mainTasks: taskCount[0]?.count || 0,
-      events: eventCount[0]?.count || 0,
-      files: fileCount[0]?.count || 0
-    });
-
     // Delete project (cascade will handle related records)
-    console.log('[DELETE PROJECT] Executing project deletion with CASCADE...');
     await db.delete(projects).where(eq(projects.id, projectId));
-    console.log('[DELETE PROJECT] Project deletion completed successfully');
+    logDev('[DELETE PROJECT] Project deletion completed successfully');
 
     return NextResponse.json({
       message: 'Project deleted successfully',
@@ -444,17 +437,11 @@ export async function DELETE(
     });
 
   } catch (error) {
-    console.error('[DELETE PROJECT] Error occurred:', error);
+    logDevError('[DELETE PROJECT] Error occurred:', error);
 
     if (error instanceof Error) {
-      console.error('[DELETE PROJECT] Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      });
 
       if (error.message.includes('no longer exists') || error.message.includes('has been deleted')) {
-        console.error('[DELETE PROJECT] Project not found/deleted error:', error.message);
         return NextResponse.json(
           {
             error: error.message,
@@ -466,7 +453,6 @@ export async function DELETE(
         );
       }
       if (error.message.includes('not found') || error.message.includes('access denied') || error.message.includes('not a member')) {
-        console.error('[DELETE PROJECT] Access denied error:', error.message);
         return NextResponse.json(
           {
             error: error.message,
@@ -476,7 +462,6 @@ export async function DELETE(
         );
       }
       if (error.message.includes('Leader role required')) {
-        console.error('[DELETE PROJECT] Permission denied - not leader');
         return NextResponse.json(
           { error: 'Only project leader can delete project' },
           { status: 403 }
@@ -484,7 +469,6 @@ export async function DELETE(
       }
     }
 
-    console.error('[DELETE PROJECT] Unexpected error during project deletion');
     return NextResponse.json(
       { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
