@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactElement } from 'react';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -12,7 +13,7 @@ interface ProjectDeletionEventDetail {
   handled: boolean;
 }
 
-export function ProjectDeletionWatcher({ fallbackUrl = '/dashboard' }: ProjectDeletionWatcherProps) {
+const ProjectDeletionWatcher = ({ fallbackUrl = '/dashboard' }: ProjectDeletionWatcherProps): ReactElement | null => {
   const router = useRouter();
 
   useEffect(() => {
@@ -39,4 +40,6 @@ export function ProjectDeletionWatcher({ fallbackUrl = '/dashboard' }: ProjectDe
   }, [router, fallbackUrl]);
 
   return null;
-}
+};
+
+export default ProjectDeletionWatcher;

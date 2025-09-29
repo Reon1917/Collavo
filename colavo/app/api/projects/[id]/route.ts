@@ -114,7 +114,8 @@ export async function GET(
 
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes('no longer exists') || error.message.includes('has been deleted')) {
+      const msg = error.message.toLowerCase();
+      if (msg.includes('no longer exists') || msg.includes('has been deleted')) {
         return NextResponse.json(
           {
             error: error.message,
@@ -125,7 +126,7 @@ export async function GET(
           { status: 404 }
         );
       }
-      if (error.message.includes('not found') || error.message.includes('access denied') || error.message.includes('not a member')) {
+      if (msg.includes('not found') || msg.includes('access denied') || msg.includes('not a member')) {
         return NextResponse.json(
           {
             error: error.message,
@@ -219,7 +220,8 @@ export async function PUT(
 
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes('no longer exists') || error.message.includes('has been deleted')) {
+      const msg = error.message.toLowerCase();
+      if (msg.includes('no longer exists') || msg.includes('has been deleted')) {
         return NextResponse.json(
           {
             error: error.message,
@@ -230,7 +232,7 @@ export async function PUT(
           { status: 404 }
         );
       }
-      if (error.message.includes('not found') || error.message.includes('access denied') || error.message.includes('not a member')) {
+      if (msg.includes('not found') || msg.includes('access denied') || msg.includes('not a member')) {
         return NextResponse.json(
           {
             error: error.message,
@@ -239,7 +241,7 @@ export async function PUT(
           { status: 403 }
         );
       }
-      if (error.message.includes('Leader role required')) {
+      if (msg.includes('leader role required')) {
         return NextResponse.json(
           { error: 'Only project leader can update project details' },
           { status: 403 }
@@ -330,7 +332,8 @@ export async function PATCH(
 
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes('no longer exists') || error.message.includes('has been deleted')) {
+      const msg = error.message.toLowerCase();
+      if (msg.includes('no longer exists') || msg.includes('has been deleted')) {
         return NextResponse.json(
           {
             error: error.message,
@@ -341,7 +344,7 @@ export async function PATCH(
           { status: 404 }
         );
       }
-      if (error.message.includes('not found') || error.message.includes('access denied') || error.message.includes('not a member')) {
+      if (msg.includes('not found') || msg.includes('access denied') || msg.includes('not a member')) {
         return NextResponse.json(
           {
             error: error.message,
@@ -350,7 +353,7 @@ export async function PATCH(
           { status: 403 }
         );
       }
-      if (error.message.includes('Leader role required')) {
+      if (msg.includes('leader role required')) {
         return NextResponse.json(
           { error: 'Only project leader can update project details' },
           { status: 403 }
@@ -418,8 +421,8 @@ export async function DELETE(
     logDevError('[DELETE PROJECT] Error occurred:', error);
 
     if (error instanceof Error) {
-
-      if (error.message.includes('no longer exists') || error.message.includes('has been deleted')) {
+      const msg = error.message.toLowerCase();
+      if (msg.includes('no longer exists') || msg.includes('has been deleted')) {
         return NextResponse.json(
           {
             error: error.message,
@@ -430,7 +433,7 @@ export async function DELETE(
           { status: 404 }
         );
       }
-      if (error.message.includes('not found') || error.message.includes('access denied') || error.message.includes('not a member')) {
+      if (msg.includes('not found') || msg.includes('access denied') || msg.includes('not a member')) {
         return NextResponse.json(
           {
             error: error.message,
@@ -439,7 +442,7 @@ export async function DELETE(
           { status: 403 }
         );
       }
-      if (error.message.includes('Leader role required')) {
+      if (msg.includes('leader role required')) {
         return NextResponse.json(
           { error: 'Only project leader can delete project' },
           { status: 403 }

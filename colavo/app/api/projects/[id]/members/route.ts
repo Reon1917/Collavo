@@ -83,7 +83,7 @@ export async function GET(
     return NextResponse.json(membersWithPermissions);
 
   } catch (error) {
-    logDevError('[DELETE MEMBER] Error occurred while removing member', error);
+    logDevError('[GET MEMBERS] Error occurred while fetching project members', error);
 
     if (error instanceof Error) {
       if (error.message.includes('not found') || error.message.includes('access denied')) {
@@ -417,7 +417,8 @@ export async function DELETE(
       reassignedTo: projectData.leaderId
     });
 
-  } catch (error) {    if (error instanceof Error) {
+  } catch (error) {
+    if (error instanceof Error) {
 
       if (error.message.includes('not found') || error.message.includes('access denied')) {
         return NextResponse.json(

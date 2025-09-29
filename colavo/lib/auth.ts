@@ -6,13 +6,6 @@ import { generatePasswordResetTemplate } from "@/lib/email/templates/password-re
 
 const isDev = process.env.NODE_ENV === 'development';
 
-// @ts-expect-error - Development utility function, intentionally unused
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const devLog = (...args: unknown[]) => {
-  if (!isDev) return;
-  // eslint-disable-next-line no-console
-  console.log(...args);
-};
 
 const devError = (...args: unknown[]) => {
   if (!isDev) return;
@@ -172,5 +165,5 @@ export const auth = betterAuth({
 
 // Export auth types for use in your app
 export type Auth = typeof auth;
-export type Session = Auth['api']['getSession'] extends (...args: any[]) => Promise<infer T> ? T : never;
+export type Session = Awaited<ReturnType<Auth['api']['getSession']>>;
 export type User = Session extends { user: infer U } ? U : never;

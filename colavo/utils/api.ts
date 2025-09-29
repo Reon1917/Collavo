@@ -38,6 +38,22 @@ export async function fetchJsonWithProjectGuard<T>(
     throw new Error(errorMessage || 'Request failed');
   }
 
-  const data = (await response.json()) as T;
-  return { data, handled: false };
+  // Check for empty responses (204 status or empty content-length)
+  if (response.status === 204 || response.headers.get('content-length') === '0') {
+    return { data: undefined as T, handled: false };
+  }
+
+  // Check if response has content by trying to read text first
+  const text = await response.text();
+  if (!text.trim()) {
+    return { data: undefined as T, handled: false };
+  }
+
+  try {
+    const data = JSON.parse(text) as T;
+    return { data, handled: false };
+  } catch {
+    // If JSON parsing fails, treat as empty response
+    return { data: undefined as T, handled: false };
+  }
 }

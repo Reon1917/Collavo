@@ -18,6 +18,11 @@ export function handlePermissionError(
   error: PermissionErrorResponse,
   onPermissionRefresh?: () => void
 ) {
+  // Early return for SSR/test contexts
+  if (typeof window === 'undefined' || typeof CustomEvent === 'undefined') {
+    return;
+  }
+
   let deletionEventDetail: { redirectTo: string; handled: boolean } | null = null;
 
   // Show user-friendly toast notification
@@ -54,9 +59,11 @@ export function handlePermissionError(
         handled: false,
       };
 
-      window.dispatchEvent(
-        new CustomEvent('project:deleted', { detail: deletionEventDetail })
-      );
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('project:deleted', { detail: deletionEventDetail })
+        );
+      }
       break;
 
     default:
@@ -72,7 +79,7 @@ export function handlePermissionError(
   }
 
   // Handle redirect if needed
-  if (error.shouldRedirect && error.redirectTo) {
+  if (error.shouldRedirect && error.redirectTo && typeof window !== 'undefined') {
     setTimeout(() => {
       if (!deletionEventDetail || !deletionEventDetail.handled) {
         window.location.href = error.redirectTo!;
@@ -127,9 +134,15 @@ export async function handleApiError(
     const errorData = await response.json();
 
     // Check if this is a structured error response with special handling
-    if (errorData.errorType && (errorData.shouldRefreshPermissions !== undefined || errorData.shouldRedirect !== undefined)) {
-      handlePermissionError(errorData as PermissionErrorResponse, onPermissionRefresh);
-      return { handled: true, errorMessage: errorData.error };
+    if (isPermissionError(errorData)) {
+      // Only handle permission errors in browser context
+      if (typeof window !== 'undefined') {
+        handlePermissionError(errorData as PermissionErrorResponse, onPermissionRefresh);
+        return { handled: true, errorMessage: errorData.error };
+      } else {
+        // On server, return unhandled to avoid toast/redirect attempts
+        return { handled: false, errorMessage: errorData.error || 'An error occurred' };
+      }
     }
 
     // Return unhandled error
