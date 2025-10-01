@@ -18,6 +18,34 @@ interface NotificationData {
   sentAt: Date | null;
 }
 
+type EffectiveStatus = 'pending' | 'cancelled' | 'sent' | 'failed';
+
+/**
+ * Compute the effective status of a notification with optimistic update logic.
+ * If the scheduled time has passed (with buffer), treat pending notifications as sent.
+ */
+function computeEffectiveStatus(notification: NotificationData): EffectiveStatus {
+  // If already marked as cancelled, sent, or failed, return as-is
+  if (notification.status === 'cancelled') return 'cancelled';
+  if (notification.status === 'sent') return 'sent';
+  if (notification.status === 'failed') return 'failed';
+
+  // For pending notifications, check if scheduled time has passed
+  const now = new Date();
+  const scheduledTime = new Date(notification.scheduledFor);
+
+  // Add 5-minute buffer to account for clock skew and processing time
+  const bufferMs = 5 * 60 * 1000; // 5 minutes
+
+  if (now.getTime() > scheduledTime.getTime() + bufferMs) {
+    // Scheduled time has passed, optimistically mark as sent
+    return 'sent';
+  }
+
+  // Still pending
+  return 'pending';
+}
+
 interface NotificationsResponse {
   notifications: NotificationData[];
 }
@@ -102,7 +130,7 @@ export function useCreateNotification() {
   });
 }
 
-// Helper hook to get active notification status quickly
+// Helper hook to get active notification status quickly with computed effective status
 export function useHasActiveNotification(
   projectId: string,
   taskId: string,
@@ -110,14 +138,27 @@ export function useHasActiveNotification(
   enabled = true
 ) {
   const { data: notifications, ...query } = useSubtaskNotifications(projectId, taskId, subtaskId, enabled);
-  
-  const hasActiveNotification = notifications?.some(n => n.status === 'pending') || false;
-  const activeNotification = notifications?.find(n => n.status === 'pending');
-  
+
+  // Compute effective status for each notification
+  const notificationsWithEffectiveStatus = notifications?.map(n => ({
+    ...n,
+    effectiveStatus: computeEffectiveStatus(n)
+  }));
+
+  // Only consider notifications with pending effective status as "active"
+  const hasActiveNotification = notificationsWithEffectiveStatus?.some(n => n.effectiveStatus === 'pending') || false;
+  const activeNotification = notificationsWithEffectiveStatus?.find(n => n.effectiveStatus === 'pending');
+
+  // Also return the most recent notification regardless of status (for showing sent/cancelled state)
+  const latestNotification = notificationsWithEffectiveStatus?.sort((a, b) =>
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )[0];
+
   return {
     hasActiveNotification,
     activeNotification,
-    notifications,
+    latestNotification, // includes effectiveStatus
+    notifications: notificationsWithEffectiveStatus,
     ...query
   };
 } 
