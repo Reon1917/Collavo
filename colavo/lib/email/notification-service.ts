@@ -108,7 +108,7 @@ export class NotificationService {
         time,
         deadline: subtaskRecord.subtask.deadline,
       });
-      throw new Error('The notification time has already passed. Please choose a different time or fewer days before the deadline.');
+      throw new Error('Please schedule the notification at least 1 hour from the current time. Choose a different time or increase the days before deadline.');
     }
 
     // Calculate scheduled time
@@ -182,9 +182,8 @@ export class NotificationService {
     const eventRecord = eventData[0]!;
 
     // Check if event allows for notification scheduling
-    
     if (!canScheduleNotification(eventRecord.event.datetime, daysBefore, time)) {
-      const errorMsg = 'The notification time has already passed. Please choose a different time or fewer days before the event.';
+      const errorMsg = 'Please schedule the notification at least 1 hour from the current time. Choose a different time or increase the days before event.';
       devError('Event notification scheduling rejected', {
         eventId,
         projectId,

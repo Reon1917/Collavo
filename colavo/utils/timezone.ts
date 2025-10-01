@@ -72,9 +72,10 @@ export function canScheduleNotification(deadline: Date, daysBefore: number, time
     // Calculate the actual notification datetime using the same logic as calculateScheduleTime
     const actualNotificationTime = calculateScheduleTime(deadline, daysBefore, time);
     const notificationTimeInBangkok = DateTime.fromJSDate(actualNotificationTime).setZone(BANGKOK_TIMEZONE);
-    
-    // Add a larger buffer (10 minutes) to account for processing time with multiple recipients
-    const minimumFutureTime = now.plus({ minutes: 10 });
+
+    // Require at least 1 hour buffer to ensure reliable email delivery
+    // Resend's scheduled email system needs sufficient lead time
+    const minimumFutureTime = now.plus({ hours: 1 });
     
     const canSchedule = notificationTimeInBangkok > minimumFutureTime;
     
