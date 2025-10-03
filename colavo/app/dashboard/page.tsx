@@ -11,6 +11,7 @@ import { authClient } from '@/lib/auth-client';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ContentLoading } from '@/components/ui/content-loading';
+import { TasksSummary } from '@/components/dashboard/TasksSummary';
 
 
 interface Project {
@@ -100,9 +101,12 @@ export default function DashboardPage() {
       
       <div className="container mx-auto px-4 py-8">
         <header className="mb-10">
-          <div>
-            <h1 className="text-3xl font-bold mb-2 text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back to Collavo, {user.name}!</p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2 text-foreground">Dashboard</h1>
+              <p className="text-muted-foreground">Welcome back to Collavo, {user.name}!</p>
+            </div>
+            <TasksSummary />
           </div>
         </header>
 
