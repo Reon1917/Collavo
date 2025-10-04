@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { DashboardNavbar } from '@/components/ui/dashboard-navbar';
-import { PlusCircle, FolderOpen, UserPlus, Calendar, Crown, User} from 'lucide-react';
+import { PlusCircle, FolderOpen, UserPlus, Calendar, Crown, User } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
@@ -12,6 +12,12 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ContentLoading } from '@/components/ui/content-loading';
 
+
+interface TaskStats {
+  total: number;
+  completed: number;
+  due: number;
+}
 
 interface Project {
   id: string;
@@ -22,6 +28,7 @@ interface Project {
   updatedAt: string;
   leaderId: string;
   role?: string;
+  taskStats: TaskStats;
 }
 
 interface ProjectsData {
@@ -228,13 +235,49 @@ function ProjectCard({
           )}
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {project.deadline && (
               <div className="flex items-center text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4 mr-2" />
                 Due {formatDistanceToNow(new Date(project.deadline), { addSuffix: true })}
               </div>
             )}
+
+            {/* Task Statistics */}
+            {project.taskStats && (
+              <div className="pt-2 border-t border-border/50">
+                {project.taskStats.total === 0 ? (
+                  <div className="px-3 py-2 rounded-md border border-border/50 bg-muted/30">
+                    <p className="text-sm text-muted-foreground italic">No assigned tasks</p>
+                  </div>
+                ) : project.taskStats.completed === project.taskStats.total ? (
+                  <div className="px-3 py-2 rounded-md border border-green-500/30 bg-green-500/10">
+                    <p className="text-sm text-green-600 dark:text-green-400 italic">All tasks completed</p>
+                  </div>
+                ) : (
+                  <div className="px-3 py-2.5 rounded-md border border-border/50 bg-accent/30">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-2">My Tasks</div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xl font-bold text-foreground">{project.taskStats.total}</span>
+                        <span className="text-sm text-muted-foreground">total</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xl font-bold text-green-600 dark:text-green-400">{project.taskStats.completed}</span>
+                        <span className="text-sm text-muted-foreground">done</span>
+                      </div>
+                      {project.taskStats.due > 0 && (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xl font-bold text-red-600 dark:text-red-400">{project.taskStats.due}</span>
+                          <span className="text-sm text-muted-foreground">overdue</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="text-xs text-muted-foreground/70">
               Created {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}
             </div>
@@ -244,3 +287,4 @@ function ProjectCard({
     </Link>
   );
 }
+

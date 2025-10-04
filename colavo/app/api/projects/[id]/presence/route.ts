@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { auth } from '@/lib/auth';
-import { checkProjectAccess } from '@/lib/auth-helpers';
+import { checkBasicProjectAccess } from '@/lib/auth-helpers';
 import { db } from '@/db';
 import { user } from '@/db/schema';
-import { eq, inArray } from 'drizzle-orm';
+import { inArray } from 'drizzle-orm';
+
+const isDev = process.env.NODE_ENV === 'development';
+
+const logDevError = (...args: unknown[]): void => {
+  if (!isDev) return;
+  // eslint-disable-next-line no-console
+  console.error(...args);
+};
 
 // Types
 interface UserPresence {
@@ -40,10 +48,10 @@ export async function GET(
     }
 
     const { id: projectId } = await params;
-    
-    // Check if user has access to this project
-    const projectAccess = await checkProjectAccess(projectId, session.user.id);
-    if (!projectAccess.hasAccess) {
+
+    // Use lightweight access check for better performance
+    const hasAccess = await checkBasicProjectAccess(projectId, session.user.id);
+    if (!hasAccess) {
       return NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
@@ -51,7 +59,7 @@ export async function GET(
     }
 
     const supabase = createServerSupabaseClient();
-    
+
     // Get online users (last seen within 2 minutes)
     const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
     const { data: presenceData, error } = await supabase
@@ -62,28 +70,37 @@ export async function GET(
       .gte('last_seen', twoMinutesAgo.toISOString());
 
     if (error) {
+      logDevError('[Presence GET]:', error);
       return NextResponse.json(
         { error: 'Failed to fetch presence data' },
         { status: 500 }
       );
     }
 
+    // Early return if no online users - avoid unnecessary DB query
+    if (!presenceData || presenceData.length === 0) {
+      return NextResponse.json({
+        onlineMembers: [],
+        count: 0
+      });
+    }
+
     // Get user details for online users
-    const userIds = presenceData?.map(p => p.user_id) || [];
-    const users = userIds.length > 0 ? await db
+    const userIds = presenceData.map(p => p.user_id);
+    const users = await db
       .select({
         id: user.id,
         name: user.name,
         image: user.image
       })
       .from(user)
-      .where(inArray(user.id, userIds)) : [];
+      .where(inArray(user.id, userIds));
 
     // Create user map for efficient lookup
     const userMap = new Map(users.map(u => [u.id, u]));
 
     // Transform presence data
-    const transformedPresence: UserPresence[] = presenceData?.map(presence => {
+    const transformedPresence: UserPresence[] = presenceData.map(presence => {
       const userData = userMap.get(presence.user_id);
       return {
         id: presence.id,
@@ -95,14 +112,15 @@ export async function GET(
         updatedAt: new Date(presence.updated_at),
         ...(userData && { user: userData })
       };
-    }) || [];
+    });
 
     return NextResponse.json({
       onlineMembers: transformedPresence,
       count: transformedPresence.length
     });
 
-  } catch {
+  } catch (error) {
+    logDevError('[Presence GET]:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -128,10 +146,10 @@ export async function POST(
     }
 
     const { id: projectId } = await params;
-    
-    // Check if user has access to this project
-    const projectAccess = await checkProjectAccess(projectId, session.user.id);
-    if (!projectAccess.hasAccess) {
+
+    // Use lightweight access check - only verifies membership (1 query instead of 3)
+    const hasAccess = await checkBasicProjectAccess(projectId, session.user.id);
+    if (!hasAccess) {
       return NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
@@ -142,7 +160,7 @@ export async function POST(
     const { isOnline = true } = body;
 
     const supabase = createServerSupabaseClient();
-    
+
     // Upsert user presence
     const { data: presence, error } = await supabase
       .from('user_presence')
@@ -158,24 +176,14 @@ export async function POST(
       .single();
 
     if (error) {
+      logDevError('[Presence POST]:', error);
       return NextResponse.json(
         { error: 'Failed to update presence' },
         { status: 500 }
       );
     }
 
-    // Get user details for response
-    const userData = await db
-      .select({
-        id: user.id,
-        name: user.name,
-        image: user.image
-      })
-      .from(user)
-      .where(eq(user.id, session.user.id))
-      .limit(1);
-
-    // Transform response
+    // Use session data instead of querying database - session already has user info
     const transformedPresence: UserPresence = {
       id: presence.id,
       userId: presence.user_id,
@@ -184,12 +192,17 @@ export async function POST(
       isOnline: presence.is_online,
       createdAt: new Date(presence.created_at),
       updatedAt: new Date(presence.updated_at),
-      ...(userData[0] && { user: userData[0] })
+      user: {
+        id: session.user.id,
+        name: session.user.name,
+        image: session.user.image || null
+      }
     };
 
     return NextResponse.json(transformedPresence);
 
-  } catch {
+  } catch (error) {
+    logDevError('[Presence POST]:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -215,10 +228,10 @@ export async function DELETE(
     }
 
     const { id: projectId } = await params;
-    
-    // Check if user has access to this project
-    const projectAccess = await checkProjectAccess(projectId, session.user.id);
-    if (!projectAccess.hasAccess) {
+
+    // Use lightweight access check for better performance
+    const hasAccess = await checkBasicProjectAccess(projectId, session.user.id);
+    if (!hasAccess) {
       return NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
@@ -226,7 +239,7 @@ export async function DELETE(
     }
 
     const supabase = createServerSupabaseClient();
-    
+
     // Set user offline
     const { error } = await supabase
       .from('user_presence')
@@ -238,6 +251,7 @@ export async function DELETE(
       .eq('project_id', projectId);
 
     if (error) {
+      logDevError('[Presence DELETE]:', error);
       return NextResponse.json(
         { error: 'Failed to update presence' },
         { status: 500 }
@@ -246,7 +260,8 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
 
-  } catch {
+  } catch (error) {
+    logDevError('[Presence DELETE]:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

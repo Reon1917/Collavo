@@ -133,9 +133,16 @@ export function ChatMessage({
               isSubmitting={isSubmitting}
             />
           ) : (
-            <div className="leading-relaxed">
-              {message.content}
-            </div>
+            <>
+              <div className="leading-relaxed">
+                {message.content}
+              </div>
+              {message.isEdited && (
+                <div className="text-[10px] text-muted-foreground/60 italic mt-1">
+                  (edited)
+                </div>
+              )}
+            </>
           )}
           {/* Timestamp on hover, below bubble */}
           <span
@@ -146,12 +153,13 @@ export function ChatMessage({
             aria-label="Message time"
           >
             {formatDistanceToNow(message.createdAt, { addSuffix: true })}
+            {message.isEdited && ' • edited'}
           </span>
 
           {/* Action dropdown menu */}
           <div
             className={cn(
-              'absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity',
+              'absolute top-1/2 -translate-y-1/2 opacity-50 group-hover:opacity-100 transition-opacity duration-200',
               isCurrentUser ? 'right-full mr-2' : 'left-full ml-2'
             )}
           >
@@ -160,44 +168,44 @@ export function ChatMessage({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 bg-muted shadow-sm border border-border hover:bg-muted/80 text-muted-foreground"
+                  className="h-6 w-6 p-0 bg-card/80 backdrop-blur-sm shadow-sm border border-border/60 hover:bg-accent hover:border-border transition-all text-muted-foreground hover:text-foreground"
                 >
-                  <MoreHorizontal className="h-3 w-3" />
+                  <MoreHorizontal className="h-3.5 w-3.5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align={isCurrentUser ? "start" : "end"}
-                className="w-32"
+                className="w-36"
               >
                 {/* Reply option (always available) */}
                 {onReply && (
                   <DropdownMenuItem
                     onClick={() => onReply(message)}
-                    className="flex items-center gap-2 text-xs"
+                    className="flex items-center gap-2 text-xs cursor-pointer"
                   >
-                    <Reply className="h-3 w-3" />
+                    <Reply className="h-3.5 w-3.5" />
                     Reply
                   </DropdownMenuItem>
                 )}
-                
+
                 {/* Edit and Delete options (only for current user) */}
                 {isCurrentUser && (
                   <>
                     {onEdit && (
                       <DropdownMenuItem
                         onClick={() => setIsEditing(true)}
-                        className="flex items-center gap-2 text-xs"
+                        className="flex items-center gap-2 text-xs cursor-pointer"
                       >
-                        <Edit2 className="h-3 w-3" />
-                        Edit
+                        <Edit2 className="h-3.5 w-3.5" />
+                        Edit Message
                       </DropdownMenuItem>
                     )}
                     {onDelete && (
                       <DropdownMenuItem
                         onClick={handleDelete}
-                        className="flex items-center gap-2 text-xs text-destructive"
+                        className="flex items-center gap-2 text-xs text-destructive cursor-pointer focus:text-destructive"
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-3.5 w-3.5" />
                         Delete
                       </DropdownMenuItem>
                     )}
