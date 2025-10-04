@@ -28,10 +28,10 @@ export function useChatPresence({
   const updatePresenceMutation = useMutation({
     mutationFn: async (isOnline: boolean = true) => {
       const abortController = new AbortController();
-      
-      // Auto-abort after 5 seconds to prevent hanging requests
-      const timeoutId = setTimeout(() => abortController.abort(), 5000);
-      
+
+      // Auto-abort after 8 seconds to prevent hanging requests
+      const timeoutId = setTimeout(() => abortController.abort(), 8000);
+
       try {
         const response = await fetch(`/api/projects/${projectId}/presence`, {
           method: isOnline ? 'POST' : 'DELETE',
@@ -43,16 +43,15 @@ export function useChatPresence({
         clearTimeout(timeoutId);
 
         if (!response.ok) {
-          throw new Error('Failed to update presence');
+          // Silently fail for presence updates
+          return null;
         }
 
         return response.json();
       } catch (error) {
         clearTimeout(timeoutId);
-        if (error instanceof Error && error.name === 'AbortError') {
-          throw new Error('Presence update timed out');
-        }
-        throw error;
+        // Silently ignore timeout and network errors for presence
+        return null;
       }
     },
     onSuccess: (data, isOnline) => {
@@ -67,9 +66,10 @@ export function useChatPresence({
         });
       }
     },
-    onError: (error) => {
-      console.error('Failed to update presence:', error);
+    onError: () => {
+      // Silently ignore presence errors - they shouldn't break the chat
     },
+    retry: false, // Don't retry presence updates
   });
 
   // Enhanced activity detection for real-time presence
