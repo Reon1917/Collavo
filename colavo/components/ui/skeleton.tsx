@@ -1,3 +1,4 @@
+import * as React from "react";
 import { cn } from "@/lib/utils"
 
 function Skeleton({
@@ -12,4 +13,4 @@ function Skeleton({
   )
 }
 
-export { Skeleton }
+export default Skeleton

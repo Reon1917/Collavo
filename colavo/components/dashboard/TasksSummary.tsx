@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { JSX } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
+import Skeleton from '@/components/ui/skeleton';
 import { CheckCircle2, Circle, Clock, ChevronDown, ChevronRight, ListTodo, X, FolderKanban } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
@@ -53,7 +53,7 @@ export function TasksSummary(): JSX.Element {
   const [expandedMainTasks, setExpandedMainTasks] = useState<Set<string>>(new Set());
   const [displayedProjects, setDisplayedProjects] = useState<number>(3);
 
-  const fetchTasksSummary = async (): Promise<void> => {
+  const fetchTasksSummary = useCallback(async (): Promise<void> => {
     setIsLoading(true);
     setLoadError(false);
     try {
@@ -72,13 +72,13 @@ export function TasksSummary(): JSX.Element {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (open && !data) {
       fetchTasksSummary();
     }
-  }, [open, data]);
+  }, [open, data, fetchTasksSummary]);
 
   const toggleProject = (projectId: string): void => {
     setExpandedProjects((prev) => {

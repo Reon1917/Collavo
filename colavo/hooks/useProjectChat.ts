@@ -4,6 +4,14 @@ import { supabase } from '@/lib/supabase';
 import { ChatMessage, UserPresence } from '@/types';
 import { useChatMutations, useChatPresence, useChatTyping } from './chat';
 
+const isDev = process.env.NODE_ENV === 'development';
+
+const logRealtimeError = (...args: unknown[]): void => {
+  if (!isDev) return;
+  // eslint-disable-next-line no-console
+  console.error(...args);
+};
+
 interface UseChatOptions {
   enabled?: boolean;
   pageSize?: number;
@@ -214,6 +222,23 @@ export function useProjectChat(
       )
       .subscribe((status) => {
         setIsConnected(status === 'SUBSCRIBED');
+
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          logRealtimeError('[Chat message channel error]', { projectId, currentUserId, status });
+          queryClient.refetchQueries({ queryKey: ['chat-messages', projectId] });
+
+          if (!isUnmountedRef.current) {
+            setTimeout(() => {
+              if (!isUnmountedRef.current) {
+                queryClient.refetchQueries({ queryKey: ['chat-messages', projectId] });
+              }
+            }, 5000);
+          }
+        }
+
+        if (status === 'CLOSED') {
+          queryClient.invalidateQueries({ queryKey: ['chat-messages', projectId], refetchType: 'active' });
+        }
       });
 
     messageChannelRef.current = messageChannel;
@@ -240,7 +265,10 @@ export function useProjectChat(
                 queryClient.setQueryData(['chat-presence', projectId], data.onlineMembers || []);
               }
             } catch (error) {
-              // Silently handle presence refresh errors
+              logRealtimeError('[Presence refresh error: insert]', { projectId, currentUserId, error });
+              if (!isUnmountedRef.current) {
+                queryClient.refetchQueries({ queryKey: ['chat-presence', projectId] });
+              }
             }
           }
         }
@@ -263,7 +291,10 @@ export function useProjectChat(
               queryClient.setQueryData(['chat-presence', projectId], data.onlineMembers || []);
             }
           } catch (error) {
-            // Silently handle presence refresh errors
+            logRealtimeError('[Presence refresh error: update]', { projectId, currentUserId, error });
+            if (!isUnmountedRef.current) {
+              queryClient.refetchQueries({ queryKey: ['chat-presence', projectId] });
+            }
           }
         }
       )
@@ -300,7 +331,20 @@ export function useProjectChat(
         
         setIsTyping(prev => prev.filter(id => id !== payload.userId));
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          logRealtimeError('[Chat presence channel error]', { projectId, currentUserId, status });
+          queryClient.refetchQueries({ queryKey: ['chat-presence', projectId] });
+
+          if (!isUnmountedRef.current) {
+            setTimeout(() => {
+              if (!isUnmountedRef.current) {
+                queryClient.refetchQueries({ queryKey: ['chat-presence', projectId] });
+              }
+            }, 5000);
+          }
+        }
+      });
 
     presenceChannelRef.current = presenceChannel;
 
