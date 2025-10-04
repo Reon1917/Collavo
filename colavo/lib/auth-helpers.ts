@@ -258,4 +258,26 @@ export async function requireLeaderRole(userId: string, projectId: string): Prom
   }
 
   return access;
+}
+
+/**
+ * Lightweight project access check for high-frequency operations like presence updates
+ * Only checks if user is a member, doesn't fetch permissions
+ */
+export async function checkBasicProjectAccess(projectId: string, userId: string): Promise<boolean> {
+  try {
+    // Single query to check membership - much faster than full checkProjectAccess
+    const memberRecord = await db
+      .select({ id: members.id })
+      .from(members)
+      .where(and(
+        eq(members.projectId, projectId),
+        eq(members.userId, userId)
+      ))
+      .limit(1);
+
+    return memberRecord.length > 0;
+  } catch {
+    return false;
+  }
 } 

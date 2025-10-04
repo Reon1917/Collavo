@@ -95,14 +95,15 @@ export function useProjectChat(
       return data.onlineMembers || [];
     },
     enabled: enabled && !!projectId && !!currentUserId,
-    staleTime: 15000,
+    staleTime: 25000, // Increased from 15s to 25s - reduce refetches
+    gcTime: 10 * 60 * 1000, // Cache for 10 minutes
     refetchInterval: () => {
       // Stop polling if page is not visible or no data
       // Guard against SSR by checking if document exists
       if (typeof document === 'undefined' || document.hidden) {
         return false;
       }
-      return 30000;
+      return 45000; // Increased from 30s to 45s - less frequent polling
     },
     refetchOnWindowFocus: true,
     refetchOnMount: true,
@@ -117,12 +118,12 @@ export function useProjectChat(
     const heartbeatInterval = setInterval(() => {
       // Only poll if page is visible to save resources
       if (!document.hidden) {
-        queryClient.invalidateQueries({ 
+        queryClient.invalidateQueries({
           queryKey: ['chat-messages', projectId],
           refetchType: 'active'
         });
       }
-    }, 10000); // Reduced frequency to 10 seconds
+    }, 15000); // Increased to 15 seconds for better performance
 
     return () => {
       clearInterval(heartbeatInterval);

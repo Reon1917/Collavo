@@ -29,8 +29,8 @@ export function useChatPresence({
     mutationFn: async (isOnline: boolean = true) => {
       const abortController = new AbortController();
 
-      // Auto-abort after 8 seconds to prevent hanging requests
-      const timeoutId = setTimeout(() => abortController.abort(), 8000);
+      // Increased timeout to 10 seconds now that we optimized the endpoint
+      const timeoutId = setTimeout(() => abortController.abort(), 10000);
 
       try {
         const response = await fetch(`/api/projects/${projectId}/presence`, {
@@ -43,15 +43,20 @@ export function useChatPresence({
         clearTimeout(timeoutId);
 
         if (!response.ok) {
-          // Silently fail for presence updates
-          return null;
+          const errorData = await response.json().catch(() => ({ error: 'Failed to update presence' }));
+          throw new Error(errorData.error || 'Failed to update presence');
         }
 
         return response.json();
       } catch (error) {
         clearTimeout(timeoutId);
-        // Silently ignore timeout and network errors for presence
-        return null;
+        if (error instanceof Error && error.name === 'AbortError') {
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('[Presence] Timeout');
+          }
+          throw new Error('Presence update timed out');
+        }
+        throw error;
       }
     },
     onSuccess: (data, isOnline) => {
@@ -66,8 +71,11 @@ export function useChatPresence({
         });
       }
     },
-    onError: () => {
-      // Silently ignore presence errors - they shouldn't break the chat
+    onError: (error) => {
+      // Log errors only in development - presence is non-critical
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[Presence]:', error);
+      }
     },
     retry: false, // Don't retry presence updates
   });
@@ -76,8 +84,9 @@ export function useChatPresence({
   const handleUserActivity = useCallback(() => {
     const now = new Date();
     const lastUpdate = lastPresenceUpdateRef.current;
-    
-    if (!lastUpdate || now.getTime() - lastUpdate.getTime() > 10000) {
+
+    // Increased from 10s to 30s - reduce server load significantly
+    if (!lastUpdate || now.getTime() - lastUpdate.getTime() > 30000) {
       lastPresenceUpdateRef.current = now;
       updatePresenceMutation.mutate(true);
     }
