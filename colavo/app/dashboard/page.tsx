@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { DashboardNavbar } from '@/components/ui/dashboard-navbar';
-import { PlusCircle, FolderOpen, UserPlus, Calendar, Crown, User, CheckCircle2, Clock, AlertCircle} from 'lucide-react';
+import { PlusCircle, FolderOpen, UserPlus, Calendar, Crown, User } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
@@ -287,3 +287,4 @@ function ProjectCard({
     </Link>
   );
 }
+

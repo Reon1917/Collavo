@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { mainTasks, subTasks, projects, members, user } from '@/db/schema';
+import { mainTasks, subTasks, projects, members } from '@/db/schema';
 import { eq, and, or } from 'drizzle-orm';
+
+const isDev = process.env.NODE_ENV === 'development';
+
+const logDevError = (...args: unknown[]): void => {
+  if (!isDev) return;
+  // eslint-disable-next-line no-console
+  console.error(...args);
+};
+
+const serializeDate = (value: Date | string | null): string | null => {
+  if (!value) return null;
+  return typeof value === 'string' ? value : value.toISOString();
+};
 
 interface SubTaskSummary {
   id: string;
@@ -87,7 +100,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         projects: userProjects.map((p) => ({
           projectId: p.projectId,
           projectName: p.projectName,
-          projectDeadline: p.projectDeadline,
+          projectDeadline: serializeDate(p.projectDeadline),
           mainTasks: [],
         })),
         totalTasks: 0,
@@ -131,7 +144,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       projectTasksMap.set(p.projectId, {
         projectId: p.projectId,
         projectName: p.projectName,
-        projectDeadline: p.projectDeadline,
+        projectDeadline: serializeDate(p.projectDeadline),
         mainTasks: [],
       });
     });
@@ -147,7 +160,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         title: mt.title,
         description: mt.description,
         importanceLevel: mt.importanceLevel,
-        deadline: mt.deadline,
+        deadline: serializeDate(mt.deadline),
         subTasks: [],
       });
     });
@@ -162,7 +175,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         id: st.id,
         title: st.title,
         status: st.status,
-        deadline: st.deadline,
+        deadline: serializeDate(st.deadline),
         assignedId: st.assignedId,
       });
     });
@@ -191,10 +204,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     });
 
   } catch (error) {
-    console.error('Error fetching tasks summary:', error);
+    logDevError('Error fetching tasks summary:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
+

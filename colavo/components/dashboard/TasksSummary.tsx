@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import type { JSX } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CheckCircle2, Circle, Clock, AlertCircle, ChevronDown, ChevronRight, ListTodo, X, FolderKanban } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, ChevronDown, ChevronRight, ListTodo, X, FolderKanban } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -47,12 +48,14 @@ export function TasksSummary(): JSX.Element {
   const [open, setOpen] = useState<boolean>(false);
   const [data, setData] = useState<TasksSummaryData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadError, setLoadError] = useState<boolean>(false);
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
   const [expandedMainTasks, setExpandedMainTasks] = useState<Set<string>>(new Set());
   const [displayedProjects, setDisplayedProjects] = useState<number>(3);
 
   const fetchTasksSummary = async (): Promise<void> => {
     setIsLoading(true);
+    setLoadError(false);
     try {
       const response = await fetch('/api/dashboard/tasks-summary', {
         cache: 'no-store',
@@ -64,8 +67,8 @@ export function TasksSummary(): JSX.Element {
 
       const result = await response.json() as TasksSummaryData;
       setData(result);
-    } catch (error) {
-      console.error('Error fetching tasks summary:', error);
+    } catch {
+      setLoadError(true);
     } finally {
       setIsLoading(false);
     }
@@ -160,6 +163,21 @@ export function TasksSummary(): JSX.Element {
           </div>
           <Skeleton className="h-20 w-full rounded-lg" />
           <Skeleton className="h-20 w-full rounded-lg" />
+        </div>
+      );
+    }
+
+    if (loadError) {
+      return (
+        <div className="flex flex-col items-center justify-center gap-3 px-6 py-10 text-center">
+          <X className="h-8 w-8 text-muted-foreground" />
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-foreground">Unable to load tasks</p>
+            <p className="text-xs text-muted-foreground">Please try again in a moment.</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={fetchTasksSummary}>
+            Retry
+          </Button>
         </div>
       );
     }
@@ -358,3 +376,5 @@ export function TasksSummary(): JSX.Element {
     </Popover>
   );
 }
+
+

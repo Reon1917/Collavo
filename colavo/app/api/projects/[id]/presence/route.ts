@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import { auth } from '@/lib/auth';
-import { checkProjectAccess, checkBasicProjectAccess } from '@/lib/auth-helpers';
+import { checkBasicProjectAccess } from '@/lib/auth-helpers';
 import { db } from '@/db';
 import { user } from '@/db/schema';
-import { eq, inArray } from 'drizzle-orm';
+import { inArray } from 'drizzle-orm';
+
+const isDev = process.env.NODE_ENV === 'development';
+
+const logDevError = (...args: unknown[]): void => {
+  if (!isDev) return;
+  // eslint-disable-next-line no-console
+  console.error(...args);
+};
 
 // Types
 interface UserPresence {
@@ -62,9 +70,7 @@ export async function GET(
       .gte('last_seen', twoMinutesAgo.toISOString());
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[Presence GET]:', error);
-      }
+      logDevError('[Presence GET]:', error);
       return NextResponse.json(
         { error: 'Failed to fetch presence data' },
         { status: 500 }
@@ -114,9 +120,7 @@ export async function GET(
     });
 
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[Presence GET]:', error);
-    }
+    logDevError('[Presence GET]:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -172,9 +176,7 @@ export async function POST(
       .single();
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[Presence POST]:', error);
-      }
+      logDevError('[Presence POST]:', error);
       return NextResponse.json(
         { error: 'Failed to update presence' },
         { status: 500 }
@@ -200,9 +202,7 @@ export async function POST(
     return NextResponse.json(transformedPresence);
 
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[Presence POST]:', error);
-    }
+    logDevError('[Presence POST]:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -251,9 +251,7 @@ export async function DELETE(
       .eq('project_id', projectId);
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[Presence DELETE]:', error);
-      }
+      logDevError('[Presence DELETE]:', error);
       return NextResponse.json(
         { error: 'Failed to update presence' },
         { status: 500 }
@@ -263,9 +261,7 @@ export async function DELETE(
     return NextResponse.json({ success: true });
 
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[Presence DELETE]:', error);
-    }
+    logDevError('[Presence DELETE]:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
