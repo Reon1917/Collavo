@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { projects, members, permissions } from '@/db/schema';
+import { projects, members, permissions, subTasks, mainTasks } from '@/db/schema';
 import { createId } from '@paralleldrive/cuid2';
 import { eq, and, ne } from 'drizzle-orm';
 
@@ -57,11 +57,63 @@ export async function GET(request: NextRequest) {
     // Extract just the project data
     const memberProjects = memberProjectsQuery;
 
+    // Get task statistics for all projects
+    const allProjects = [...ledProjects, ...memberProjects];
+    const projectIds = allProjects.map(p => p.id);
+
+    // Fetch task statistics
+    const taskStats = await Promise.all(
+      projectIds.map(async (projectId) => {
+        // Get all subtasks assigned to current user for this project
+        const userTasksForProject = await db
+          .select({
+            subTaskId: subTasks.id,
+            status: subTasks.status,
+            deadline: subTasks.deadline,
+          })
+          .from(subTasks)
+          .innerJoin(mainTasks, eq(subTasks.mainTaskId, mainTasks.id))
+          .where(
+            and(
+              eq(mainTasks.projectId, projectId),
+              eq(subTasks.assignedId, session.user.id)
+            )
+          );
+
+        const now = new Date();
+        const total = userTasksForProject.length;
+        const completed = userTasksForProject.filter(st => st.status === 'completed').length;
+        const due = userTasksForProject.filter(
+          st => st.deadline && new Date(st.deadline) < now && st.status !== 'completed'
+        ).length;
+
+        return {
+          projectId,
+          total,
+          completed,
+          due,
+        };
+      })
+    );
+
+    // Map task stats to projects
+    const taskStatsMap = new Map(taskStats.map(ts => [ts.projectId, ts]));
+
+    const ledProjectsWithStats = ledProjects.map(p => ({
+      ...p,
+      taskStats: taskStatsMap.get(p.id) || { total: 0, completed: 0, due: 0 },
+    }));
+
+    const memberProjectsWithStats = memberProjects.map(p => ({
+      ...p,
+      taskStats: taskStatsMap.get(p.id) || { total: 0, completed: 0, due: 0 },
+    }));
+
     const total = ledProjects.length + memberProjects.length;
 
     return NextResponse.json({
-      ledProjects,
-      memberProjects,
+      ledProjects: ledProjectsWithStats,
+      memberProjects: memberProjectsWithStats,
       total
     });
 
