@@ -6,6 +6,7 @@ import { Bell, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { isOverdue } from '@/utils/date';
 
 interface SubTaskMiniItemProps {
   subtask: SubTask;
@@ -30,6 +31,16 @@ export function SubTaskMiniItem({
 
   // Members should always be able to view subtask details (read-only if no edit permissions)
   const canViewSubtask = true;
+
+  const isOverdueSubtask = subtask.status !== 'completed' && isOverdue(subtask.deadline);
+
+  const statusIndicatorClass = isOverdueSubtask
+    ? 'bg-red-500'
+    : subtask.status === 'completed'
+    ? 'bg-green-500'
+    : subtask.status === 'in_progress'
+    ? 'bg-blue-500'
+    : 'bg-gray-300';
 
   const handleSubTaskUpdatedCallback = (updatedSubTask: Partial<SubTask> & { id: string }) => {
     onSubTaskUpdated(updatedSubTask);
@@ -171,12 +182,9 @@ export function SubTaskMiniItem({
           </div>
         ) : (
           <div
-            className={`w-2 h-2 rounded-full flex-shrink-0 ${
-              subtask.status === 'completed' ? 'bg-green-500' :
-              subtask.status === 'in_progress' ? 'bg-blue-500' : 'bg-gray-300'
-            } ${canUpdateStatusInline ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}
+            className={`w-2 h-2 rounded-full flex-shrink-0 ${statusIndicatorClass} ${canUpdateStatusInline ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}
             onClick={handleStatusClick}
-            title={canUpdateStatusInline ? 'Click to change status' : ''}
+            title={isOverdueSubtask ? (canUpdateStatusInline ? 'Overdue - click to change status' : 'Overdue') : canUpdateStatusInline ? 'Click to change status' : ''}
           />
         )}
 

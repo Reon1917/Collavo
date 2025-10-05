@@ -1,5 +1,6 @@
-import { DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Edit3, Settings, Eye } from 'lucide-react';
+import { DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { isOverdue } from '@/utils/date';
 import { EditMode } from '../types';
 import { StatusBadge } from './StatusBadge';
 import { SubTask } from '../../../../types';
@@ -35,6 +36,8 @@ export function DialogHeader({ editMode, subTask }: DialogHeaderProps) {
 
   const { icon, title, description } = getHeaderContent();
 
+  const isSubTaskOverdue = subTask.status !== 'completed' && isOverdue(subTask.deadline);
+
   return (
     <div className="flex items-center justify-between">
       <div>
@@ -49,7 +52,7 @@ export function DialogHeader({ editMode, subTask }: DialogHeaderProps) {
       
       {editMode === 'view' && (
         <div className="flex items-center gap-2">
-          <StatusBadge status={subTask.status} className="text-sm px-3 py-1" />
+          <StatusBadge status={subTask.status} className="text-sm px-3 py-1" isOverdue={isSubTaskOverdue} />
         </div>
       )}
     </div>

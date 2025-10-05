@@ -4,15 +4,16 @@ import { getStatusColor, getStatusLabel } from '../utils';
 interface StatusBadgeProps {
   status: string;
   className?: string;
+  isOverdue?: boolean;
 }
 
-export function StatusBadge({ status, className = "" }: StatusBadgeProps) {
+export function StatusBadge({ status, className = "", isOverdue = false }: StatusBadgeProps) {
   return (
-    <Badge 
-      variant="outline" 
-      className={`${getStatusColor(status)} border ${className}`}
+    <Badge
+      variant="outline"
+      className={`${getStatusColor(status, isOverdue)} border ${className}`}
     >
-      {getStatusLabel(status)}
+      {getStatusLabel(status, isOverdue)}
     </Badge>
   );
-} 
+}
