@@ -23,7 +23,7 @@ const tabs = [
   },
   {
     id: 'graph' as const,
-    label: 'Analytics',
+    label: 'Insights',
     icon: TrendingUp,
     description: 'Charts and insights'
   }

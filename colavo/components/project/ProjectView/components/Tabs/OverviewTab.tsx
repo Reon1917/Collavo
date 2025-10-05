@@ -99,7 +99,7 @@ export function OverviewTab({ project, tasks, events, files, permissions, onRefr
       {/* View Tabs at the top */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-          {selectedView === 'timeline' ? 'Timeline View' : selectedView === 'graph' ? 'Analytics' : 'Project View'}
+          {selectedView === 'timeline' ? 'Timeline View' : selectedView === 'graph' ? 'Insights' : 'Project View'}
         </h2>
         <ViewTabs value={selectedView} onChange={setSelectedView} />
       </div>

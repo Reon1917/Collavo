@@ -1,6 +1,7 @@
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { isOverdue } from '@/utils/date';
 import { StatusFormData, EditMode } from '../types';
 import { SubTask } from '../../../../types';
 import { StatusBadge } from './StatusBadge';
@@ -21,6 +22,8 @@ export function StatusUpdateForm({
   editMode,
   isLoading 
 }: StatusUpdateFormProps) {
+  const isSubTaskOverdue = subTask.status !== 'completed' && isOverdue(subTask.deadline);
+
   const statusButtons = [
     {
       value: 'pending' as const,
@@ -84,7 +87,7 @@ export function StatusUpdateForm({
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <StatusBadge status={subTask.status} className="text-sm px-3 py-1" />
+            <StatusBadge status={subTask.status} className="text-sm px-3 py-1" isOverdue={isSubTaskOverdue} />
           </div>
         )}
       </div>
