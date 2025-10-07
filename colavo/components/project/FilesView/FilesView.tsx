@@ -206,12 +206,10 @@ export function FilesView({ projectId }: FilesViewProps) {
   };
 
   const handleEditLink = async (link: ProjectLink) => {
-    // Revalidate permissions before opening edit modal
     try {
       const response = await fetch(`/api/projects/${projectId}/overview`);
       if (!response.ok) {
         toast.error('Permission denied');
-        await fetchProjectData(); // Refresh permissions
         return;
       }
 
@@ -219,12 +217,18 @@ export function FilesView({ projectId }: FilesViewProps) {
       const currentPermissions = data.project?.userPermissions || [];
       const currentIsLeader = data.project?.isLeader || false;
 
-      // Check if user still has BOTH viewFiles AND handleFile permissions
-      if (!currentIsLeader && (!currentPermissions.includes('viewFiles') || !currentPermissions.includes('handleFile'))) {
+      if (
+        !currentIsLeader &&
+        (!currentPermissions.includes('viewFiles') ||
+         !currentPermissions.includes('handleFile'))
+      ) {
         toast.error('You no longer have permission to edit links');
-        await fetchProjectData(); // Refresh permissions
         return;
       }
+
+      // Update state with fresh permissions
+      setUserPermissions(currentPermissions);
+      setIsLeader(currentIsLeader);
 
       setSelectedLink(link);
       setIsLinkEditModalOpen(true);
