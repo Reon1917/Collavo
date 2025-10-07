@@ -173,14 +173,60 @@ export function FilesView({ projectId }: FilesViewProps) {
     setAllItems(prevItems => prevItems.filter(item => item.id !== fileId));
   };
 
-  const handleEditFile = (file: ProjectFile) => {
-    setSelectedFile(file);
-    setIsEditModalOpen(true);
+  const handleEditFile = async (file: ProjectFile) => {
+    // Revalidate permissions before opening edit modal
+    try {
+      const response = await fetch(`/api/projects/${projectId}/overview`);
+      if (!response.ok) {
+        toast.error('Permission denied');
+        await fetchProjectData(); // Refresh permissions
+        return;
+      }
+
+      const data = await response.json();
+      const currentPermissions = data.project?.userPermissions || [];
+      const currentIsLeader = data.project?.isLeader || false;
+
+      // Check if user still has BOTH viewFiles AND handleFile permissions
+      if (!currentIsLeader && (!currentPermissions.includes('viewFiles') || !currentPermissions.includes('handleFile'))) {
+        toast.error('You no longer have permission to edit files');
+        await fetchProjectData(); // Refresh permissions
+        return;
+      }
+
+      setSelectedFile(file);
+      setIsEditModalOpen(true);
+    } catch {
+      toast.error('Failed to verify permissions');
+    }
   };
 
-  const handleEditLink = (link: ProjectLink) => {
-    setSelectedLink(link);
-    setIsLinkEditModalOpen(true);
+  const handleEditLink = async (link: ProjectLink) => {
+    // Revalidate permissions before opening edit modal
+    try {
+      const response = await fetch(`/api/projects/${projectId}/overview`);
+      if (!response.ok) {
+        toast.error('Permission denied');
+        await fetchProjectData(); // Refresh permissions
+        return;
+      }
+
+      const data = await response.json();
+      const currentPermissions = data.project?.userPermissions || [];
+      const currentIsLeader = data.project?.isLeader || false;
+
+      // Check if user still has BOTH viewFiles AND handleFile permissions
+      if (!currentIsLeader && (!currentPermissions.includes('viewFiles') || !currentPermissions.includes('handleFile'))) {
+        toast.error('You no longer have permission to edit links');
+        await fetchProjectData(); // Refresh permissions
+        return;
+      }
+
+      setSelectedLink(link);
+      setIsLinkEditModalOpen(true);
+    } catch {
+      toast.error('Failed to verify permissions');
+    }
   };
 
   const handleDeleteFile = (file: ProjectFile) => {
@@ -247,9 +293,9 @@ export function FilesView({ projectId }: FilesViewProps) {
     }
   }, [projectId]);
 
-  // Permission checks
-  const canManageFiles = isLeader || userPermissions.includes('handleFile');
+  // Permission checks - require BOTH viewFiles AND handleFile for management
   const canViewFiles = isLeader || userPermissions.includes('viewFiles');
+  const canManageFiles = canViewFiles && (isLeader || userPermissions.includes('handleFile'));
 
   if (isLoading || permissionsLoading) {
     return (
